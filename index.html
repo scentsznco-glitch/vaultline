@@ -7,21 +7,19 @@
   <meta name="description" content="Upload your photos and videos, set a price, share a link. Fans pay once and unlock forever. No subscriptions. No middlemen." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300..900;1,14..32,300..900&family=Syne:wght@700;800&display=swap" rel="stylesheet" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --green: #22c55e;
-      --green-dim: #16a34a;
-      --green-glow: rgba(34,197,94,.18);
-      --bg: #080808;
-      --bg2: #0f0f0f;
-      --bg3: #141414;
-      --border: rgba(255,255,255,.07);
-      --text: #f5f5f5;
-      --muted: #888;
-      --radius: 18px;
+      --g: #00ff85;
+      --g2: #00cc6a;
+      --bg: #060606;
+      --bg2: #0c0c0c;
+      --border: rgba(255,255,255,.06);
+      --text: #f0f0f0;
+      --muted: #666;
+      --muted2: #444;
     }
 
     html { scroll-behavior: smooth; }
@@ -30,14 +28,13 @@
       background: var(--bg);
       color: var(--text);
       font-family: 'Inter', sans-serif;
-      line-height: 1.6;
       -webkit-font-smoothing: antialiased;
       overflow-x: hidden;
     }
 
     a { color: inherit; text-decoration: none; }
 
-    /* ── Nav ─────────────────────────────────────────── */
+    /* ─── NAV ─────────────────────────────────────── */
     nav {
       position: fixed;
       top: 0; left: 0; right: 0;
@@ -45,106 +42,92 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 18px 24px;
-      background: rgba(8,8,8,.8);
-      backdrop-filter: blur(20px);
+      padding: 20px 32px;
+      background: rgba(6,6,6,.85);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
       border-bottom: 1px solid var(--border);
     }
 
-    .nav-logo {
-      font-size: 20px;
+    .logo {
+      font-family: 'Syne', sans-serif;
       font-weight: 800;
-      letter-spacing: -.5px;
+      font-size: 18px;
+      letter-spacing: -.3px;
       color: #fff;
     }
-    .nav-logo span { color: var(--green); }
+    .logo em { font-style: normal; color: var(--g); }
 
-    .nav-links { display: flex; gap: 8px; align-items: center; }
+    .nav-right { display: flex; align-items: center; gap: 6px; }
+
+    .nav-link {
+      padding: 8px 14px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--muted);
+      transition: color .2s;
+    }
+    .nav-link:hover { color: #fff; }
 
     .btn {
       display: inline-flex;
       align-items: center;
-      gap: 8px;
-      padding: 11px 22px;
-      border-radius: 100px;
-      font-size: 14px;
-      font-weight: 700;
+      gap: 7px;
+      font-family: 'Inter', sans-serif;
+      font-weight: 600;
       cursor: pointer;
       border: none;
-      transition: opacity .15s, transform .15s;
+      text-decoration: none;
+      transition: all .2s;
+      white-space: nowrap;
     }
-    .btn:active { transform: scale(.97); }
 
     .btn-ghost {
       background: transparent;
       color: var(--muted);
+      padding: 8px 14px;
+      font-size: 13px;
+      border-radius: 8px;
     }
-    .btn-ghost:hover { color: #fff; }
+    .btn-ghost:hover { color: #fff; background: rgba(255,255,255,.05); }
 
-    .btn-primary {
-      background: var(--green);
+    .btn-solid {
+      background: var(--g);
       color: #000;
+      padding: 10px 20px;
+      font-size: 13px;
+      border-radius: 8px;
+      font-weight: 700;
     }
-    .btn-primary:hover { opacity: .9; }
+    .btn-solid:hover { background: #fff; }
 
-    .btn-outline {
+    .btn-solid-lg {
+      background: var(--g);
+      color: #000;
+      padding: 15px 28px;
+      font-size: 15px;
+      border-radius: 10px;
+      font-weight: 700;
+      letter-spacing: -.1px;
+    }
+    .btn-solid-lg:hover { background: #fff; transform: translateY(-1px); box-shadow: 0 8px 32px rgba(0,255,133,.25); }
+
+    .btn-outline-lg {
       background: transparent;
       color: #fff;
-      border: 1px solid var(--border);
+      padding: 15px 28px;
+      font-size: 15px;
+      border-radius: 10px;
+      font-weight: 600;
+      border: 1px solid rgba(255,255,255,.15);
     }
-    .btn-outline:hover { border-color: rgba(255,255,255,.2); background: rgba(255,255,255,.04); }
+    .btn-outline-lg:hover { border-color: rgba(255,255,255,.35); background: rgba(255,255,255,.04); transform: translateY(-1px); }
 
-    .btn-lg {
-      padding: 16px 32px;
-      font-size: 16px;
-      border-radius: 100px;
-    }
-
-    /* ── Sections ─────────────────────────────────────── */
-    section { padding: 96px 24px; }
-
-    .container {
-      max-width: 1080px;
-      margin: 0 auto;
-    }
-
-    .label {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 12px;
-      font-weight: 700;
-      letter-spacing: .12em;
-      text-transform: uppercase;
-      color: var(--green);
-      background: var(--green-glow);
-      border: 1px solid rgba(34,197,94,.25);
-      padding: 6px 14px;
-      border-radius: 100px;
-      margin-bottom: 20px;
-    }
-
-    h1 {
-      font-size: clamp(40px, 9vw, 72px);
-      font-weight: 900;
-      line-height: 1.05;
-      letter-spacing: -.03em;
-    }
-
-    h2 {
-      font-size: clamp(28px, 5vw, 46px);
-      font-weight: 800;
-      letter-spacing: -.02em;
-      line-height: 1.15;
-    }
-
-    .green { color: var(--green); }
-    .muted { color: var(--muted); }
-
-    /* ── Hero ─────────────────────────────────────────── */
-    #hero {
-      min-height: 100dvh;
+    /* ─── HERO ────────────────────────────────────── */
+    .hero {
+      min-height: 100vh;
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
       text-align: center;
@@ -155,367 +138,543 @@
 
     .hero-glow {
       position: absolute;
+      top: -100px;
+      left: 50%;
+      transform: translateX(-50%);
       width: 700px;
       height: 700px;
-      background: radial-gradient(circle, rgba(34,197,94,.12) 0%, transparent 70%);
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -55%);
+      background: radial-gradient(ellipse at center, rgba(0,255,133,.12) 0%, transparent 70%);
       pointer-events: none;
     }
 
-    #hero .container { position: relative; }
+    .hero-grid {
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.02) 1px, transparent 1px);
+      background-size: 60px 60px;
+      mask-image: radial-gradient(ellipse at 50% 0%, black 30%, transparent 70%);
+      -webkit-mask-image: radial-gradient(ellipse at 50% 0%, black 30%, transparent 70%);
+      pointer-events: none;
+    }
 
-    #hero p {
-      font-size: clamp(16px, 2.5vw, 20px);
-      color: var(--muted);
-      max-width: 540px;
-      margin: 20px auto 40px;
-      line-height: 1.6;
+    .hero-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      background: rgba(0,255,133,.08);
+      border: 1px solid rgba(0,255,133,.2);
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--g);
+      margin-bottom: 32px;
+      position: relative;
+    }
+
+    .hero-headline {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(48px, 9vw, 96px);
+      font-weight: 800;
+      line-height: 1;
+      letter-spacing: -.04em;
+      color: #fff;
+      position: relative;
+      margin-bottom: 10px;
+    }
+
+    .hero-headline-2 {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(48px, 9vw, 96px);
+      font-weight: 800;
+      line-height: 1;
+      letter-spacing: -.04em;
+      background: linear-gradient(135deg, var(--g) 0%, #00d4aa 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      position: relative;
+      margin-bottom: 28px;
+    }
+
+    .hero-sub {
+      font-size: clamp(15px, 2vw, 18px);
+      color: #888;
+      line-height: 1.7;
+      max-width: 480px;
+      margin: 0 auto 40px;
+      font-weight: 400;
     }
 
     .hero-ctas {
       display: flex;
       gap: 12px;
-      justify-content: center;
       flex-wrap: wrap;
+      justify-content: center;
+      margin-bottom: 64px;
+      position: relative;
     }
 
-    .hero-badges {
-      margin-top: 40px;
+    .hero-trust {
       display: flex;
-      gap: 20px;
-      justify-content: center;
+      gap: 28px;
       flex-wrap: wrap;
+      justify-content: center;
+      position: relative;
     }
 
-    .hero-badge {
-      font-size: 13px;
-      color: var(--muted);
+    .trust-item {
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 7px;
+      font-size: 13px;
+      color: #555;
+      font-weight: 500;
     }
 
-    .hero-badge::before {
-      content: '✓';
-      color: var(--green);
+    .trust-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--g);
+      opacity: .6;
+    }
+
+    /* ─── STATS ───────────────────────────────────── */
+    .stats {
+      padding: 0 24px 80px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .stats-card {
+      display: grid;
+      grid-template-columns: 1fr 1px 1fr 1px 1fr;
+      width: 100%;
+      max-width: 700px;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+    }
+
+    .stat-divider {
+      background: var(--border);
+    }
+
+    .stat {
+      padding: 32px 24px;
+      text-align: center;
+    }
+
+    .stat-num {
+      font-family: 'Syne', sans-serif;
+      font-size: 38px;
+      font-weight: 800;
+      color: var(--g);
+      letter-spacing: -.03em;
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+
+    .stat-label {
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 500;
+      letter-spacing: .02em;
+    }
+
+    /* ─── HOW IT WORKS ────────────────────────────── */
+    .section {
+      padding: 100px 24px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .section-eyebrow {
+      font-size: 11px;
       font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--g);
+      margin-bottom: 16px;
     }
 
-    /* ── Steps ────────────────────────────────────────── */
-    #how {
+    .section-title {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(32px, 5vw, 52px);
+      font-weight: 800;
+      letter-spacing: -.03em;
+      line-height: 1.05;
+      color: #fff;
+      margin-bottom: 16px;
+    }
+
+    .section-sub {
+      font-size: 16px;
+      color: #666;
+      line-height: 1.7;
+      max-width: 500px;
+      margin-bottom: 56px;
+    }
+
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2px;
+      background: var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+    }
+
+    .step {
+      background: var(--bg2);
+      padding: 36px 28px;
+      position: relative;
+    }
+
+    .step-num {
+      font-family: 'Syne', sans-serif;
+      font-size: 48px;
+      font-weight: 800;
+      color: rgba(255,255,255,.05);
+      line-height: 1;
+      margin-bottom: 20px;
+      letter-spacing: -.04em;
+    }
+
+    .step-icon {
+      font-size: 28px;
+      margin-bottom: 14px;
+      display: block;
+    }
+
+    .step-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 8px;
+    }
+
+    .step-desc {
+      font-size: 13px;
+      color: #555;
+      line-height: 1.6;
+    }
+
+    /* ─── FEATURES ────────────────────────────────── */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 2px;
+      background: var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+    }
+
+    .feature {
+      background: var(--bg2);
+      padding: 36px 32px;
+      transition: background .2s;
+    }
+    .feature:hover { background: #111; }
+
+    .feature-icon {
+      font-size: 24px;
+      margin-bottom: 16px;
+      display: block;
+    }
+
+    .feature-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 8px;
+    }
+
+    .feature-desc {
+      font-size: 13px;
+      color: #555;
+      line-height: 1.65;
+    }
+
+    /* ─── CREATOR CARD PREVIEW ────────────────────── */
+    .preview-section {
+      padding: 100px 24px;
       background: var(--bg2);
       border-top: 1px solid var(--border);
       border-bottom: 1px solid var(--border);
     }
 
-    .section-header {
-      text-align: center;
-      margin-bottom: 60px;
-    }
-
-    .section-header p {
-      color: var(--muted);
-      font-size: 17px;
-      margin-top: 12px;
-      max-width: 480px;
-      margin-left: auto;
-      margin-right: auto;
-    }
-
-    .steps {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 24px;
-    }
-
-    .step {
-      background: var(--bg3);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 28px 24px;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .step::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 2px;
-      background: var(--green);
-      opacity: 0;
-      transition: opacity .2s;
-    }
-
-    .step:hover::before { opacity: 1; }
-
-    .step-num {
-      width: 40px;
-      height: 40px;
-      border-radius: 12px;
-      background: var(--green-glow);
-      border: 1px solid rgba(34,197,94,.25);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 16px;
-      font-weight: 800;
-      color: var(--green);
-      margin-bottom: 18px;
-    }
-
-    .step h3 {
-      font-size: 18px;
-      font-weight: 700;
-      margin-bottom: 8px;
-    }
-
-    .step p {
-      font-size: 14px;
-      color: var(--muted);
-      line-height: 1.6;
-    }
-
-    /* ── Features ─────────────────────────────────────── */
-    .features-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 20px;
-    }
-
-    .feature-card {
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 28px;
-      transition: border-color .2s;
-    }
-
-    .feature-card:hover { border-color: rgba(255,255,255,.15); }
-
-    .feature-icon {
-      width: 44px;
-      height: 44px;
-      border-radius: 12px;
-      background: var(--green-glow);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 22px;
-      margin-bottom: 16px;
-    }
-
-    .feature-card h3 {
-      font-size: 17px;
-      font-weight: 700;
-      margin-bottom: 6px;
-    }
-
-    .feature-card p {
-      font-size: 14px;
-      color: var(--muted);
-      line-height: 1.6;
-    }
-
-    /* ── Split section ────────────────────────────────── */
-    .split {
+    .preview-inner {
+      max-width: 900px;
+      margin: 0 auto;
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 60px;
       align-items: center;
     }
 
-    @media (max-width: 700px) {
-      .split { grid-template-columns: 1fr; gap: 40px; }
-    }
+    .preview-text .section-sub { margin-bottom: 32px; }
 
-    .split-visual {
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      border-radius: 24px;
-      aspect-ratio: 9/16;
-      max-height: 480px;
+    .check-list {
+      list-style: none;
       display: flex;
       flex-direction: column;
-      align-items: center;
-      justify-content: center;
       gap: 12px;
-      position: relative;
+      margin-bottom: 36px;
+    }
+
+    .check-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      font-size: 14px;
+      color: #888;
+      line-height: 1.5;
+    }
+
+    .check-list li::before {
+      content: '';
+      width: 16px;
+      height: 16px;
+      min-width: 16px;
+      border-radius: 50%;
+      background: rgba(0,255,133,.12);
+      border: 1px solid rgba(0,255,133,.3);
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2 6l3 3 5-5' stroke='%2300ff85' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: center;
+      background-size: 10px;
+      margin-top: 1px;
+    }
+
+    /* mock drop card */
+    .mock-card {
+      background: #0f0f0f;
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 16px;
       overflow: hidden;
+      box-shadow: 0 32px 80px rgba(0,0,0,.6);
     }
 
-    .phone-mock {
-      width: 90%;
-      max-width: 280px;
-      background: #111;
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 20px 16px;
-    }
-
-    .phone-mock-header {
-      font-size: 11px;
-      color: var(--muted);
-      text-align: center;
-      margin-bottom: 12px;
-    }
-
-    .phone-mock-item {
-      background: var(--bg3);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 12px;
-      margin-bottom: 8px;
+    .mock-header {
       display: flex;
       align-items: center;
       gap: 10px;
+      padding: 16px 20px;
+      border-bottom: 1px solid rgba(255,255,255,.05);
     }
 
-    .phone-thumb {
-      width: 40px;
-      height: 40px;
-      border-radius: 8px;
-      background: linear-gradient(135deg, var(--green-glow), rgba(34,197,94,.05));
-      border: 1px solid rgba(34,197,94,.2);
-      flex-shrink: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 16px;
-    }
-
-    .phone-info { flex: 1; min-width: 0; }
-
-    .phone-title {
-      font-size: 13px;
-      font-weight: 600;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .phone-price {
-      font-size: 12px;
-      color: var(--green);
-      font-weight: 700;
-    }
-
-    .phone-btn {
-      background: var(--green);
-      color: #000;
-      font-size: 11px;
-      font-weight: 700;
-      border: none;
-      border-radius: 8px;
-      padding: 6px 12px;
-      cursor: default;
-    }
-
-    /* ── Testimonials ─────────────────────────────────── */
-    #testimonials {
-      background: var(--bg2);
-      border-top: 1px solid var(--border);
-      border-bottom: 1px solid var(--border);
-    }
-
-    .testimonials-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 20px;
-    }
-
-    .testimonial {
-      background: var(--bg3);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 28px;
-    }
-
-    .testimonial-stars {
-      color: var(--green);
-      font-size: 14px;
-      margin-bottom: 14px;
-      letter-spacing: 2px;
-    }
-
-    .testimonial-text {
-      font-size: 15px;
-      line-height: 1.65;
-      color: #ddd;
-      margin-bottom: 20px;
-    }
-
-    .testimonial-author {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .testimonial-avatar {
-      width: 40px;
-      height: 40px;
+    .mock-avatar {
+      width: 32px;
+      height: 32px;
       border-radius: 50%;
-      background: linear-gradient(135deg, #22c55e22, #22c55e44);
-      border: 1px solid rgba(34,197,94,.3);
+      background: linear-gradient(135deg, var(--g), #00a8ff);
+    }
+
+    .mock-handle {
+      font-size: 13px;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .mock-live {
+      margin-left: auto;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .06em;
+      color: var(--g);
+      background: rgba(0,255,133,.1);
+      border: 1px solid rgba(0,255,133,.2);
+      border-radius: 4px;
+      padding: 3px 8px;
+      text-transform: uppercase;
+    }
+
+    .mock-thumb {
+      height: 160px;
+      background: linear-gradient(135deg, #111 0%, #1a1a1a 100%);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 18px;
+      position: relative;
     }
 
-    .testimonial-name {
-      font-weight: 700;
+    .mock-lock {
+      font-size: 36px;
+      opacity: .25;
+    }
+
+    .mock-overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0,0,0,.4);
+    }
+
+    .mock-price-badge {
+      background: var(--g);
+      color: #000;
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 22px;
+      padding: 10px 20px;
+      border-radius: 8px;
+      letter-spacing: -.02em;
+    }
+
+    .mock-body {
+      padding: 18px 20px;
+    }
+
+    .mock-title {
       font-size: 14px;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 4px;
     }
 
-    .testimonial-handle {
+    .mock-meta {
       font-size: 12px;
-      color: var(--muted);
+      color: #444;
+      margin-bottom: 16px;
     }
 
-    /* ── FAQ ──────────────────────────────────────────── */
-    .faq-list { max-width: 680px; margin: 0 auto; }
-
-    details {
-      border-bottom: 1px solid var(--border);
-      padding: 22px 0;
+    .mock-btn {
+      width: 100%;
+      padding: 12px;
+      background: var(--g);
+      color: #000;
+      font-weight: 700;
+      font-size: 13px;
+      border-radius: 8px;
+      text-align: center;
+      letter-spacing: -.01em;
     }
 
-    summary {
-      font-size: 16px;
-      font-weight: 600;
-      cursor: pointer;
-      list-style: none;
+    /* ─── EARNINGS CALC ───────────────────────────── */
+    .calc-section {
+      padding: 100px 24px;
+      max-width: 700px;
+      margin: 0 auto;
+      text-align: center;
+    }
+
+    .calc-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 40px 32px;
+      margin-top: 48px;
+      text-align: left;
+    }
+
+    .calc-row {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      gap: 16px;
+      padding: 14px 0;
+      border-bottom: 1px solid rgba(255,255,255,.04);
+      font-size: 14px;
     }
 
-    summary::-webkit-details-marker { display: none; }
+    .calc-row:last-child { border-bottom: none; }
 
-    summary::after {
-      content: '+';
-      color: var(--green);
-      font-size: 22px;
-      font-weight: 300;
-      flex-shrink: 0;
-      transition: transform .2s;
+    .calc-label { color: #666; }
+    .calc-val { color: #fff; font-weight: 600; }
+    .calc-val-green { color: var(--g); font-family: 'Syne', sans-serif; font-weight: 800; font-size: 22px; letter-spacing: -.03em; }
+
+    .calc-scenario {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
     }
 
-    details[open] summary::after { transform: rotate(45deg); }
-
-    details p {
-      font-size: 15px;
-      color: var(--muted);
-      line-height: 1.7;
-      margin-top: 14px;
+    .scenario-btn {
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: #666;
+      transition: all .15s;
+    }
+    .scenario-btn.active {
+      background: var(--g);
+      color: #000;
+      border-color: var(--g);
     }
 
-    /* ── CTA Bottom ───────────────────────────────────── */
-    #cta {
+    /* ─── COMPARISON ──────────────────────────────── */
+    .compare-section {
+      padding: 100px 24px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .compare-table {
+      width: 100%;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      margin-top: 48px;
+    }
+
+    .compare-head {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      background: #0c0c0c;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .compare-head-cell {
+      padding: 16px 20px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+      color: #444;
+    }
+
+    .compare-head-cell.highlight {
+      color: var(--g);
+      background: rgba(0,255,133,.04);
+    }
+
+    .compare-row {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      border-bottom: 1px solid rgba(255,255,255,.03);
+    }
+    .compare-row:last-child { border-bottom: none; }
+    .compare-row:nth-child(odd) { background: rgba(255,255,255,.01); }
+
+    .compare-cell {
+      padding: 16px 20px;
+      font-size: 13px;
+      color: #555;
+      display: flex;
+      align-items: center;
+    }
+
+    .compare-cell.feature-col { color: #888; font-weight: 500; }
+    .compare-cell.highlight { background: rgba(0,255,133,.03); }
+    .compare-cell.green { color: var(--g); font-weight: 700; }
+    .compare-cell.red { color: #555; }
+
+    /* ─── CTA SECTION ─────────────────────────────── */
+    .cta-section {
+      padding: 100px 24px;
       text-align: center;
       position: relative;
       overflow: hidden;
@@ -523,528 +682,387 @@
 
     .cta-glow {
       position: absolute;
-      width: 600px;
-      height: 400px;
-      background: radial-gradient(circle, rgba(34,197,94,.1) 0%, transparent 70%);
-      top: 50%;
+      bottom: -200px;
       left: 50%;
-      transform: translate(-50%, -50%);
+      transform: translateX(-50%);
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(ellipse at center, rgba(0,255,133,.08) 0%, transparent 70%);
       pointer-events: none;
     }
 
-    #cta .container { position: relative; }
-
-    #cta p {
-      font-size: 18px;
-      color: var(--muted);
-      margin: 16px auto 40px;
-      max-width: 480px;
-    }
-
-    .cta-cards {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 20px;
-      max-width: 680px;
-      margin: 0 auto;
-    }
-
-    @media (max-width: 600px) {
-      .cta-cards { grid-template-columns: 1fr; }
-    }
-
-    .cta-card {
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      border-radius: 24px;
-      padding: 32px 24px;
-      text-align: left;
-      transition: border-color .2s;
-    }
-
-    .cta-card:hover { border-color: rgba(255,255,255,.15); }
-
-    .cta-card.creator { border-color: rgba(34,197,94,.25); }
-    .cta-card.creator:hover { border-color: rgba(34,197,94,.5); }
-
-    .cta-card-icon {
-      font-size: 32px;
-      margin-bottom: 14px;
-    }
-
-    .cta-card h3 {
-      font-size: 20px;
+    .cta-title {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(36px, 6vw, 64px);
       font-weight: 800;
-      margin-bottom: 8px;
+      letter-spacing: -.04em;
+      line-height: 1;
+      color: #fff;
+      margin-bottom: 16px;
+      position: relative;
     }
 
-    .cta-card p {
-      font-size: 14px;
-      color: var(--muted);
-      margin: 0 0 22px;
-      line-height: 1.6;
+    .cta-sub {
+      font-size: 16px;
+      color: #555;
+      margin-bottom: 36px;
+      position: relative;
     }
 
-    /* ── Footer ───────────────────────────────────────── */
+    .cta-buttons {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+      position: relative;
+    }
+
+    /* ─── FOOTER ──────────────────────────────────── */
     footer {
       border-top: 1px solid var(--border);
-      padding: 32px 24px;
-      text-align: center;
+      padding: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
     }
 
-    footer .nav-logo { margin-bottom: 8px; display: block; }
+    .footer-logo {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 16px;
+      color: #fff;
+    }
+    .footer-logo em { font-style: normal; color: var(--g); }
 
-    footer .foot-links {
+    .footer-links {
       display: flex;
       gap: 24px;
-      justify-content: center;
-      flex-wrap: wrap;
-      margin: 16px 0;
     }
 
-    footer .foot-links a {
-      font-size: 13px;
-      color: var(--muted);
-      transition: color .15s;
-    }
-
-    footer .foot-links a:hover { color: #fff; }
-
-    footer .copy {
+    .footer-link {
       font-size: 12px;
       color: #444;
+      transition: color .2s;
+    }
+    .footer-link:hover { color: #888; }
+
+    .footer-copy {
+      font-size: 12px;
+      color: #333;
     }
 
-    /* ── Stat bar ─────────────────────────────────────── */
-    .stats-bar {
-      display: flex;
-      gap: 0;
-      justify-content: center;
-      flex-wrap: wrap;
-      margin-top: 64px;
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      overflow: hidden;
-      background: var(--bg2);
+    /* ─── REVEAL ANIMATION ────────────────────────── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(24px);
+      transition: opacity .6s cubic-bezier(.16,1,.3,1), transform .6s cubic-bezier(.16,1,.3,1);
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: none;
     }
 
-    .stat {
-      flex: 1;
-      min-width: 160px;
-      padding: 28px 24px;
-      text-align: center;
-      border-right: 1px solid var(--border);
+    /* ─── MOBILE ──────────────────────────────────── */
+    @media (max-width: 700px) {
+      nav { padding: 16px 20px; }
+      .nav-link { display: none; }
+
+      .hero { padding: 100px 20px 60px; }
+
+      .steps { grid-template-columns: 1fr; }
+      .features-grid { grid-template-columns: 1fr; }
+
+      .preview-inner {
+        grid-template-columns: 1fr;
+        gap: 40px;
+      }
+
+      .stats-card {
+        grid-template-columns: 1fr;
+      }
+      .stat-divider { height: 1px; width: auto; }
+
+      .compare-head { display: none; }
+      .compare-row {
+        grid-template-columns: 1fr 1fr;
+        gap: 4px;
+      }
+      .compare-cell:nth-child(3),
+      .compare-cell:nth-child(4) { display: none; }
+
+      footer { flex-direction: column; align-items: flex-start; }
     }
 
-    .stat:last-child { border-right: none; }
-
-    .stat-num {
-      font-size: 36px;
-      font-weight: 900;
-      color: var(--green);
-      letter-spacing: -.02em;
-    }
-
-    .stat-label {
-      font-size: 13px;
-      color: var(--muted);
-      margin-top: 4px;
-    }
-
-    @media (max-width: 500px) {
-      .stat { border-right: none; border-bottom: 1px solid var(--border); }
-      .stat:last-child { border-bottom: none; }
+    @media (max-width: 480px) {
+      .hero-ctas { flex-direction: column; align-items: center; width: 100%; }
+      .btn-solid-lg, .btn-outline-lg { width: 100%; justify-content: center; max-width: 320px; }
     }
   </style>
 </head>
 <body>
 
-<!-- ── Nav ─────────────────────────────────────────── -->
-<nav>
-  <a href="/" class="nav-logo">vault<span>line</span></a>
-  <div class="nav-links">
-    <a href="#how" class="btn btn-ghost">How it works</a>
-    <a href="fan.html" class="btn btn-outline">Browse drops</a>
-    <a href="app.html" class="btn btn-primary">Start selling</a>
-  </div>
-</nav>
-
-<!-- ── Hero ─────────────────────────────────────────── -->
-<section id="hero">
-  <div class="hero-glow"></div>
-  <div class="container">
-    <div class="label">🔐 The creator paywall built different</div>
-    <h1>Lock your content.<br /><span class="green">Get paid.</span></h1>
-    <p>Upload your photos and videos, set a price, share a link. Fans pay once and unlock forever. No subscriptions. No middlemen.</p>
-    <div class="hero-ctas">
-      <a href="app.html" class="btn btn-primary btn-lg">Start selling free →</a>
-      <a href="fan.html" class="btn btn-outline btn-lg">Browse drops</a>
+  <!-- NAV -->
+  <nav>
+    <a href="/" class="logo">vault<em>line</em></a>
+    <div class="nav-right">
+      <a href="#how" class="nav-link">How it works</a>
+      <a href="fan.html" class="btn btn-ghost">Browse drops</a>
+      <a href="app.html" class="btn btn-solid">Start selling</a>
     </div>
-    <div class="hero-badges">
-      <span class="hero-badge">No monthly fees</span>
-      <span class="hero-badge">Permanent unlocks</span>
-      <span class="hero-badge">Instant payouts</span>
-      <span class="hero-badge">Any content type</span>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-glow"></div>
+    <div class="hero-grid"></div>
+
+    <div class="hero-eyebrow reveal">
+      <span>🔐</span> Creator paywall, built different
     </div>
 
-    <div class="stats-bar">
+    <h1 class="hero-headline reveal">Lock your content.</h1>
+    <h1 class="hero-headline-2 reveal">Get paid.</h1>
+
+    <p class="hero-sub reveal">
+      Upload photos and videos, set your price, share your link.
+      Fans pay once — they unlock forever. Zero subscriptions. Zero middlemen.
+    </p>
+
+    <div class="hero-ctas reveal">
+      <a href="app.html" class="btn btn-solid-lg">
+        Start selling free <span style="font-size:16px">→</span>
+      </a>
+      <a href="fan.html" class="btn btn-outline-lg">Browse drops</a>
+    </div>
+
+    <div class="hero-trust reveal">
+      <span class="trust-item"><span class="trust-dot"></span>No monthly fees</span>
+      <span class="trust-item"><span class="trust-dot"></span>You keep 90%</span>
+      <span class="trust-item"><span class="trust-dot"></span>Fans unlock forever</span>
+      <span class="trust-item"><span class="trust-dot"></span>Any content type</span>
+    </div>
+  </section>
+
+  <!-- STATS -->
+  <div class="stats reveal">
+    <div class="stats-card">
       <div class="stat">
         <div class="stat-num">$0</div>
-        <div class="stat-label">to get started</div>
+        <div class="stat-label">To get started</div>
       </div>
+      <div class="stat-divider"></div>
       <div class="stat">
         <div class="stat-num">90%</div>
-        <div class="stat-label">you keep per sale</div>
+        <div class="stat-label">You keep per sale</div>
       </div>
-      <div class="stat">
-        <div class="stat-num">1-tap</div>
-        <div class="stat-label">fan checkout</div>
-      </div>
+      <div class="stat-divider"></div>
       <div class="stat">
         <div class="stat-num">∞</div>
-        <div class="stat-label">content, no limits</div>
+        <div class="stat-label">Fan access, forever</div>
       </div>
     </div>
   </div>
-</section>
 
-<!-- ── How it works ──────────────────────────────────── -->
-<section id="how">
-  <div class="container">
-    <div class="section-header">
-      <div class="label">Simple by design</div>
-      <h2>Four steps to your first sale</h2>
-      <p>No tech skills needed. You're earning in minutes.</p>
-    </div>
-    <div class="steps">
+  <!-- HOW IT WORKS -->
+  <div id="how" class="section">
+    <div class="section-eyebrow reveal">How it works</div>
+    <h2 class="section-title reveal">Three steps.<br>Then you get paid.</h2>
+    <p class="section-sub reveal">No complicated setup. No waiting period. No minimum payout threshold.</p>
+
+    <div class="steps reveal">
       <div class="step">
-        <div class="step-num">1</div>
-        <h3>Import</h3>
-        <p>Pick photos or videos straight from your device. Up to 10 files per drop, any format.</p>
+        <div class="step-num">01</div>
+        <span class="step-icon">📁</span>
+        <div class="step-title">Upload your drop</div>
+        <div class="step-desc">Photos, videos, PDFs — anything. Set a price (min $5). Your content stays encrypted until someone pays.</div>
       </div>
       <div class="step">
-        <div class="step-num">2</div>
-        <h3>Lock</h3>
-        <p>Set your price (minimum $5), write a caption, and generate your secure payment link instantly.</p>
+        <div class="step-icon">🔗</div>
+        <div class="step-num">02</div>
+        <div class="step-title">Share your link</div>
+        <div class="step-desc">Every drop gets its own link. Post it anywhere — TikTok, Twitter, Instagram. Drive traffic your way.</div>
       </div>
       <div class="step">
-        <div class="step-num">3</div>
-        <h3>Share</h3>
-        <p>Drop your link anywhere — Instagram, Snapchat, X, TikTok, DMs, Telegram. Fans tap and pay.</p>
-      </div>
-      <div class="step">
-        <div class="step-num">4</div>
-        <h3>Earn</h3>
-        <p>You keep 90% of every sale. Track your earnings in real time. Payouts straight to your bank.</p>
+        <div class="step-num">03</div>
+        <span class="step-icon">💸</span>
+        <div class="step-title">Collect the bag</div>
+        <div class="step-desc">Fans pay once. You keep 90%. Withdraw to your bank whenever. No hold periods, no games.</div>
       </div>
     </div>
   </div>
-</section>
 
-<!-- ── Creator preview ───────────────────────────────── -->
-<section id="creator">
-  <div class="container">
-    <div class="split">
-      <div>
-        <div class="label">For creators</div>
-        <h2>Your content.<br />Your <span class="green">price.</span></h2>
-        <p style="color:var(--muted);font-size:17px;margin:16px 0 32px;line-height:1.7;">
-          Post anything — behind-the-scenes, exclusive sets, tutorials, audio, presets. You control what's locked and what's free.
-        </p>
-        <ul style="list-style:none;display:flex;flex-direction:column;gap:14px;margin-bottom:36px;">
-          <li style="display:flex;gap:10px;align-items:flex-start;font-size:15px;">
-            <span style="color:var(--green);font-weight:700;flex-shrink:0;">✓</span>
-            <span style="color:#ccc;">Permanent unlocks — fans own it forever, you sell it once</span>
-          </li>
-          <li style="display:flex;gap:10px;align-items:flex-start;font-size:15px;">
-            <span style="color:var(--green);font-weight:700;flex-shrink:0;">✓</span>
-            <span style="color:#ccc;">Upload photos, videos, bundles — any file type</span>
-          </li>
-          <li style="display:flex;gap:10px;align-items:flex-start;font-size:15px;">
-            <span style="color:var(--green);font-weight:700;flex-shrink:0;">✓</span>
-            <span style="color:#ccc;">Real-time dashboard — track views, sales, and revenue</span>
-          </li>
-          <li style="display:flex;gap:10px;align-items:flex-start;font-size:15px;">
-            <span style="color:var(--green);font-weight:700;flex-shrink:0;">✓</span>
-            <span style="color:#ccc;">Your own storefront page fans can bookmark</span>
-          </li>
+  <!-- CREATOR PREVIEW -->
+  <div class="preview-section">
+    <div class="preview-inner">
+      <div class="preview-text">
+        <div class="section-eyebrow reveal">For creators</div>
+        <h2 class="section-title reveal">Your content.<br>Your price.</h2>
+        <p class="section-sub reveal">You decide what it's worth. We handle the checkout, delivery, and payout — you just create.</p>
+        <ul class="check-list reveal">
+          <li>Fans get permanent access — no rebilling drama</li>
+          <li>Upload any file type — photos, videos, zips, PDFs</li>
+          <li>Real-time dashboard — see every sale as it happens</li>
+          <li>Your own storefront page at vaultd.me/@you</li>
+          <li>Followers get notified when you drop new content</li>
         </ul>
-        <a href="app.html" class="btn btn-primary btn-lg">Create your first drop →</a>
+        <a href="app.html" class="btn btn-solid-lg reveal" style="display:inline-flex">Create your first drop →</a>
       </div>
-      <div class="split-visual">
-        <div class="phone-mock">
-          <div class="phone-mock-header">📊 Your drops</div>
-          <div class="phone-mock-item">
-            <div class="phone-thumb">🌅</div>
-            <div class="phone-info">
-              <div class="phone-title">Summer collection vol.2</div>
-              <div class="phone-price">$25 · 14 sales</div>
+      <div class="reveal">
+        <div class="mock-card">
+          <div class="mock-header">
+            <div class="mock-avatar"></div>
+            <div>
+              <div class="mock-handle">@yourhandle</div>
             </div>
-            <div class="phone-btn">Live</div>
+            <div class="mock-live">Live</div>
           </div>
-          <div class="phone-mock-item">
-            <div class="phone-thumb">🎬</div>
-            <div class="phone-info">
-              <div class="phone-title">Behind the shoot</div>
-              <div class="phone-price">$15 · 8 sales</div>
+          <div class="mock-thumb">
+            <div class="mock-lock">🔐</div>
+            <div class="mock-overlay">
+              <div class="mock-price-badge">$25</div>
             </div>
-            <div class="phone-btn">Live</div>
           </div>
-          <div class="phone-mock-item">
-            <div class="phone-thumb">📸</div>
-            <div class="phone-info">
-              <div class="phone-title">Raw unedited set</div>
-              <div class="phone-price">$40 · 22 sales</div>
-            </div>
-            <div class="phone-btn">Live</div>
-          </div>
-          <div style="margin-top:16px;padding:14px;background:var(--bg);border-radius:12px;text-align:center;">
-            <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">Total earned</div>
-            <div style="font-size:28px;font-weight:900;color:var(--green);">$1,170</div>
+          <div class="mock-body">
+            <div class="mock-title">Exclusive Content Drop #1</div>
+            <div class="mock-meta">12 files · Unlock forever</div>
+            <div class="mock-btn">Unlock Now →</div>
           </div>
         </div>
       </div>
     </div>
   </div>
-</section>
 
-<!-- ── Fan preview ───────────────────────────────────── -->
-<section id="fans" style="background:var(--bg2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);">
-  <div class="container">
-    <div class="split">
-      <div class="split-visual">
-        <div class="phone-mock">
-          <div class="phone-mock-header">🔐 Unlock content</div>
-          <div class="phone-mock-item" style="flex-direction:column;align-items:flex-start;gap:10px;">
-            <div style="width:100%;height:80px;background:linear-gradient(135deg,rgba(34,197,94,.1),rgba(34,197,94,.03));border-radius:10px;border:1px solid rgba(34,197,94,.15);display:flex;align-items:center;justify-content:center;font-size:28px;">🌅</div>
-            <div style="font-size:14px;font-weight:700;">Summer collection vol.2</div>
-            <div style="font-size:12px;color:var(--muted);">12 exclusive photos · unlocks forever</div>
-            <button style="width:100%;background:var(--green);color:#000;font-weight:700;border:none;border-radius:10px;padding:12px;font-size:14px;cursor:default;">Unlock for $25</button>
-          </div>
-          <div style="margin-top:12px;display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);">
-            <span>🔒</span> Secure checkout · own it forever
-          </div>
-        </div>
+  <!-- FEATURES -->
+  <div class="section" style="max-width: 900px;">
+    <div class="section-eyebrow reveal">Why Vaultline</div>
+    <h2 class="section-title reveal">Built to make you money,<br>not collect fees.</h2>
+    <p class="section-sub reveal">Every feature exists for one reason: getting more cash in your pocket.</p>
+
+    <div class="features-grid reveal">
+      <div class="feature">
+        <span class="feature-icon">🔒</span>
+        <div class="feature-title">True content protection</div>
+        <div class="feature-desc">Your files are never publicly accessible. Fans get a private, time-limited download link — not a shareable URL.</div>
       </div>
-      <div>
-        <div class="label">For fans</div>
-        <h2>Pay once.<br />Own it <span class="green">forever.</span></h2>
-        <p style="color:var(--muted);font-size:17px;margin:16px 0 32px;line-height:1.7;">
-          No subscriptions. No recurring charges. Unlock exactly what you want, once — and it's yours. Access your library from any device, any time.
-        </p>
-        <ul style="list-style:none;display:flex;flex-direction:column;gap:14px;margin-bottom:36px;">
-          <li style="display:flex;gap:10px;align-items:flex-start;font-size:15px;">
-            <span style="color:var(--green);font-weight:700;flex-shrink:0;">✓</span>
-            <span style="color:#ccc;">One-tap checkout — no account required to buy</span>
-          </li>
-          <li style="display:flex;gap:10px;align-items:flex-start;font-size:15px;">
-            <span style="color:var(--green);font-weight:700;flex-shrink:0;">✓</span>
-            <span style="color:#ccc;">Permanent library — your unlocks never expire</span>
-          </li>
-          <li style="display:flex;gap:10px;align-items:flex-start;font-size:15px;">
-            <span style="color:var(--green);font-weight:700;flex-shrink:0;">✓</span>
-            <span style="color:#ccc;">Download anytime from your personal library</span>
-          </li>
-          <li style="display:flex;gap:10px;align-items:flex-start;font-size:15px;">
-            <span style="color:var(--green);font-weight:700;flex-shrink:0;">✓</span>
-            <span style="color:#ccc;">Support creators directly — 90% goes straight to them</span>
-          </li>
-        </ul>
-        <a href="fan.html" class="btn btn-outline btn-lg">Browse drops →</a>
+      <div class="feature">
+        <span class="feature-icon">⚡</span>
+        <div class="feature-title">Instant payouts</div>
+        <div class="feature-desc">No 30-day holds or weird thresholds. Once a fan pays, that money is ready to withdraw immediately.</div>
+      </div>
+      <div class="feature">
+        <span class="feature-icon">📊</span>
+        <div class="feature-title">Live earnings dashboard</div>
+        <div class="feature-desc">See every purchase in real time. Know which drops are converting and which to double down on.</div>
+      </div>
+      <div class="feature">
+        <span class="feature-icon">🌐</span>
+        <div class="feature-title">Your own storefront</div>
+        <div class="feature-desc">Every creator gets a public profile page showing all their drops — one link to send fans.</div>
+      </div>
+      <div class="feature">
+        <span class="feature-icon">🔔</span>
+        <div class="feature-title">Fan notifications</div>
+        <div class="feature-desc">Fans who follow you get an email the moment you publish a new drop. Built-in marketing.</div>
+      </div>
+      <div class="feature">
+        <span class="feature-icon">💳</span>
+        <div class="feature-title">Zero monthly cost</div>
+        <div class="feature-desc">We only make money when you make money. No subscriptions, no listing fees — just a 10% cut on sales.</div>
       </div>
     </div>
   </div>
-</section>
 
-<!-- ── Features ──────────────────────────────────────── -->
-<section id="features">
-  <div class="container">
-    <div class="section-header">
-      <div class="label">Built for monetization</div>
-      <h2>Everything you need.<br />Nothing you don't.</h2>
-    </div>
-    <div class="features-grid">
-      <div class="feature-card">
-        <div class="feature-icon">🔐</div>
-        <h3>Permanent unlocks</h3>
-        <p>Fans pay once and own the content forever. No renewal reminders, no cancellation anxiety.</p>
+  <!-- COMPARISON -->
+  <div class="compare-section">
+    <div class="section-eyebrow reveal" style="text-align:center">The honest comparison</div>
+    <h2 class="section-title reveal" style="text-align:center">We're not trying to own you.</h2>
+
+    <div class="compare-table reveal">
+      <div class="compare-head">
+        <div class="compare-head-cell">Feature</div>
+        <div class="compare-head-cell highlight">Vaultline</div>
+        <div class="compare-head-cell">OnlyFans</div>
+        <div class="compare-head-cell">Gumroad</div>
       </div>
-      <div class="feature-card">
-        <div class="feature-icon">⚡</div>
-        <h3>Instant link generation</h3>
-        <p>Upload, price, publish. Your payment link is live in under 60 seconds.</p>
+      <div class="compare-row">
+        <div class="compare-cell feature-col">Revenue cut you keep</div>
+        <div class="compare-cell highlight green">90%</div>
+        <div class="compare-cell">80%</div>
+        <div class="compare-cell">87–93%</div>
       </div>
-      <div class="feature-card">
-        <div class="feature-icon">💸</div>
-        <h3>90% payout</h3>
-        <p>You keep 90 cents of every dollar. No hidden fees, no platform tax beyond the platform fee.</p>
+      <div class="compare-row">
+        <div class="compare-cell feature-col">Monthly fee</div>
+        <div class="compare-cell highlight green">$0</div>
+        <div class="compare-cell">$0</div>
+        <div class="compare-cell">$0–$10</div>
       </div>
-      <div class="feature-card">
-        <div class="feature-icon">📱</div>
-        <h3>Mobile-first</h3>
-        <p>Built for how creators actually work — upload from your phone, share in your stories, get paid.</p>
+      <div class="compare-row">
+        <div class="compare-cell feature-col">Fans own access forever</div>
+        <div class="compare-cell highlight green">✓ Always</div>
+        <div class="compare-cell red">✗ Subscription</div>
+        <div class="compare-cell green">✓ Yes</div>
       </div>
-      <div class="feature-card">
-        <div class="feature-icon">🛒</div>
-        <h3>Your own storefront</h3>
-        <p>Every creator gets a profile page. Drop your link in bio and fans can browse all your drops 24/7.</p>
+      <div class="compare-row">
+        <div class="compare-cell feature-col">Instant withdrawals</div>
+        <div class="compare-cell highlight green">✓ Yes</div>
+        <div class="compare-cell red">7-day hold</div>
+        <div class="compare-cell red">Weekly batch</div>
       </div>
-      <div class="feature-card">
-        <div class="feature-icon">📊</div>
-        <h3>Real-time analytics</h3>
-        <p>Views, sales, and revenue — all in your dashboard. Know exactly what's working.</p>
+      <div class="compare-row">
+        <div class="compare-cell feature-col">Content type restrictions</div>
+        <div class="compare-cell highlight green">None</div>
+        <div class="compare-cell red">Heavy</div>
+        <div class="compare-cell">Moderate</div>
       </div>
     </div>
   </div>
-</section>
 
-<!-- ── Testimonials ──────────────────────────────────── -->
-<section id="testimonials">
-  <div class="container">
-    <div class="section-header">
-      <div class="label">Creator love</div>
-      <h2>Real creators.<br /><span class="green">Real money.</span></h2>
-    </div>
-    <div class="testimonials-grid">
-      <div class="testimonial">
-        <div class="testimonial-stars">★★★★★</div>
-        <p class="testimonial-text">"I made $800 in my first week just sharing a link in my Instagram story. I didn't even have to DM anyone. They just... paid."</p>
-        <div class="testimonial-author">
-          <div class="testimonial-avatar">🌺</div>
-          <div>
-            <div class="testimonial-name">Maya R.</div>
-            <div class="testimonial-handle">Lifestyle creator · 120K followers</div>
-          </div>
-        </div>
-      </div>
-      <div class="testimonial">
-        <div class="testimonial-stars">★★★★★</div>
-        <p class="testimonial-text">"Finally a platform where I set my own price. My fans pay once and they own it. No subscriptions, no drama. It just works."</p>
-        <div class="testimonial-author">
-          <div class="testimonial-avatar">📸</div>
-          <div>
-            <div class="testimonial-name">Jordan K.</div>
-            <div class="testimonial-handle">Photographer · 45K followers</div>
-          </div>
-        </div>
-      </div>
-      <div class="testimonial">
-        <div class="testimonial-stars">★★★★★</div>
-        <p class="testimonial-text">"I sell behind-the-scenes content from my shoots. Vaultline made it dead simple — upload, lock, share the link, done."</p>
-        <div class="testimonial-author">
-          <div class="testimonial-avatar">🎬</div>
-          <div>
-            <div class="testimonial-name">Alex T.</div>
-            <div class="testimonial-handle">Model & content creator · 88K followers</div>
-          </div>
-        </div>
-      </div>
+  <!-- CTA -->
+  <div class="cta-section">
+    <div class="cta-glow"></div>
+    <div class="section-eyebrow reveal" style="display:inline-block">Ready to get paid?</div>
+    <h2 class="cta-title reveal">Your first drop is<br>30 minutes away.</h2>
+    <p class="cta-sub reveal">Free to start. No credit card. Cancel nothing — there's nothing to cancel.</p>
+    <div class="cta-buttons reveal">
+      <a href="app.html" class="btn btn-solid-lg">Create your account →</a>
+      <a href="fan.html" class="btn btn-outline-lg">Browse drops first</a>
     </div>
   </div>
-</section>
 
-<!-- ── FAQ ───────────────────────────────────────────── -->
-<section id="faq">
-  <div class="container">
-    <div class="section-header">
-      <div class="label">Questions</div>
-      <h2>Everything you need to know</h2>
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-logo">vault<em>line</em></div>
+    <div class="footer-links">
+      <a href="#how" class="footer-link">How it works</a>
+      <a href="fan.html" class="footer-link">Browse drops</a>
+      <a href="app.html" class="footer-link">Sign up</a>
     </div>
-    <div class="faq-list">
-      <details open>
-        <summary>How much does Vaultline cost?</summary>
-        <p>Nothing upfront. Vaultline takes a 10% platform fee per sale — that's it. You keep 90% of everything you earn. No monthly subscription, no listing fee, no hidden charges.</p>
-      </details>
-      <details>
-        <summary>What kind of content can I sell?</summary>
-        <p>Photos, videos, bundles of both — any file you upload. Behind-the-scenes, exclusive sets, tutorials, presets, audio clips. The minimum price per drop is $5.</p>
-      </details>
-      <details>
-        <summary>Do fans need an account to buy?</summary>
-        <p>Fans can browse without an account. To buy and access their library across devices, they sign in via a magic link — no password needed. One tap to their inbox, done.</p>
-      </details>
-      <details>
-        <summary>Are unlocks really permanent?</summary>
-        <p>Yes. Fans pay once and own the content forever. There are no expiring links, no subscription renewals, no "access removed" surprises. What they unlock is theirs.</p>
-      </details>
-      <details>
-        <summary>How do I get paid?</summary>
-        <p>Payments are processed through Stripe. Earnings go directly to your connected bank account. Payouts typically land within 2–5 business days of a sale.</p>
-      </details>
-      <details>
-        <summary>Is my content secure?</summary>
-        <p>Yes. Files are stored in private, encrypted storage and are never publicly accessible. Download links are signed and expire — they can only be accessed by the fan who purchased.</p>
-      </details>
-    </div>
-  </div>
-</section>
+    <div class="footer-copy">© 2026 Vaultline</div>
+  </footer>
 
-<!-- ── CTA Bottom ─────────────────────────────────────── -->
-<section id="cta">
-  <div class="cta-glow"></div>
-  <div class="container">
-    <div class="label">Ready?</div>
-    <h2>Your content.<br />Your <span class="green">vault.</span></h2>
-    <p>Join creators already locking their content and getting paid on their terms.</p>
-    <div class="cta-cards">
-      <div class="cta-card creator">
-        <div class="cta-card-icon">🔐</div>
-        <h3>I'm a creator</h3>
-        <p>Upload content, set your price, and start earning. Free to join. 90% payouts.</p>
-        <a href="app.html" class="btn btn-primary" style="width:100%;justify-content:center;">Start selling →</a>
-      </div>
-      <div class="cta-card">
-        <div class="cta-card-icon">🛒</div>
-        <h3>I'm a fan</h3>
-        <p>Browse drops from your favorite creators. Pay once, own forever.</p>
-        <a href="fan.html" class="btn btn-outline" style="width:100%;justify-content:center;">Browse drops →</a>
-      </div>
-    </div>
-  </div>
-</section>
+  <script>
+    // Scroll reveal
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry, i) => {
+        if (entry.isIntersecting) {
+          setTimeout(() => entry.target.classList.add('visible'), i * 60);
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.12 });
 
-<!-- ── Footer ─────────────────────────────────────────── -->
-<footer>
-  <span class="nav-logo">vault<span>line</span></span>
-  <div class="foot-links">
-    <a href="#how">How it works</a>
-    <a href="#features">Features</a>
-    <a href="#faq">FAQ</a>
-    <a href="app.html">Creators</a>
-    <a href="fan.html">Fans</a>
-  </div>
-  <p class="copy">© 2026 Vaultline. All rights reserved.</p>
-</footer>
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 
-<script>
-  // Smooth scroll for anchor links
-  document.querySelectorAll('a[href^="#"]').forEach(a => {
-    a.addEventListener('click', e => {
-      const target = document.querySelector(a.getAttribute('href'));
-      if (target) {
-        e.preventDefault();
-        target.scrollIntoView({ behavior: 'smooth' });
-      }
+    // Scenario buttons (calc section)
+    document.querySelectorAll('.scenario-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.scenario-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+      });
     });
-  });
+  </script>
 
-  // Animate stats on scroll
-  const observer = new IntersectionObserver(entries => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        entry.target.style.opacity = '1';
-        entry.target.style.transform = 'translateY(0)';
-      }
-    });
-  }, { threshold: 0.1 });
-
-  document.querySelectorAll('.step, .feature-card, .testimonial, .cta-card').forEach(el => {
-    el.style.opacity = '0';
-    el.style.transform = 'translateY(24px)';
-    el.style.transition = 'opacity .5s ease, transform .5s ease';
-    observer.observe(el);
-  });
-</script>
 </body>
 </html>
-
