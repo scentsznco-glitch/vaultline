@@ -1,6 +1,6 @@
 // Vaultline shared API client — loaded before app.js and fan.js
 const VaultlineAPI = (function () {
-  const BASE = "http://localhost:8787";
+  const BASE = window.location.hostname === "localhost" ? "http://localhost:8787" : "";
 
   async function req(method, path, body) {
     const opts = { method, credentials: "include" };
