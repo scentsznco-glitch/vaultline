@@ -188,10 +188,11 @@ app.get(
     const token = z.string().min(10).parse(request.query.token);
     const user = await verifyEmailToken(hashToken(token));
     if (!user) {
-      response.status(400).json({ ok: false, error: "Verification link is invalid or expired" });
+      response.redirect(`${config.publicBaseUrl}/app.html?auth=invalid`);
       return;
     }
-    ok(response, { user: { id: user.id, email: user.email, emailVerified: user.email_verified } });
+    // Redirect to app after successful verification
+    response.redirect(`${config.publicBaseUrl}/app.html?auth=verified`);
   }),
 );
 

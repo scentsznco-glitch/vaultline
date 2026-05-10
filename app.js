@@ -2203,6 +2203,18 @@ document.addEventListener("DOMContentLoaded", () => {
     showToast("Manage payouts in your Stripe dashboard");
   });
 
+  // Handle magic link verification redirect
+  (() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('auth') === 'verified') {
+      history.replaceState(null, '', window.location.pathname);
+      showToast('✅ Email verified — you\'re signed in!');
+    } else if (params.get('auth') === 'invalid') {
+      history.replaceState(null, '', window.location.pathname);
+      showToast('❌ Verification link expired. Request a new one.');
+    }
+  })();
+
   // Handle Stripe Connect return / refresh redirects
   (async () => {
     const params = new URLSearchParams(window.location.search);
