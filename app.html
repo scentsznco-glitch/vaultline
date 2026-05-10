@@ -1,0 +1,469 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Vaultline Creator</title>
+    <link rel="stylesheet" href="styles.css?v=20260510-mobile-checklist2" />
+    <script defer src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
+    <script defer src="api.js"></script>
+    <script defer src="app.js?v=20260510-mobile-checklist2"></script>
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar" aria-label="Primary navigation">
+        <a class="brand" href="#create" aria-label="Vaultline home">
+          <span class="brand-mark"><i data-lucide="lock-keyhole"></i></span>
+          <span>Vaultline</span>
+        </a>
+
+        <nav class="nav-stack">
+          <button class="nav-item is-active" type="button" data-view="create">
+            <i data-lucide="plus-square"></i>
+            <span>Create</span>
+          </button>
+          <button class="nav-item" type="button" data-view="links">
+            <i data-lucide="link"></i>
+            <span>Links</span>
+          </button>
+          <button class="nav-item" type="button" data-view="analytics">
+            <i data-lucide="bar-chart-3"></i>
+            <span>Analytics</span>
+          </button>
+          <button class="nav-item" type="button" data-view="wallet">
+            <i data-lucide="wallet"></i>
+            <span>Wallet</span>
+          </button>
+          <button class="nav-item" type="button" data-view="profile">
+            <i data-lucide="user-round"></i>
+            <span>Profile</span>
+          </button>
+        </nav>
+
+        <div class="sidebar-status">
+          <span class="status-light" aria-hidden="true"></span>
+          <span>Creator mode</span>
+        </div>
+      </aside>
+
+      <main class="main">
+        <header class="topbar">
+          <a class="mobile-brand" href="#create" aria-label="Vaultline home">
+            <span class="brand-mark"><i data-lucide="lock-keyhole"></i></span>
+            <span>Vaultline</span>
+          </a>
+          <div class="top-actions">
+            <button class="icon-button top-share-button" type="button" data-open-share aria-label="Share profile">
+              <i data-lucide="send"></i>
+            </button>
+            <button class="user-chip" type="button" data-open-account-menu aria-haspopup="menu" aria-expanded="false" aria-label="Account menu">
+              <span data-profile-handle>@creator</span>
+              <span class="avatar-mini" aria-hidden="true">C</span>
+              <i class="account-caret" data-lucide="chevron-down" aria-hidden="true"></i>
+            </button>
+            <div class="account-dropdown" id="account-dropdown" role="menu" hidden>
+              <div class="account-dropdown-head">
+                <span class="account-avatar">
+                  <img id="account-dropdown-avatar" src="assets/avatar-tile.svg" alt="" />
+                </span>
+                <div>
+                  <strong data-profile-handle>@creator</strong>
+                  <small>Creator account</small>
+                </div>
+              </div>
+              <button class="logout-button" type="button" data-logout role="menuitem">
+                <i data-lucide="log-out"></i>
+                <span>Log out</span>
+              </button>
+            </div>
+          </div>
+        </header>
+
+        <section class="view is-active" id="create" data-view-panel="create">
+          <form class="sell-screen" id="create-form">
+            <span id="create-stat-links" hidden>0</span>
+            <input id="title-input" name="title" type="hidden" value="Locked media" />
+            <textarea id="note-input" name="note" hidden>Pay once to unlock this content.</textarea>
+            <input id="content-url-input" name="contentUrl" type="hidden" />
+            <input id="file-input" name="file" type="file" accept="image/*,video/*" multiple hidden />
+
+            <div class="sell-start" id="sell-start">
+              <div class="sell-top">
+                <h1>Sell</h1>
+              </div>
+
+              <section class="sell-card" aria-label="Create locked content">
+                <div class="sell-media-stage" id="sell-media-stage" hidden>
+                  <div class="sell-media-rail-shell">
+                    <button class="sell-media-nav is-prev" type="button" data-media-rail-nav="prev" aria-label="Previous media" hidden>
+                      <i data-lucide="chevron-left"></i>
+                    </button>
+                    <div class="sell-media-grid" id="selected-media-grid" role="list" aria-label="Selected media"></div>
+                    <button class="sell-media-nav is-next" type="button" data-media-rail-nav="next" aria-label="Next media" hidden>
+                      <i data-lucide="chevron-right"></i>
+                    </button>
+                  </div>
+                  <div class="sell-media-actions">
+                    <span class="sell-media-count" id="sell-media-count">1 media</span>
+                    <button class="sell-add-more-media" type="button" data-add-more-media>
+                      <i data-lucide="plus"></i>
+                      <span>Add more</span>
+                    </button>
+                  </div>
+                </div>
+
+                <button class="sell-media-button" id="sell-media-empty" type="button" data-open-media-sheet>
+                  <span class="sell-plus" id="sell-media-icon"><i data-lucide="plus"></i></span>
+                  <strong id="sell-media-title">Add Media</strong>
+                  <small id="file-meta">Photo, video, template, course, e-book, or podcast</small>
+                </button>
+
+                <label class="sell-price">
+                  <span>Set Price</span>
+                  <span class="sell-price-input">
+                    <span>$</span>
+                    <input id="price-input" name="price" type="number" inputmode="decimal" min="5" step="0.50" placeholder="0.00" />
+                  </span>
+                  <small class="price-error" id="price-error" hidden>minimum of $5</small>
+                </label>
+              </section>
+
+              <div class="sell-options">
+                <button class="sell-row" type="button" data-open-access-sheet>
+                  <span>Who Can Buy</span>
+                  <strong id="sell-access-label">Everyone</strong>
+                  <i data-lucide="chevron-right"></i>
+                </button>
+                <button class="sell-row" type="button" data-open-download-sheet>
+                  <span>Download</span>
+                  <strong id="sell-download-label">Allowed</strong>
+                  <i data-lucide="chevron-right"></i>
+                </button>
+              </div>
+
+              <button class="sell-generate" type="submit" data-generate-link disabled>Generate Link</button>
+            </div>
+
+            <div class="sell-detail" id="sell-detail" hidden>
+              <div class="sell-detail-top">
+                <button class="sell-back-button" type="button" data-sell-back aria-label="Back">
+                  <i data-lucide="chevron-left"></i>
+                </button>
+                <h1 id="sell-detail-title">Template</h1>
+                <button class="sell-create-action" id="sell-detail-create" type="submit" disabled>Create</button>
+              </div>
+
+              <span class="sell-detail-icon" id="sell-detail-icon"><i data-lucide="layout-template"></i></span>
+
+              <div class="sell-detail-fields">
+                <label class="detail-field">
+                  <span>Name</span>
+                  <input id="detail-title-input" type="text" placeholder="Item Name" autocomplete="off" />
+                </label>
+
+                <label class="detail-field">
+                  <span>Price</span>
+                  <span class="money-field">
+                    <span>$</span>
+                    <input id="detail-price-input" type="number" inputmode="decimal" min="5" step="0.50" placeholder="0.00" />
+                  </span>
+                  <small class="price-error" id="detail-price-error" hidden>minimum of $5</small>
+                </label>
+
+                <label class="detail-field">
+                  <span>Description</span>
+                  <textarea id="detail-note-input" rows="5" placeholder="Describe your item..."></textarea>
+                </label>
+
+                <label class="detail-field">
+                  <span>Content URL</span>
+                  <small>Add the link to your content here. Buyers can download it after they pay.</small>
+                  <input id="detail-url-input" type="url" placeholder="URL" inputmode="url" />
+                </label>
+              </div>
+            </div>
+          </form>
+        </section>
+
+        <section class="view" id="links" data-view-panel="links">
+          <div class="page-hero library-hero inline-heading">
+            <div>
+              <p class="eyebrow">Library</p>
+              <h1>Links</h1>
+              <p>Manage drops, copy buyer links, and see which unlocks are moving.</p>
+            </div>
+            <button class="primary-button compact" type="button" data-view="create">
+              <i data-lucide="plus"></i>
+              <span>New link</span>
+            </button>
+          </div>
+
+          <div class="link-overview" aria-label="Link overview">
+            <span>
+              <strong id="links-stat-active">0</strong>
+              <small>Active drops</small>
+            </span>
+            <span>
+              <strong id="links-stat-revenue">$0.00</strong>
+              <small>Total earned</small>
+            </span>
+            <span>
+              <strong id="links-stat-views">0</strong>
+              <small>Tracked views</small>
+            </span>
+          </div>
+
+          <div class="segmented" role="tablist" aria-label="Link filters">
+            <button class="is-selected" type="button" data-filter="all">All</button>
+            <button type="button" data-filter="top">Top earning</button>
+            <button type="button" data-filter="viewed">Most viewed</button>
+            <button type="button" data-filter="expired">Expired</button>
+          </div>
+
+          <div class="link-list" id="link-list"></div>
+        </section>
+
+        <section class="view" id="analytics" data-view-panel="analytics">
+          <div class="page-hero analytics-hero">
+            <div>
+              <p class="eyebrow">Performance</p>
+              <h1>Analytics</h1>
+              <p>Revenue, buyers, and views from your permanent unlocks.</p>
+            </div>
+            <div class="hero-stats" aria-label="Analytics summary">
+              <span>
+                <strong id="analytics-conversion">0%</strong>
+                <small>Conversion</small>
+              </span>
+              <span>
+                <strong id="analytics-order">$0.00</strong>
+                <small>Avg unlock</small>
+              </span>
+            </div>
+          </div>
+
+          <div class="segmented" role="tablist" aria-label="Analytics ranges">
+            <button class="is-selected" type="button">Today</button>
+            <button type="button">7D</button>
+            <button type="button">30D</button>
+            <button type="button">1Y</button>
+            <button type="button">All time</button>
+          </div>
+
+          <div class="analytics-grid">
+            <article class="tool-panel chart-panel">
+              <div class="metric-row">
+                <div>
+                  <span>Total revenue</span>
+                  <strong id="analytics-revenue">$0.00</strong>
+                </div>
+                <div>
+                  <span>Previous</span>
+                  <strong class="muted">$0.00</strong>
+                </div>
+              </div>
+              <svg class="chart" viewBox="0 0 760 280" role="img" aria-label="Revenue chart">
+                <line x1="36" y1="44" x2="724" y2="44" />
+                <line x1="36" y1="114" x2="724" y2="114" />
+                <line x1="36" y1="184" x2="724" y2="184" />
+                <polyline id="chart-line-shadow" points="36,220 170,220 306,220 438,220 572,220 724,220" />
+                <polyline id="chart-line" points="36,220 170,220 306,220 438,220 572,220 724,220" />
+              </svg>
+              <div class="legend">
+                <span><b class="legend-current"></b>Current period</span>
+                <span><b class="legend-previous"></b>Previous period</span>
+              </div>
+            </article>
+
+            <article class="tool-panel stat-panel">
+              <i data-lucide="users-round"></i>
+              <span>Buyers</span>
+              <strong id="buyers-count">0</strong>
+              <small>Today</small>
+            </article>
+
+            <article class="tool-panel stat-panel accent">
+              <i data-lucide="eye"></i>
+              <span>Views</span>
+              <strong id="views-count">0</strong>
+              <small>Tracked visits</small>
+            </article>
+
+            <article class="tool-panel stat-panel warm">
+              <i data-lucide="shopping-bag"></i>
+              <span>Sales</span>
+              <strong id="sales-count">0</strong>
+              <small>Unlocked drops</small>
+            </article>
+          </div>
+        </section>
+
+        <section class="view" id="wallet" data-view-panel="wallet">
+          <div class="page-hero wallet-hero">
+            <div>
+              <p class="eyebrow">Payouts</p>
+              <h1>Wallet</h1>
+              <p>Track earnings, payout readiness, and recent unlock activity.</p>
+            </div>
+            <div class="hero-stats" aria-label="Wallet summary">
+              <span>
+                <strong id="wallet-pending">$0.00</strong>
+                <small>Upcoming</small>
+              </span>
+              <span>
+                <strong id="wallet-payout-status">Not ready</strong>
+                <small>Payout status</small>
+              </span>
+            </div>
+          </div>
+
+          <div class="wallet-grid">
+            <article class="tool-panel balance-panel">
+              <div class="balance-copy">
+                <span>Available balance</span>
+                <strong id="wallet-balance">$0.00</strong>
+                <small>Creator earnings after platform fee</small>
+              </div>
+              <button class="primary-button" id="withdraw-button" type="button">
+                <i data-lucide="landmark"></i>
+                <span>Withdraw to bank</span>
+              </button>
+              <div class="wallet-method">
+                <i data-lucide="building-2"></i>
+                <div>
+                  <strong id="wallet-method-title">Bank account</strong>
+                  <span id="wallet-method-subtitle">Connect payout details</span>
+                </div>
+              </div>
+            </article>
+
+            <article class="tool-panel">
+              <div class="panel-title">
+                <h2>Recent operations</h2>
+                <span id="operation-count">0</span>
+              </div>
+              <div class="operation-list" id="operation-list"></div>
+            </article>
+          </div>
+        </section>
+
+        <section class="view" id="profile" data-view-panel="profile">
+          <article class="profile-hero">
+            <label class="profile-cover" for="cover-input">
+              <input id="cover-input" type="file" accept="image/*" />
+              <img id="profile-cover-image" src="assets/profile-cover.svg" alt="" />
+              <span class="cover-action">
+                <i data-lucide="camera"></i>
+                <span>Change cover</span>
+              </span>
+            </label>
+
+            <div class="profile-head">
+              <label class="profile-avatar" for="avatar-input" aria-label="Change profile photo">
+                <input id="avatar-input" type="file" accept="image/*" />
+                <img id="profile-avatar-image" src="assets/avatar-tile.svg" alt="" />
+                <span class="avatar-camera" aria-hidden="true"><i data-lucide="camera"></i></span>
+              </label>
+              <div class="profile-copy">
+                <h1 data-profile-handle>@creator</h1>
+                <p data-profile-bio>Private drops, files, and creator packs in one clean storefront.</p>
+              </div>
+              <button class="icon-button" id="profile-settings-button" type="button" data-open-profile-settings aria-label="Profile settings">
+                <i data-lucide="settings"></i>
+              </button>
+            </div>
+
+            <div class="profile-stats" aria-label="Profile stats">
+              <span>
+                <strong id="profile-stat-links">0</strong>
+                <small>Drops</small>
+              </span>
+              <span>
+                <strong id="profile-stat-sales">0</strong>
+                <small>Unlocks</small>
+              </span>
+              <span>
+                <strong id="profile-stat-revenue">$0</strong>
+                <small>Earned</small>
+              </span>
+            </div>
+
+            <div class="profile-actions">
+              <button class="secondary-button" type="button" data-open-edit-profile>
+                <i data-lucide="edit-3"></i>
+                <span>Edit profile</span>
+              </button>
+              <button class="primary-button" type="button" data-open-share>
+                <i data-lucide="send"></i>
+                <span>Share</span>
+              </button>
+            </div>
+          </article>
+
+          <article class="tool-panel launch-checklist" aria-labelledby="launch-checklist-title">
+            <div class="launch-checklist-head">
+              <span class="launch-checklist-icon"><i data-lucide="list-checks"></i></span>
+              <div>
+                <p class="eyebrow">Mobile site setup</p>
+                <h2 id="launch-checklist-title">Launch checklist</h2>
+                <p id="launch-checklist-copy">Finish the basics before sharing your paid mobile storefront.</p>
+              </div>
+              <strong id="launch-checklist-progress">0/5</strong>
+            </div>
+            <div class="launch-progress" aria-hidden="true">
+              <span id="launch-progress-bar"></span>
+            </div>
+            <div class="launch-checklist-items" id="launch-checklist-items"></div>
+          </article>
+
+          <article class="tool-panel bundle-panel">
+            <span class="bundle-icon"><i data-lucide="badge-percent"></i></span>
+            <div>
+              <h2 id="bundle-title">Bundle discounts</h2>
+              <p id="bundle-summary">15% off two or more drops</p>
+            </div>
+            <button class="small-button" type="button" data-open-bundle-settings>Set up</button>
+          </article>
+
+          <article class="tool-panel profile-storefront">
+            <div class="panel-title">
+              <h2>Your links</h2>
+              <span id="profile-link-count">0</span>
+            </div>
+            <div class="profile-links" id="profile-links"></div>
+          </article>
+        </section>
+      </main>
+
+      <nav class="bottom-nav" aria-label="Primary navigation">
+        <button class="is-active" type="button" data-view="create" aria-label="Create">
+          <i data-lucide="plus-square"></i>
+        </button>
+        <button type="button" data-view="links" aria-label="Links">
+          <i data-lucide="link"></i>
+        </button>
+        <button type="button" data-view="analytics" aria-label="Analytics">
+          <i data-lucide="bar-chart-3"></i>
+        </button>
+        <button type="button" data-view="wallet" aria-label="Wallet">
+          <i data-lucide="wallet"></i>
+        </button>
+        <button type="button" data-view="profile" aria-label="Profile">
+          <i data-lucide="user-round"></i>
+        </button>
+      </nav>
+    </div>
+
+    <dialog class="share-dialog" id="share-dialog">
+      <div class="dialog-head">
+        <h2 id="dialog-title">Share profile</h2>
+        <button class="icon-button" type="button" data-close-dialog aria-label="Close">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+      <div class="dialog-body" id="dialog-body"></div>
+    </dialog>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  </body>
+</html>

@@ -1,469 +1,1049 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Vaultline Creator</title>
-    <link rel="stylesheet" href="styles.css?v=20260510-mobile-checklist2" />
-    <script defer src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
-    <script defer src="api.js"></script>
-    <script defer src="app.js?v=20260510-mobile-checklist2"></script>
-  </head>
-  <body>
-    <div class="app-shell">
-      <aside class="sidebar" aria-label="Primary navigation">
-        <a class="brand" href="#create" aria-label="Vaultline home">
-          <span class="brand-mark"><i data-lucide="lock-keyhole"></i></span>
-          <span>Vaultline</span>
-        </a>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vaultline — Lock your content. Get paid.</title>
+  <meta name="description" content="Upload your photos and videos, set a price, share a link. Fans pay once and unlock forever. No subscriptions. No middlemen." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-        <nav class="nav-stack">
-          <button class="nav-item is-active" type="button" data-view="create">
-            <i data-lucide="plus-square"></i>
-            <span>Create</span>
-          </button>
-          <button class="nav-item" type="button" data-view="links">
-            <i data-lucide="link"></i>
-            <span>Links</span>
-          </button>
-          <button class="nav-item" type="button" data-view="analytics">
-            <i data-lucide="bar-chart-3"></i>
-            <span>Analytics</span>
-          </button>
-          <button class="nav-item" type="button" data-view="wallet">
-            <i data-lucide="wallet"></i>
-            <span>Wallet</span>
-          </button>
-          <button class="nav-item" type="button" data-view="profile">
-            <i data-lucide="user-round"></i>
-            <span>Profile</span>
-          </button>
-        </nav>
+    :root {
+      --green: #22c55e;
+      --green-dim: #16a34a;
+      --green-glow: rgba(34,197,94,.18);
+      --bg: #080808;
+      --bg2: #0f0f0f;
+      --bg3: #141414;
+      --border: rgba(255,255,255,.07);
+      --text: #f5f5f5;
+      --muted: #888;
+      --radius: 18px;
+    }
 
-        <div class="sidebar-status">
-          <span class="status-light" aria-hidden="true"></span>
-          <span>Creator mode</span>
-        </div>
-      </aside>
+    html { scroll-behavior: smooth; }
 
-      <main class="main">
-        <header class="topbar">
-          <a class="mobile-brand" href="#create" aria-label="Vaultline home">
-            <span class="brand-mark"><i data-lucide="lock-keyhole"></i></span>
-            <span>Vaultline</span>
-          </a>
-          <div class="top-actions">
-            <button class="icon-button top-share-button" type="button" data-open-share aria-label="Share profile">
-              <i data-lucide="send"></i>
-            </button>
-            <button class="user-chip" type="button" data-open-account-menu aria-haspopup="menu" aria-expanded="false" aria-label="Account menu">
-              <span data-profile-handle>@creator</span>
-              <span class="avatar-mini" aria-hidden="true">C</span>
-              <i class="account-caret" data-lucide="chevron-down" aria-hidden="true"></i>
-            </button>
-            <div class="account-dropdown" id="account-dropdown" role="menu" hidden>
-              <div class="account-dropdown-head">
-                <span class="account-avatar">
-                  <img id="account-dropdown-avatar" src="assets/avatar-tile.svg" alt="" />
-                </span>
-                <div>
-                  <strong data-profile-handle>@creator</strong>
-                  <small>Creator account</small>
-                </div>
-              </div>
-              <button class="logout-button" type="button" data-logout role="menuitem">
-                <i data-lucide="log-out"></i>
-                <span>Log out</span>
-              </button>
-            </div>
-          </div>
-        </header>
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
 
-        <section class="view is-active" id="create" data-view-panel="create">
-          <form class="sell-screen" id="create-form">
-            <span id="create-stat-links" hidden>0</span>
-            <input id="title-input" name="title" type="hidden" value="Locked media" />
-            <textarea id="note-input" name="note" hidden>Pay once to unlock this content.</textarea>
-            <input id="content-url-input" name="contentUrl" type="hidden" />
-            <input id="file-input" name="file" type="file" accept="image/*,video/*" multiple hidden />
+    a { color: inherit; text-decoration: none; }
 
-            <div class="sell-start" id="sell-start">
-              <div class="sell-top">
-                <h1>Sell</h1>
-              </div>
+    /* ── Nav ─────────────────────────────────────────── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 24px;
+      background: rgba(8,8,8,.8);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+    }
 
-              <section class="sell-card" aria-label="Create locked content">
-                <div class="sell-media-stage" id="sell-media-stage" hidden>
-                  <div class="sell-media-rail-shell">
-                    <button class="sell-media-nav is-prev" type="button" data-media-rail-nav="prev" aria-label="Previous media" hidden>
-                      <i data-lucide="chevron-left"></i>
-                    </button>
-                    <div class="sell-media-grid" id="selected-media-grid" role="list" aria-label="Selected media"></div>
-                    <button class="sell-media-nav is-next" type="button" data-media-rail-nav="next" aria-label="Next media" hidden>
-                      <i data-lucide="chevron-right"></i>
-                    </button>
-                  </div>
-                  <div class="sell-media-actions">
-                    <span class="sell-media-count" id="sell-media-count">1 media</span>
-                    <button class="sell-add-more-media" type="button" data-add-more-media>
-                      <i data-lucide="plus"></i>
-                      <span>Add more</span>
-                    </button>
-                  </div>
-                </div>
+    .nav-logo {
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: -.5px;
+      color: #fff;
+    }
+    .nav-logo span { color: var(--green); }
 
-                <button class="sell-media-button" id="sell-media-empty" type="button" data-open-media-sheet>
-                  <span class="sell-plus" id="sell-media-icon"><i data-lucide="plus"></i></span>
-                  <strong id="sell-media-title">Add Media</strong>
-                  <small id="file-meta">Photo, video, template, course, e-book, or podcast</small>
-                </button>
+    .nav-links { display: flex; gap: 8px; align-items: center; }
 
-                <label class="sell-price">
-                  <span>Set Price</span>
-                  <span class="sell-price-input">
-                    <span>$</span>
-                    <input id="price-input" name="price" type="number" inputmode="decimal" min="5" step="0.50" placeholder="0.00" />
-                  </span>
-                  <small class="price-error" id="price-error" hidden>minimum of $5</small>
-                </label>
-              </section>
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 11px 22px;
+      border-radius: 100px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      border: none;
+      transition: opacity .15s, transform .15s;
+    }
+    .btn:active { transform: scale(.97); }
 
-              <div class="sell-options">
-                <button class="sell-row" type="button" data-open-access-sheet>
-                  <span>Who Can Buy</span>
-                  <strong id="sell-access-label">Everyone</strong>
-                  <i data-lucide="chevron-right"></i>
-                </button>
-                <button class="sell-row" type="button" data-open-download-sheet>
-                  <span>Download</span>
-                  <strong id="sell-download-label">Allowed</strong>
-                  <i data-lucide="chevron-right"></i>
-                </button>
-              </div>
+    .btn-ghost {
+      background: transparent;
+      color: var(--muted);
+    }
+    .btn-ghost:hover { color: #fff; }
 
-              <button class="sell-generate" type="submit" data-generate-link disabled>Generate Link</button>
-            </div>
+    .btn-primary {
+      background: var(--green);
+      color: #000;
+    }
+    .btn-primary:hover { opacity: .9; }
 
-            <div class="sell-detail" id="sell-detail" hidden>
-              <div class="sell-detail-top">
-                <button class="sell-back-button" type="button" data-sell-back aria-label="Back">
-                  <i data-lucide="chevron-left"></i>
-                </button>
-                <h1 id="sell-detail-title">Template</h1>
-                <button class="sell-create-action" id="sell-detail-create" type="submit" disabled>Create</button>
-              </div>
+    .btn-outline {
+      background: transparent;
+      color: #fff;
+      border: 1px solid var(--border);
+    }
+    .btn-outline:hover { border-color: rgba(255,255,255,.2); background: rgba(255,255,255,.04); }
 
-              <span class="sell-detail-icon" id="sell-detail-icon"><i data-lucide="layout-template"></i></span>
+    .btn-lg {
+      padding: 16px 32px;
+      font-size: 16px;
+      border-radius: 100px;
+    }
 
-              <div class="sell-detail-fields">
-                <label class="detail-field">
-                  <span>Name</span>
-                  <input id="detail-title-input" type="text" placeholder="Item Name" autocomplete="off" />
-                </label>
+    /* ── Sections ─────────────────────────────────────── */
+    section { padding: 96px 24px; }
 
-                <label class="detail-field">
-                  <span>Price</span>
-                  <span class="money-field">
-                    <span>$</span>
-                    <input id="detail-price-input" type="number" inputmode="decimal" min="5" step="0.50" placeholder="0.00" />
-                  </span>
-                  <small class="price-error" id="detail-price-error" hidden>minimum of $5</small>
-                </label>
+    .container {
+      max-width: 1080px;
+      margin: 0 auto;
+    }
 
-                <label class="detail-field">
-                  <span>Description</span>
-                  <textarea id="detail-note-input" rows="5" placeholder="Describe your item..."></textarea>
-                </label>
+    .label {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--green);
+      background: var(--green-glow);
+      border: 1px solid rgba(34,197,94,.25);
+      padding: 6px 14px;
+      border-radius: 100px;
+      margin-bottom: 20px;
+    }
 
-                <label class="detail-field">
-                  <span>Content URL</span>
-                  <small>Add the link to your content here. Buyers can download it after they pay.</small>
-                  <input id="detail-url-input" type="url" placeholder="URL" inputmode="url" />
-                </label>
-              </div>
-            </div>
-          </form>
-        </section>
+    h1 {
+      font-size: clamp(40px, 9vw, 72px);
+      font-weight: 900;
+      line-height: 1.05;
+      letter-spacing: -.03em;
+    }
 
-        <section class="view" id="links" data-view-panel="links">
-          <div class="page-hero library-hero inline-heading">
-            <div>
-              <p class="eyebrow">Library</p>
-              <h1>Links</h1>
-              <p>Manage drops, copy buyer links, and see which unlocks are moving.</p>
-            </div>
-            <button class="primary-button compact" type="button" data-view="create">
-              <i data-lucide="plus"></i>
-              <span>New link</span>
-            </button>
-          </div>
+    h2 {
+      font-size: clamp(28px, 5vw, 46px);
+      font-weight: 800;
+      letter-spacing: -.02em;
+      line-height: 1.15;
+    }
 
-          <div class="link-overview" aria-label="Link overview">
-            <span>
-              <strong id="links-stat-active">0</strong>
-              <small>Active drops</small>
-            </span>
-            <span>
-              <strong id="links-stat-revenue">$0.00</strong>
-              <small>Total earned</small>
-            </span>
-            <span>
-              <strong id="links-stat-views">0</strong>
-              <small>Tracked views</small>
-            </span>
-          </div>
+    .green { color: var(--green); }
+    .muted { color: var(--muted); }
 
-          <div class="segmented" role="tablist" aria-label="Link filters">
-            <button class="is-selected" type="button" data-filter="all">All</button>
-            <button type="button" data-filter="top">Top earning</button>
-            <button type="button" data-filter="viewed">Most viewed</button>
-            <button type="button" data-filter="expired">Expired</button>
-          </div>
+    /* ── Hero ─────────────────────────────────────────── */
+    #hero {
+      min-height: 100dvh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 120px 24px 80px;
+      position: relative;
+      overflow: hidden;
+    }
 
-          <div class="link-list" id="link-list"></div>
-        </section>
+    .hero-glow {
+      position: absolute;
+      width: 700px;
+      height: 700px;
+      background: radial-gradient(circle, rgba(34,197,94,.12) 0%, transparent 70%);
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -55%);
+      pointer-events: none;
+    }
 
-        <section class="view" id="analytics" data-view-panel="analytics">
-          <div class="page-hero analytics-hero">
-            <div>
-              <p class="eyebrow">Performance</p>
-              <h1>Analytics</h1>
-              <p>Revenue, buyers, and views from your permanent unlocks.</p>
-            </div>
-            <div class="hero-stats" aria-label="Analytics summary">
-              <span>
-                <strong id="analytics-conversion">0%</strong>
-                <small>Conversion</small>
-              </span>
-              <span>
-                <strong id="analytics-order">$0.00</strong>
-                <small>Avg unlock</small>
-              </span>
-            </div>
-          </div>
+    #hero .container { position: relative; }
 
-          <div class="segmented" role="tablist" aria-label="Analytics ranges">
-            <button class="is-selected" type="button">Today</button>
-            <button type="button">7D</button>
-            <button type="button">30D</button>
-            <button type="button">1Y</button>
-            <button type="button">All time</button>
-          </div>
+    #hero p {
+      font-size: clamp(16px, 2.5vw, 20px);
+      color: var(--muted);
+      max-width: 540px;
+      margin: 20px auto 40px;
+      line-height: 1.6;
+    }
 
-          <div class="analytics-grid">
-            <article class="tool-panel chart-panel">
-              <div class="metric-row">
-                <div>
-                  <span>Total revenue</span>
-                  <strong id="analytics-revenue">$0.00</strong>
-                </div>
-                <div>
-                  <span>Previous</span>
-                  <strong class="muted">$0.00</strong>
-                </div>
-              </div>
-              <svg class="chart" viewBox="0 0 760 280" role="img" aria-label="Revenue chart">
-                <line x1="36" y1="44" x2="724" y2="44" />
-                <line x1="36" y1="114" x2="724" y2="114" />
-                <line x1="36" y1="184" x2="724" y2="184" />
-                <polyline id="chart-line-shadow" points="36,220 170,220 306,220 438,220 572,220 724,220" />
-                <polyline id="chart-line" points="36,220 170,220 306,220 438,220 572,220 724,220" />
-              </svg>
-              <div class="legend">
-                <span><b class="legend-current"></b>Current period</span>
-                <span><b class="legend-previous"></b>Previous period</span>
-              </div>
-            </article>
+    .hero-ctas {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
 
-            <article class="tool-panel stat-panel">
-              <i data-lucide="users-round"></i>
-              <span>Buyers</span>
-              <strong id="buyers-count">0</strong>
-              <small>Today</small>
-            </article>
+    .hero-badges {
+      margin-top: 40px;
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
 
-            <article class="tool-panel stat-panel accent">
-              <i data-lucide="eye"></i>
-              <span>Views</span>
-              <strong id="views-count">0</strong>
-              <small>Tracked visits</small>
-            </article>
+    .hero-badge {
+      font-size: 13px;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
 
-            <article class="tool-panel stat-panel warm">
-              <i data-lucide="shopping-bag"></i>
-              <span>Sales</span>
-              <strong id="sales-count">0</strong>
-              <small>Unlocked drops</small>
-            </article>
-          </div>
-        </section>
+    .hero-badge::before {
+      content: '✓';
+      color: var(--green);
+      font-weight: 700;
+    }
 
-        <section class="view" id="wallet" data-view-panel="wallet">
-          <div class="page-hero wallet-hero">
-            <div>
-              <p class="eyebrow">Payouts</p>
-              <h1>Wallet</h1>
-              <p>Track earnings, payout readiness, and recent unlock activity.</p>
-            </div>
-            <div class="hero-stats" aria-label="Wallet summary">
-              <span>
-                <strong id="wallet-pending">$0.00</strong>
-                <small>Upcoming</small>
-              </span>
-              <span>
-                <strong id="wallet-payout-status">Not ready</strong>
-                <small>Payout status</small>
-              </span>
-            </div>
-          </div>
+    /* ── Steps ────────────────────────────────────────── */
+    #how {
+      background: var(--bg2);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
 
-          <div class="wallet-grid">
-            <article class="tool-panel balance-panel">
-              <div class="balance-copy">
-                <span>Available balance</span>
-                <strong id="wallet-balance">$0.00</strong>
-                <small>Creator earnings after platform fee</small>
-              </div>
-              <button class="primary-button" id="withdraw-button" type="button">
-                <i data-lucide="landmark"></i>
-                <span>Withdraw to bank</span>
-              </button>
-              <div class="wallet-method">
-                <i data-lucide="building-2"></i>
-                <div>
-                  <strong id="wallet-method-title">Bank account</strong>
-                  <span id="wallet-method-subtitle">Connect payout details</span>
-                </div>
-              </div>
-            </article>
+    .section-header {
+      text-align: center;
+      margin-bottom: 60px;
+    }
 
-            <article class="tool-panel">
-              <div class="panel-title">
-                <h2>Recent operations</h2>
-                <span id="operation-count">0</span>
-              </div>
-              <div class="operation-list" id="operation-list"></div>
-            </article>
-          </div>
-        </section>
+    .section-header p {
+      color: var(--muted);
+      font-size: 17px;
+      margin-top: 12px;
+      max-width: 480px;
+      margin-left: auto;
+      margin-right: auto;
+    }
 
-        <section class="view" id="profile" data-view-panel="profile">
-          <article class="profile-hero">
-            <label class="profile-cover" for="cover-input">
-              <input id="cover-input" type="file" accept="image/*" />
-              <img id="profile-cover-image" src="assets/profile-cover.svg" alt="" />
-              <span class="cover-action">
-                <i data-lucide="camera"></i>
-                <span>Change cover</span>
-              </span>
-            </label>
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 24px;
+    }
 
-            <div class="profile-head">
-              <label class="profile-avatar" for="avatar-input" aria-label="Change profile photo">
-                <input id="avatar-input" type="file" accept="image/*" />
-                <img id="profile-avatar-image" src="assets/avatar-tile.svg" alt="" />
-                <span class="avatar-camera" aria-hidden="true"><i data-lucide="camera"></i></span>
-              </label>
-              <div class="profile-copy">
-                <h1 data-profile-handle>@creator</h1>
-                <p data-profile-bio>Private drops, files, and creator packs in one clean storefront.</p>
-              </div>
-              <button class="icon-button" id="profile-settings-button" type="button" data-open-profile-settings aria-label="Profile settings">
-                <i data-lucide="settings"></i>
-              </button>
-            </div>
+    .step {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px 24px;
+      position: relative;
+      overflow: hidden;
+    }
 
-            <div class="profile-stats" aria-label="Profile stats">
-              <span>
-                <strong id="profile-stat-links">0</strong>
-                <small>Drops</small>
-              </span>
-              <span>
-                <strong id="profile-stat-sales">0</strong>
-                <small>Unlocks</small>
-              </span>
-              <span>
-                <strong id="profile-stat-revenue">$0</strong>
-                <small>Earned</small>
-              </span>
-            </div>
+    .step::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 2px;
+      background: var(--green);
+      opacity: 0;
+      transition: opacity .2s;
+    }
 
-            <div class="profile-actions">
-              <button class="secondary-button" type="button" data-open-edit-profile>
-                <i data-lucide="edit-3"></i>
-                <span>Edit profile</span>
-              </button>
-              <button class="primary-button" type="button" data-open-share>
-                <i data-lucide="send"></i>
-                <span>Share</span>
-              </button>
-            </div>
-          </article>
+    .step:hover::before { opacity: 1; }
 
-          <article class="tool-panel launch-checklist" aria-labelledby="launch-checklist-title">
-            <div class="launch-checklist-head">
-              <span class="launch-checklist-icon"><i data-lucide="list-checks"></i></span>
-              <div>
-                <p class="eyebrow">Mobile site setup</p>
-                <h2 id="launch-checklist-title">Launch checklist</h2>
-                <p id="launch-checklist-copy">Finish the basics before sharing your paid mobile storefront.</p>
-              </div>
-              <strong id="launch-checklist-progress">0/5</strong>
-            </div>
-            <div class="launch-progress" aria-hidden="true">
-              <span id="launch-progress-bar"></span>
-            </div>
-            <div class="launch-checklist-items" id="launch-checklist-items"></div>
-          </article>
+    .step-num {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      background: var(--green-glow);
+      border: 1px solid rgba(34,197,94,.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--green);
+      margin-bottom: 18px;
+    }
 
-          <article class="tool-panel bundle-panel">
-            <span class="bundle-icon"><i data-lucide="badge-percent"></i></span>
-            <div>
-              <h2 id="bundle-title">Bundle discounts</h2>
-              <p id="bundle-summary">15% off two or more drops</p>
-            </div>
-            <button class="small-button" type="button" data-open-bundle-settings>Set up</button>
-          </article>
+    .step h3 {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
 
-          <article class="tool-panel profile-storefront">
-            <div class="panel-title">
-              <h2>Your links</h2>
-              <span id="profile-link-count">0</span>
-            </div>
-            <div class="profile-links" id="profile-links"></div>
-          </article>
-        </section>
-      </main>
+    .step p {
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.6;
+    }
 
-      <nav class="bottom-nav" aria-label="Primary navigation">
-        <button class="is-active" type="button" data-view="create" aria-label="Create">
-          <i data-lucide="plus-square"></i>
-        </button>
-        <button type="button" data-view="links" aria-label="Links">
-          <i data-lucide="link"></i>
-        </button>
-        <button type="button" data-view="analytics" aria-label="Analytics">
-          <i data-lucide="bar-chart-3"></i>
-        </button>
-        <button type="button" data-view="wallet" aria-label="Wallet">
-          <i data-lucide="wallet"></i>
-        </button>
-        <button type="button" data-view="profile" aria-label="Profile">
-          <i data-lucide="user-round"></i>
-        </button>
-      </nav>
+    /* ── Features ─────────────────────────────────────── */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+    }
+
+    .feature-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px;
+      transition: border-color .2s;
+    }
+
+    .feature-card:hover { border-color: rgba(255,255,255,.15); }
+
+    .feature-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      background: var(--green-glow);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      margin-bottom: 16px;
+    }
+
+    .feature-card h3 {
+      font-size: 17px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .feature-card p {
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    /* ── Split section ────────────────────────────────── */
+    .split {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 60px;
+      align-items: center;
+    }
+
+    @media (max-width: 700px) {
+      .split { grid-template-columns: 1fr; gap: 40px; }
+    }
+
+    .split-visual {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      aspect-ratio: 9/16;
+      max-height: 480px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .phone-mock {
+      width: 90%;
+      max-width: 280px;
+      background: #111;
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 20px 16px;
+    }
+
+    .phone-mock-header {
+      font-size: 11px;
+      color: var(--muted);
+      text-align: center;
+      margin-bottom: 12px;
+    }
+
+    .phone-mock-item {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .phone-thumb {
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, var(--green-glow), rgba(34,197,94,.05));
+      border: 1px solid rgba(34,197,94,.2);
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+    }
+
+    .phone-info { flex: 1; min-width: 0; }
+
+    .phone-title {
+      font-size: 13px;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .phone-price {
+      font-size: 12px;
+      color: var(--green);
+      font-weight: 700;
+    }
+
+    .phone-btn {
+      background: var(--green);
+      color: #000;
+      font-size: 11px;
+      font-weight: 700;
+      border: none;
+      border-radius: 8px;
+      padding: 6px 12px;
+      cursor: default;
+    }
+
+    /* ── Testimonials ─────────────────────────────────── */
+    #testimonials {
+      background: var(--bg2);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .testimonials-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+    }
+
+    .testimonial {
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px;
+    }
+
+    .testimonial-stars {
+      color: var(--green);
+      font-size: 14px;
+      margin-bottom: 14px;
+      letter-spacing: 2px;
+    }
+
+    .testimonial-text {
+      font-size: 15px;
+      line-height: 1.65;
+      color: #ddd;
+      margin-bottom: 20px;
+    }
+
+    .testimonial-author {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .testimonial-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #22c55e22, #22c55e44);
+      border: 1px solid rgba(34,197,94,.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+
+    .testimonial-name {
+      font-weight: 700;
+      font-size: 14px;
+    }
+
+    .testimonial-handle {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    /* ── FAQ ──────────────────────────────────────────── */
+    .faq-list { max-width: 680px; margin: 0 auto; }
+
+    details {
+      border-bottom: 1px solid var(--border);
+      padding: 22px 0;
+    }
+
+    summary {
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      list-style: none;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+    }
+
+    summary::-webkit-details-marker { display: none; }
+
+    summary::after {
+      content: '+';
+      color: var(--green);
+      font-size: 22px;
+      font-weight: 300;
+      flex-shrink: 0;
+      transition: transform .2s;
+    }
+
+    details[open] summary::after { transform: rotate(45deg); }
+
+    details p {
+      font-size: 15px;
+      color: var(--muted);
+      line-height: 1.7;
+      margin-top: 14px;
+    }
+
+    /* ── CTA Bottom ───────────────────────────────────── */
+    #cta {
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .cta-glow {
+      position: absolute;
+      width: 600px;
+      height: 400px;
+      background: radial-gradient(circle, rgba(34,197,94,.1) 0%, transparent 70%);
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+    }
+
+    #cta .container { position: relative; }
+
+    #cta p {
+      font-size: 18px;
+      color: var(--muted);
+      margin: 16px auto 40px;
+      max-width: 480px;
+    }
+
+    .cta-cards {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      max-width: 680px;
+      margin: 0 auto;
+    }
+
+    @media (max-width: 600px) {
+      .cta-cards { grid-template-columns: 1fr; }
+    }
+
+    .cta-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 32px 24px;
+      text-align: left;
+      transition: border-color .2s;
+    }
+
+    .cta-card:hover { border-color: rgba(255,255,255,.15); }
+
+    .cta-card.creator { border-color: rgba(34,197,94,.25); }
+    .cta-card.creator:hover { border-color: rgba(34,197,94,.5); }
+
+    .cta-card-icon {
+      font-size: 32px;
+      margin-bottom: 14px;
+    }
+
+    .cta-card h3 {
+      font-size: 20px;
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+
+    .cta-card p {
+      font-size: 14px;
+      color: var(--muted);
+      margin: 0 0 22px;
+      line-height: 1.6;
+    }
+
+    /* ── Footer ───────────────────────────────────────── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 32px 24px;
+      text-align: center;
+    }
+
+    footer .nav-logo { margin-bottom: 8px; display: block; }
+
+    footer .foot-links {
+      display: flex;
+      gap: 24px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin: 16px 0;
+    }
+
+    footer .foot-links a {
+      font-size: 13px;
+      color: var(--muted);
+      transition: color .15s;
+    }
+
+    footer .foot-links a:hover { color: #fff; }
+
+    footer .copy {
+      font-size: 12px;
+      color: #444;
+    }
+
+    /* ── Stat bar ─────────────────────────────────────── */
+    .stats-bar {
+      display: flex;
+      gap: 0;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 64px;
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      overflow: hidden;
+      background: var(--bg2);
+    }
+
+    .stat {
+      flex: 1;
+      min-width: 160px;
+      padding: 28px 24px;
+      text-align: center;
+      border-right: 1px solid var(--border);
+    }
+
+    .stat:last-child { border-right: none; }
+
+    .stat-num {
+      font-size: 36px;
+      font-weight: 900;
+      color: var(--green);
+      letter-spacing: -.02em;
+    }
+
+    .stat-label {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    @media (max-width: 500px) {
+      .stat { border-right: none; border-bottom: 1px solid var(--border); }
+      .stat:last-child { border-bottom: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Nav ─────────────────────────────────────────── -->
+<nav>
+  <a href="/" class="nav-logo">vault<span>line</span></a>
+  <div class="nav-links">
+    <a href="#how" class="btn btn-ghost">How it works</a>
+    <a href="fan.html" class="btn btn-outline">Browse drops</a>
+    <a href="index.html" class="btn btn-primary">Start selling</a>
+  </div>
+</nav>
+
+<!-- ── Hero ─────────────────────────────────────────── -->
+<section id="hero">
+  <div class="hero-glow"></div>
+  <div class="container">
+    <div class="label">🔐 The creator paywall built different</div>
+    <h1>Lock your content.<br /><span class="green">Get paid.</span></h1>
+    <p>Upload your photos and videos, set a price, share a link. Fans pay once and unlock forever. No subscriptions. No middlemen.</p>
+    <div class="hero-ctas">
+      <a href="index.html" class="btn btn-primary btn-lg">Start selling free →</a>
+      <a href="fan.html" class="btn btn-outline btn-lg">Browse drops</a>
+    </div>
+    <div class="hero-badges">
+      <span class="hero-badge">No monthly fees</span>
+      <span class="hero-badge">Permanent unlocks</span>
+      <span class="hero-badge">Instant payouts</span>
+      <span class="hero-badge">Any content type</span>
     </div>
 
-    <dialog class="share-dialog" id="share-dialog">
-      <div class="dialog-head">
-        <h2 id="dialog-title">Share profile</h2>
-        <button class="icon-button" type="button" data-close-dialog aria-label="Close">
-          <i data-lucide="x"></i>
-        </button>
+    <div class="stats-bar">
+      <div class="stat">
+        <div class="stat-num">$0</div>
+        <div class="stat-label">to get started</div>
       </div>
-      <div class="dialog-body" id="dialog-body"></div>
-    </dialog>
+      <div class="stat">
+        <div class="stat-num">90%</div>
+        <div class="stat-label">you keep per sale</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num">1-tap</div>
+        <div class="stat-label">fan checkout</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num">∞</div>
+        <div class="stat-label">content, no limits</div>
+      </div>
+    </div>
+  </div>
+</section>
 
-    <div class="toast" id="toast" role="status" aria-live="polite"></div>
-  </body>
+<!-- ── How it works ──────────────────────────────────── -->
+<section id="how">
+  <div class="container">
+    <div class="section-header">
+      <div class="label">Simple by design</div>
+      <h2>Four steps to your first sale</h2>
+      <p>No tech skills needed. You're earning in minutes.</p>
+    </div>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <h3>Import</h3>
+        <p>Pick photos or videos straight from your device. Up to 10 files per drop, any format.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <h3>Lock</h3>
+        <p>Set your price (minimum $5), write a caption, and generate your secure payment link instantly.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <h3>Share</h3>
+        <p>Drop your link anywhere — Instagram, Snapchat, X, TikTok, DMs, Telegram. Fans tap and pay.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <h3>Earn</h3>
+        <p>You keep 90% of every sale. Track your earnings in real time. Payouts straight to your bank.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Creator preview ───────────────────────────────── -->
+<section id="creator">
+  <div class="container">
+    <div class="split">
+      <div>
+        <div class="label">For creators</div>
+        <h2>Your content.<br />Your <span class="green">price.</span></h2>
+        <p style="color:var(--muted);font-size:17px;margin:16px 0 32px;line-height:1.7;">
+          Post anything — behind-the-scenes, exclusive sets, tutorials, audio, presets. You control what's locked and what's free.
+        </p>
+        <ul style="list-style:none;display:flex;flex-direction:column;gap:14px;margin-bottom:36px;">
+          <li style="display:flex;gap:10px;align-items:flex-start;font-size:15px;">
+            <span style="color:var(--green);font-weight:700;flex-shrink:0;">✓</span>
+            <span style="color:#ccc;">Permanent unlocks — fans own it forever, you sell it once</span>
+          </li>
+          <li style="display:flex;gap:10px;align-items:flex-start;font-size:15px;">
+            <span style="color:var(--green);font-weight:700;flex-shrink:0;">✓</span>
+            <span style="color:#ccc;">Upload photos, videos, bundles — any file type</span>
+          </li>
+          <li style="display:flex;gap:10px;align-items:flex-start;font-size:15px;">
+            <span style="color:var(--green);font-weight:700;flex-shrink:0;">✓</span>
+            <span style="color:#ccc;">Real-time dashboard — track views, sales, and revenue</span>
+          </li>
+          <li style="display:flex;gap:10px;align-items:flex-start;font-size:15px;">
+            <span style="color:var(--green);font-weight:700;flex-shrink:0;">✓</span>
+            <span style="color:#ccc;">Your own storefront page fans can bookmark</span>
+          </li>
+        </ul>
+        <a href="index.html" class="btn btn-primary btn-lg">Create your first drop →</a>
+      </div>
+      <div class="split-visual">
+        <div class="phone-mock">
+          <div class="phone-mock-header">📊 Your drops</div>
+          <div class="phone-mock-item">
+            <div class="phone-thumb">🌅</div>
+            <div class="phone-info">
+              <div class="phone-title">Summer collection vol.2</div>
+              <div class="phone-price">$25 · 14 sales</div>
+            </div>
+            <div class="phone-btn">Live</div>
+          </div>
+          <div class="phone-mock-item">
+            <div class="phone-thumb">🎬</div>
+            <div class="phone-info">
+              <div class="phone-title">Behind the shoot</div>
+              <div class="phone-price">$15 · 8 sales</div>
+            </div>
+            <div class="phone-btn">Live</div>
+          </div>
+          <div class="phone-mock-item">
+            <div class="phone-thumb">📸</div>
+            <div class="phone-info">
+              <div class="phone-title">Raw unedited set</div>
+              <div class="phone-price">$40 · 22 sales</div>
+            </div>
+            <div class="phone-btn">Live</div>
+          </div>
+          <div style="margin-top:16px;padding:14px;background:var(--bg);border-radius:12px;text-align:center;">
+            <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">Total earned</div>
+            <div style="font-size:28px;font-weight:900;color:var(--green);">$1,170</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Fan preview ───────────────────────────────────── -->
+<section id="fans" style="background:var(--bg2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);">
+  <div class="container">
+    <div class="split">
+      <div class="split-visual">
+        <div class="phone-mock">
+          <div class="phone-mock-header">🔐 Unlock content</div>
+          <div class="phone-mock-item" style="flex-direction:column;align-items:flex-start;gap:10px;">
+            <div style="width:100%;height:80px;background:linear-gradient(135deg,rgba(34,197,94,.1),rgba(34,197,94,.03));border-radius:10px;border:1px solid rgba(34,197,94,.15);display:flex;align-items:center;justify-content:center;font-size:28px;">🌅</div>
+            <div style="font-size:14px;font-weight:700;">Summer collection vol.2</div>
+            <div style="font-size:12px;color:var(--muted);">12 exclusive photos · unlocks forever</div>
+            <button style="width:100%;background:var(--green);color:#000;font-weight:700;border:none;border-radius:10px;padding:12px;font-size:14px;cursor:default;">Unlock for $25</button>
+          </div>
+          <div style="margin-top:12px;display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);">
+            <span>🔒</span> Secure checkout · own it forever
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="label">For fans</div>
+        <h2>Pay once.<br />Own it <span class="green">forever.</span></h2>
+        <p style="color:var(--muted);font-size:17px;margin:16px 0 32px;line-height:1.7;">
+          No subscriptions. No recurring charges. Unlock exactly what you want, once — and it's yours. Access your library from any device, any time.
+        </p>
+        <ul style="list-style:none;display:flex;flex-direction:column;gap:14px;margin-bottom:36px;">
+          <li style="display:flex;gap:10px;align-items:flex-start;font-size:15px;">
+            <span style="color:var(--green);font-weight:700;flex-shrink:0;">✓</span>
+            <span style="color:#ccc;">One-tap checkout — no account required to buy</span>
+          </li>
+          <li style="display:flex;gap:10px;align-items:flex-start;font-size:15px;">
+            <span style="color:var(--green);font-weight:700;flex-shrink:0;">✓</span>
+            <span style="color:#ccc;">Permanent library — your unlocks never expire</span>
+          </li>
+          <li style="display:flex;gap:10px;align-items:flex-start;font-size:15px;">
+            <span style="color:var(--green);font-weight:700;flex-shrink:0;">✓</span>
+            <span style="color:#ccc;">Download anytime from your personal library</span>
+          </li>
+          <li style="display:flex;gap:10px;align-items:flex-start;font-size:15px;">
+            <span style="color:var(--green);font-weight:700;flex-shrink:0;">✓</span>
+            <span style="color:#ccc;">Support creators directly — 90% goes straight to them</span>
+          </li>
+        </ul>
+        <a href="fan.html" class="btn btn-outline btn-lg">Browse drops →</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Features ──────────────────────────────────────── -->
+<section id="features">
+  <div class="container">
+    <div class="section-header">
+      <div class="label">Built for monetization</div>
+      <h2>Everything you need.<br />Nothing you don't.</h2>
+    </div>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">🔐</div>
+        <h3>Permanent unlocks</h3>
+        <p>Fans pay once and own the content forever. No renewal reminders, no cancellation anxiety.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">⚡</div>
+        <h3>Instant link generation</h3>
+        <p>Upload, price, publish. Your payment link is live in under 60 seconds.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">💸</div>
+        <h3>90% payout</h3>
+        <p>You keep 90 cents of every dollar. No hidden fees, no platform tax beyond the platform fee.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📱</div>
+        <h3>Mobile-first</h3>
+        <p>Built for how creators actually work — upload from your phone, share in your stories, get paid.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🛒</div>
+        <h3>Your own storefront</h3>
+        <p>Every creator gets a profile page. Drop your link in bio and fans can browse all your drops 24/7.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📊</div>
+        <h3>Real-time analytics</h3>
+        <p>Views, sales, and revenue — all in your dashboard. Know exactly what's working.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Testimonials ──────────────────────────────────── -->
+<section id="testimonials">
+  <div class="container">
+    <div class="section-header">
+      <div class="label">Creator love</div>
+      <h2>Real creators.<br /><span class="green">Real money.</span></h2>
+    </div>
+    <div class="testimonials-grid">
+      <div class="testimonial">
+        <div class="testimonial-stars">★★★★★</div>
+        <p class="testimonial-text">"I made $800 in my first week just sharing a link in my Instagram story. I didn't even have to DM anyone. They just... paid."</p>
+        <div class="testimonial-author">
+          <div class="testimonial-avatar">🌺</div>
+          <div>
+            <div class="testimonial-name">Maya R.</div>
+            <div class="testimonial-handle">Lifestyle creator · 120K followers</div>
+          </div>
+        </div>
+      </div>
+      <div class="testimonial">
+        <div class="testimonial-stars">★★★★★</div>
+        <p class="testimonial-text">"Finally a platform where I set my own price. My fans pay once and they own it. No subscriptions, no drama. It just works."</p>
+        <div class="testimonial-author">
+          <div class="testimonial-avatar">📸</div>
+          <div>
+            <div class="testimonial-name">Jordan K.</div>
+            <div class="testimonial-handle">Photographer · 45K followers</div>
+          </div>
+        </div>
+      </div>
+      <div class="testimonial">
+        <div class="testimonial-stars">★★★★★</div>
+        <p class="testimonial-text">"I sell behind-the-scenes content from my shoots. Vaultline made it dead simple — upload, lock, share the link, done."</p>
+        <div class="testimonial-author">
+          <div class="testimonial-avatar">🎬</div>
+          <div>
+            <div class="testimonial-name">Alex T.</div>
+            <div class="testimonial-handle">Model & content creator · 88K followers</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── FAQ ───────────────────────────────────────────── -->
+<section id="faq">
+  <div class="container">
+    <div class="section-header">
+      <div class="label">Questions</div>
+      <h2>Everything you need to know</h2>
+    </div>
+    <div class="faq-list">
+      <details open>
+        <summary>How much does Vaultline cost?</summary>
+        <p>Nothing upfront. Vaultline takes a 10% platform fee per sale — that's it. You keep 90% of everything you earn. No monthly subscription, no listing fee, no hidden charges.</p>
+      </details>
+      <details>
+        <summary>What kind of content can I sell?</summary>
+        <p>Photos, videos, bundles of both — any file you upload. Behind-the-scenes, exclusive sets, tutorials, presets, audio clips. The minimum price per drop is $5.</p>
+      </details>
+      <details>
+        <summary>Do fans need an account to buy?</summary>
+        <p>Fans can browse without an account. To buy and access their library across devices, they sign in via a magic link — no password needed. One tap to their inbox, done.</p>
+      </details>
+      <details>
+        <summary>Are unlocks really permanent?</summary>
+        <p>Yes. Fans pay once and own the content forever. There are no expiring links, no subscription renewals, no "access removed" surprises. What they unlock is theirs.</p>
+      </details>
+      <details>
+        <summary>How do I get paid?</summary>
+        <p>Payments are processed through Stripe. Earnings go directly to your connected bank account. Payouts typically land within 2–5 business days of a sale.</p>
+      </details>
+      <details>
+        <summary>Is my content secure?</summary>
+        <p>Yes. Files are stored in private, encrypted storage and are never publicly accessible. Download links are signed and expire — they can only be accessed by the fan who purchased.</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- ── CTA Bottom ─────────────────────────────────────── -->
+<section id="cta">
+  <div class="cta-glow"></div>
+  <div class="container">
+    <div class="label">Ready?</div>
+    <h2>Your content.<br />Your <span class="green">vault.</span></h2>
+    <p>Join creators already locking their content and getting paid on their terms.</p>
+    <div class="cta-cards">
+      <div class="cta-card creator">
+        <div class="cta-card-icon">🔐</div>
+        <h3>I'm a creator</h3>
+        <p>Upload content, set your price, and start earning. Free to join. 90% payouts.</p>
+        <a href="index.html" class="btn btn-primary" style="width:100%;justify-content:center;">Start selling →</a>
+      </div>
+      <div class="cta-card">
+        <div class="cta-card-icon">🛒</div>
+        <h3>I'm a fan</h3>
+        <p>Browse drops from your favorite creators. Pay once, own forever.</p>
+        <a href="fan.html" class="btn btn-outline" style="width:100%;justify-content:center;">Browse drops →</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Footer ─────────────────────────────────────────── -->
+<footer>
+  <span class="nav-logo">vault<span>line</span></span>
+  <div class="foot-links">
+    <a href="#how">How it works</a>
+    <a href="#features">Features</a>
+    <a href="#faq">FAQ</a>
+    <a href="index.html">Creators</a>
+    <a href="fan.html">Fans</a>
+  </div>
+  <p class="copy">© 2026 Vaultline. All rights reserved.</p>
+</footer>
+
+<script>
+  // Smooth scroll for anchor links
+  document.querySelectorAll('a[href^="#"]').forEach(a => {
+    a.addEventListener('click', e => {
+      const target = document.querySelector(a.getAttribute('href'));
+      if (target) {
+        e.preventDefault();
+        target.scrollIntoView({ behavior: 'smooth' });
+      }
+    });
+  });
+
+  // Animate stats on scroll
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.style.opacity = '1';
+        entry.target.style.transform = 'translateY(0)';
+      }
+    });
+  }, { threshold: 0.1 });
+
+  document.querySelectorAll('.step, .feature-card, .testimonial, .cta-card').forEach(el => {
+    el.style.opacity = '0';
+    el.style.transform = 'translateY(24px)';
+    el.style.transition = 'opacity .5s ease, transform .5s ease';
+    observer.observe(el);
+  });
+</script>
+</body>
 </html>
