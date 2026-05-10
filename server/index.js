@@ -67,6 +67,7 @@ function route(handler) {
     try {
       await handler(request, response);
     } catch (error) {
+      console.error('[route error]', error?.message || error);
       const message = config.env === "production" ? "Request failed" : error.message;
       response.status(400).json({ ok: false, error: message });
     }
