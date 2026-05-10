@@ -6,7 +6,7 @@ function required(name, fallback = "") {
 
 export const config = {
   env: required("NODE_ENV", "development"),
-  port: Number(required("SERVER_PORT", "8787")),
+  port: Number(process.env.PORT || required("SERVER_PORT", "8787")),
   publicBaseUrl: required("PUBLIC_BASE_URL", "https://vaultline.me"),
   allowedOrigins: required("ALLOWED_ORIGINS", "")
     .split(",")
