@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Vaultline Fan</title>
+    <link rel="stylesheet" href="fan.css?v=20260510-store-metrics" />
+    <script defer src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
+    <script defer src="api.js"></script>
+    <script defer src="fan.js?v=20260510-mobile-site-url"></script>
+  </head>
+  <body>
+    <div class="fan-shell">
+      <aside class="fan-sidebar" aria-label="Fan navigation">
+        <a class="brand" href="#store" aria-label="Vaultline fan home">
+          <span class="brand-mark"><i data-lucide="lock-keyhole"></i></span>
+          <span>Vaultline</span>
+        </a>
+
+        <nav class="nav-stack">
+          <button class="nav-item is-active" type="button" data-view="store">
+            <i data-lucide="store"></i>
+            <span>Store</span>
+          </button>
+          <button class="nav-item" type="button" data-view="library">
+            <i data-lucide="folder-open"></i>
+            <span>Library</span>
+          </button>
+          <button class="nav-item" type="button" data-view="activity">
+            <i data-lucide="receipt-text"></i>
+            <span>Activity</span>
+          </button>
+          <button class="nav-item" type="button" data-view="profile">
+            <i data-lucide="circle-user-round"></i>
+            <span>Account</span>
+          </button>
+        </nav>
+
+        <div class="sidebar-status">
+          <span class="status-light" aria-hidden="true"></span>
+          <span>Fan account</span>
+        </div>
+      </aside>
+
+      <main class="fan-main">
+        <header class="topbar">
+          <a class="mobile-brand" href="#store" aria-label="Vaultline fan home">
+            <span class="brand-mark"><i data-lucide="lock-keyhole"></i></span>
+            <span>Vaultline</span>
+          </a>
+          <div class="top-actions">
+            <a class="mode-link" href="index.html#profile">
+              <i data-lucide="badge-dollar-sign"></i>
+              <span>Creator</span>
+            </a>
+            <button class="icon-button" type="button" data-copy-storefront aria-label="Copy storefront">
+              <i data-lucide="send"></i>
+            </button>
+            <button class="fan-chip" type="button" data-open-account-menu aria-haspopup="menu" aria-expanded="false" aria-label="Account menu">
+              <span class="fan-initial" aria-hidden="true">F</span>
+              <span>Fan</span>
+            </button>
+            <div class="account-dropdown" id="account-dropdown" role="menu" hidden>
+              <div class="account-dropdown-head">
+                <span class="fan-initial large" aria-hidden="true">F</span>
+                <div>
+                  <strong>Fan account</strong>
+                  <small>Purchases and receipts</small>
+                </div>
+              </div>
+              <button class="logout-button" type="button" data-logout role="menuitem">
+                <i data-lucide="log-out"></i>
+                <span>Log out</span>
+              </button>
+            </div>
+          </div>
+        </header>
+
+        <section class="view is-active" id="fan-store" data-view-panel="store">
+          <article class="store-hero">
+            <div class="cover-frame">
+              <img id="creator-cover" src="assets/profile-cover.svg" alt="" />
+              <div class="cover-shade" aria-hidden="true"></div>
+            </div>
+            <div class="creator-bar">
+              <img class="creator-avatar" id="creator-avatar" src="assets/avatar-tile.svg" alt="" />
+              <div class="creator-copy">
+                <span class="tiny-label">Creator storefront</span>
+                <h1 data-creator-handle>@creator</h1>
+                <p data-creator-bio>Private drops, files, and creator packs in one clean storefront.</p>
+                <div class="store-metrics" aria-label="Creator storefront stats">
+                  <span><strong id="store-stat-drops">0</strong> drops</span>
+                  <span><strong id="store-stat-owned">0</strong> owned</span>
+                  <span><strong id="store-stat-unlocks">0</strong> unlocks</span>
+                </div>
+              </div>
+              <div class="creator-actions">
+                <button class="secondary-button" type="button" data-copy-storefront>
+                  <i data-lucide="copy"></i>
+                  <span>Copy link</span>
+                </button>
+                <button class="primary-button" type="button" data-view="library">
+                  <i data-lucide="folder-open"></i>
+                  <span>My library</span>
+                </button>
+              </div>
+            </div>
+          </article>
+
+          <div class="section-heading">
+            <div>
+              <h2>Available drops</h2>
+              <p>Pay once and the content stays in your library.</p>
+            </div>
+            <button class="small-button" type="button" data-refresh-store>
+              <i data-lucide="refresh-cw"></i>
+              <span>Refresh</span>
+            </button>
+          </div>
+
+          <div class="drop-grid" id="drop-grid"></div>
+        </section>
+
+        <section class="view" id="fan-library" data-view-panel="library">
+          <div class="page-head">
+            <div>
+              <span class="tiny-label">Fan library</span>
+              <h1>Unlocked content</h1>
+              <p>Everything you buy from this creator lives here permanently.</p>
+            </div>
+            <div class="head-stat">
+              <strong id="library-count">0</strong>
+              <span>items</span>
+            </div>
+          </div>
+
+          <div class="library-grid" id="library-grid"></div>
+        </section>
+
+        <section class="view" id="fan-activity" data-view-panel="activity">
+          <div class="page-head">
+            <div>
+              <span class="tiny-label">Receipts</span>
+              <h1>Purchase activity</h1>
+              <p>Track every unlock, price, and receipt from your account.</p>
+            </div>
+            <div class="head-stat">
+              <strong id="activity-total">$0.00</strong>
+              <span>spent</span>
+            </div>
+          </div>
+
+          <div class="receipt-list" id="receipt-list"></div>
+        </section>
+
+        <section class="view" id="fan-profile" data-view-panel="profile">
+          <div class="page-head">
+            <div>
+              <span class="tiny-label">Account</span>
+              <h1>Fan profile</h1>
+              <p>Payment, saved storefront, and your buyer account basics.</p>
+            </div>
+          </div>
+
+          <div class="account-grid">
+            <article class="account-card">
+              <span class="card-icon"><i data-lucide="credit-card"></i></span>
+              <div>
+                <h2>Payment method</h2>
+                <p>Card ending in 4242 is ready for one-tap unlocks.</p>
+              </div>
+              <button class="small-button dark" type="button" data-open-payment-card>Edit</button>
+            </article>
+
+            <article class="account-card">
+              <span class="card-icon yellow"><i data-lucide="store"></i></span>
+              <div>
+                <h2>Saved storefront</h2>
+                <p><span data-creator-handle>@creator</span> is pinned for quick access.</p>
+              </div>
+              <button class="small-button" type="button" data-view="store">Open</button>
+            </article>
+
+            <article class="account-card wide">
+              <span class="card-icon blue"><i data-lucide="shield-check"></i></span>
+              <div>
+                <h2>Buyer protection</h2>
+                <p>Purchases are tied to your account and restored from this browser profile.</p>
+              </div>
+            </article>
+          </div>
+        </section>
+      </main>
+
+      <nav class="bottom-nav" aria-label="Fan navigation">
+        <button class="is-active" type="button" data-view="store" aria-label="Store">
+          <i data-lucide="store"></i>
+          <span>Store</span>
+        </button>
+        <button type="button" data-view="library" aria-label="Library">
+          <i data-lucide="folder-open"></i>
+          <span>Library</span>
+        </button>
+        <button type="button" data-view="activity" aria-label="Activity">
+          <i data-lucide="receipt-text"></i>
+          <span>Activity</span>
+        </button>
+        <button type="button" data-view="profile" aria-label="Account">
+          <i data-lucide="circle-user-round"></i>
+          <span>Account</span>
+        </button>
+      </nav>
+    </div>
+
+    <dialog class="dialog" id="fan-dialog"></dialog>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  </body>
+</html>

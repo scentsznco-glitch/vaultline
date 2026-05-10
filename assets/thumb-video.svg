@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" role="img" aria-label="Locked video thumbnail">
+  <rect width="800" height="600" fill="#f6f7f1"/>
+  <rect x="70" y="80" width="660" height="400" rx="26" fill="#111111"/>
+  <rect x="104" y="116" width="592" height="328" rx="18" fill="#2266ff"/>
+  <path d="M348 224v112l112-56z" fill="#fffaf0"/>
+  <path d="M132 514h536" stroke="#111111" stroke-width="22" stroke-linecap="round" opacity=".84"/>
+  <path d="M132 514h286" stroke="#04b859" stroke-width="22" stroke-linecap="round"/>
+  <rect x="116" y="142" width="94" height="38" rx="19" fill="#ffd45a"/>
+  <path d="M148 162h30" stroke="#111111" stroke-width="10" stroke-linecap="round"/>
+</svg>

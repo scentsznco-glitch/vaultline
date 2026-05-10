@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" role="img" aria-label="Locked gallery thumbnail">
+  <rect width="800" height="600" fill="#fffaf0"/>
+  <rect x="54" y="54" width="300" height="214" rx="22" fill="#ff6647"/>
+  <rect x="386" y="54" width="360" height="214" rx="22" fill="#2266ff"/>
+  <rect x="54" y="300" width="250" height="246" rx="22" fill="#04b859"/>
+  <rect x="336" y="300" width="410" height="246" rx="22" fill="#ffd45a"/>
+  <path d="M94 218l74-70 66 54 42-42 52 58H94z" fill="#fffaf0"/>
+  <path d="M430 216h268" stroke="#fffaf0" stroke-width="26" stroke-linecap="round"/>
+  <path d="M430 144h182" stroke="#fffaf0" stroke-width="26" stroke-linecap="round"/>
+  <circle cx="246" cy="114" r="34" fill="#fffaf0"/>
+  <path d="M112 434h134M112 484h92" stroke="#fffaf0" stroke-width="28" stroke-linecap="round"/>
+  <path d="M404 376h272M404 446h204" stroke="#111111" stroke-width="28" stroke-linecap="round" opacity=".78"/>
+</svg>

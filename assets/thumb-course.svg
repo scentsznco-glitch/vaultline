@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" role="img" aria-label="Locked course thumbnail">
+  <rect width="800" height="600" fill="#f7f7f4"/>
+  <rect x="68" y="72" width="664" height="456" rx="26" fill="#ffffff" stroke="#111111" stroke-width="16"/>
+  <rect x="116" y="128" width="236" height="168" rx="18" fill="#04b859"/>
+  <rect x="400" y="128" width="284" height="40" rx="20" fill="#111111"/>
+  <rect x="400" y="204" width="220" height="34" rx="17" fill="#2266ff"/>
+  <rect x="400" y="264" width="172" height="34" rx="17" fill="#ff6647"/>
+  <rect x="116" y="350" width="568" height="44" rx="22" fill="#ffd45a"/>
+  <rect x="116" y="430" width="404" height="36" rx="18" fill="#111111"/>
+  <path d="M188 242l52-76 52 76z" fill="#fffaf0"/>
+</svg>

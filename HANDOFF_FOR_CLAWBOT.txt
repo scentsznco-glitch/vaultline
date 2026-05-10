@@ -1,0 +1,151 @@
+VAULTLINE HANDOFF FOR NEXT BOT
+Generated: 2026-05-10
+
+PROJECT GOAL
+Build and finish a mobile-first web site named Vaultline, inspired by unlockt.me, where creators sell locked content behind a paywall and fans buy permanent unlocks. This is a mobile web site for now, not a native app.
+
+USER DESIGN DIRECTION
+- Keep the UI custom, polished, smooth, and studio-quality. The user rejected anything that looks like a beginner/demo design.
+- Mobile-first layout is the priority.
+- Unlocks are permanent. Do not add access-time/expiration controls for buyers.
+- Do not add categories.
+- Do not add post time.
+- Price minimum is $5. Show the inline message "minimum of $5" when price is less than $5.
+- Do not allow Generate Link/Create when required fields are blank.
+- Upload/Sell tab should feel simple like the reference screenshots:
+  - Add media first.
+  - Allow multiple media files in one drop.
+  - Allow mixed photos and videos.
+  - Once media is selected, hide the large "Photo, Video" intro block.
+  - Show selected media side by side in a draggable/swipeable rail.
+  - Each selected media tile needs an X in the top-right corner to remove it.
+  - Add more media should remain available.
+  - Remove quick preset price buttons ($10/$20/$30).
+  - Remove top "Create" text.
+- Download option needs a nested extra menu:
+  - Allowed
+  - Allowed (Charge Extra)
+  - Not Allowed
+  - If Charge Extra is selected, allow choosing extra percent.
+- Profile:
+  - Cover image has a fixed set height and can be changed with a Change cover control. No separate plus icon on cover.
+  - Profile photo camera icon belongs in the corner of the avatar.
+  - Username should not overpower the profile photo.
+  - Remove unnecessary "PUBLIC PAGE" label from profile header.
+  - Top account chip should open a small dropdown/popover with logout, not a large account modal.
+  - Profile settings modal should include account/email settings.
+- Wallet:
+  - Withdraw to bank button should be green.
+- Fan side:
+  - Needs the same high-level polish as creator side.
+  - Fan/store stats should not look like boxed spreadsheet cells.
+
+WHAT IS IN THIS FOLDER
+- index.html, styles.css, app.js
+  Creator-side mobile prototype.
+- fan.html, fan.css, fan.js
+  Fan-side mobile prototype.
+- assets/
+  SVG placeholder assets used by the prototype.
+- server/
+  Express backend scaffold for auth, creators, drops, uploads, checkout, webhooks, and entitlements.
+- db/schema.sql
+  Supabase/Postgres schema for users, creator profiles, fan profiles, drops, media, purchases, entitlements, operations, reports, support tickets, audit logs, and storage bucket setup.
+- docs/
+  Launch notes, Stripe setup, security/compliance notes, and API routes.
+- package.json and package-lock.json
+  Node dependencies and scripts.
+- .env.example
+  Template for environment variables. Do not commit or share a real .env with secrets.
+
+WHAT HAS BEEN DONE
+- Mobile creator UI has been heavily iterated from the user's feedback.
+- Mobile fan UI exists but still needs visual polish.
+- Backend scaffold has been added with:
+  - Express server
+  - Supabase service client integration
+  - Stripe checkout/connect/webhook helpers
+  - Resend email helper
+  - Secure token utilities
+  - Storage signed upload/download helpers
+  - Auth/session endpoints
+  - Drop, purchase, entitlement, wallet, support, and report endpoints
+- Supabase project was created in the user's logged-in Supabase account:
+  - Project name: vaultline
+  - Project ref: srlkkgiwdonjqwjtovog
+  - Supabase URL: https://srlkkgiwdonjqwjtovog.supabase.co
+  - Region: East US (Ohio), us-east-2
+  - Compute: nano
+- The Supabase SQL editor automation was unreliable with long pasted schema. The schema should be run manually or via a proper Supabase CLI/API session.
+- npm install completed successfully.
+- npm run check completed successfully before this handoff.
+
+IMPORTANT SECURITY NOTE
+Do not ask the user to paste API keys into chat. If keys are needed, have the user add them directly into a local .env file or deployment secret manager. Do not include .env in this handoff package.
+
+WHAT IS LEFT TO LAUNCH
+1. Apply the database schema.
+   - Open Supabase project srlkkgiwdonjqwjtovog.
+   - Run db/schema.sql in SQL editor, or use Supabase CLI with the project linked.
+   - Confirm the private storage bucket "locked-media" exists.
+2. Create local/deployment environment variables from .env.example.
+   Required:
+   - SUPABASE_URL=https://srlkkgiwdonjqwjtovog.supabase.co
+   - SUPABASE_ANON_KEY
+   - SUPABASE_SERVICE_ROLE_KEY
+   - JWT_SECRET
+   - STRIPE_SECRET_KEY
+   - STRIPE_WEBHOOK_SECRET
+   - RESEND_API_KEY
+   - EMAIL_FROM
+   - PUBLIC_BASE_URL
+3. Finish Stripe setup.
+   - Configure Stripe Connect for creator payouts.
+   - Add webhook endpoint: /api/webhooks/stripe
+   - Enable events needed for checkout completion, refunds, disputes, account updates, and payouts.
+4. Finish email setup.
+   - Verify a sending domain in Resend.
+   - Update EMAIL_FROM.
+   - Test verification email flow.
+5. Connect frontend to backend.
+   - Current pages are static/local prototype behavior.
+   - Wire creator/fan UI to real API endpoints in server/index.js.
+   - Ensure media uploads use signed upload URLs and private Supabase storage.
+6. Finish creator sell/upload flow.
+   - Multiple mixed media uploads.
+   - Draggable/swipeable selected media rail.
+   - Remove media tile X buttons.
+   - Required-field validation.
+   - Minimum $5 validation.
+   - Download/charge-extra menu behavior.
+7. Finish buyer/fan flow.
+   - Public creator storefront.
+   - Buy/unlock checkout.
+   - Fan library of permanently unlocked content.
+   - Signed download/view links only after entitlement check.
+8. Add production hardening.
+   - Age/identity/payment requirements for creators.
+   - DMCA/report/support flows.
+   - Admin review tools.
+   - Terms, privacy, content policy.
+   - Rate limiting/CORS/domain settings.
+   - Deployment setup and smoke tests.
+
+USEFUL COMMANDS
+Install dependencies:
+  npm install
+
+Run checks:
+  npm run check
+
+Run local backend:
+  npm run dev
+
+Health check:
+  http://localhost:8787/api/health
+
+FILES TO IGNORE
+- node_modules/
+- .env
+- Any real secret keys or downloaded credentials.
+

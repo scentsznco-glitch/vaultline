@@ -1,0 +1,23 @@
+{
+  "name": "vaultline-mobile-site",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "node server/index.js",
+    "check": "node --check server/index.js && node --check server/config.js && node --check server/data.js && node --check server/services/stripe.js && node --check server/services/storage.js && node --check server/services/email.js && node --check server/services/security.js && node --check app.js && node --check fan.js"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "latest",
+    "cookie-parser": "latest",
+    "cors": "latest",
+    "dotenv": "latest",
+    "express": "latest",
+    "helmet": "latest",
+    "resend": "latest",
+    "stripe": "latest",
+    "twilio": "^6.0.2",
+    "zod": "latest"
+  }
+}
