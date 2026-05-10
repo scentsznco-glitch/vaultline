@@ -365,6 +365,58 @@
   background: var(--paper);
 }
 
+.sell-guidance {
+  margin-top: 18px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.sell-guidance article {
+  min-height: 112px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: grid;
+  gap: 10px;
+  align-content: start;
+  background: var(--paper);
+  box-shadow: 0 12px 28px rgba(17, 17, 17, 0.045);
+}
+
+.sell-guidance article > span {
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  color: var(--green);
+  background: var(--green-soft);
+}
+
+.sell-guidance svg {
+  width: 21px;
+  height: 21px;
+}
+
+.sell-guidance strong,
+.sell-guidance small {
+  display: block;
+}
+
+.sell-guidance strong {
+  font-size: 14px;
+  line-height: 1.2;
+}
+
+.sell-guidance small {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.35;
+  font-weight: 650;
+}
+
 .sell-row {
   width: 100%;
   min-height: 72px;
@@ -815,6 +867,12 @@ textarea:focus-visible {
   outline: 0;
 }
 
+.sell-price-input input:focus,
+.sell-price-input input:focus-visible {
+  outline: 0;
+  box-shadow: none;
+}
+
 body.is-sell-detail .topbar,
 body.is-sell-detail .bottom-nav {
   display: none;
@@ -836,6 +894,10 @@ body.is-sell-detail .main {
 
   .sell-card {
     min-height: 420px;
+  }
+
+  .sell-guidance {
+    grid-template-columns: 1fr;
   }
 
   .sell-detail {
@@ -1174,6 +1236,16 @@ svg {
 .brand-mark svg {
   width: 19px;
   height: 19px;
+}
+
+.brand-mark .vault-logo {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .nav-stack {
@@ -3069,6 +3141,7 @@ svg {
   background: var(--paper);
   color: var(--ink);
   text-align: left;
+  text-decoration: none;
 }
 
 .settings-row:hover {

@@ -7,7 +7,7 @@ function required(name, fallback = "") {
 export const config = {
   env: required("NODE_ENV", "development"),
   port: Number(process.env.PORT || required("SERVER_PORT", "8787")),
-  publicBaseUrl: required("PUBLIC_BASE_URL", "https://vaultline.me"),
+  publicBaseUrl: required("PUBLIC_BASE_URL", "https://vaultd.me"),
   allowedOrigins: required("ALLOWED_ORIGINS", "")
     .split(",")
     .map((origin) => origin.trim())
@@ -24,13 +24,13 @@ export const config = {
     publishableKey: required("STRIPE_PUBLISHABLE_KEY"),
     webhookSecret: required("STRIPE_WEBHOOK_SECRET"),
     platformFeePercent: Number(required("STRIPE_PLATFORM_FEE_PERCENT", "10")),
-    connectRefreshUrl: required("STRIPE_CONNECT_REFRESH_URL", "https://vaultline.me/stripe/refresh"),
-    connectReturnUrl: required("STRIPE_CONNECT_RETURN_URL", "https://vaultline.me/stripe/return"),
+    connectRefreshUrl: required("STRIPE_CONNECT_REFRESH_URL", "https://vaultd.me/stripe/refresh"),
+    connectReturnUrl: required("STRIPE_CONNECT_RETURN_URL", "https://vaultd.me/stripe/return"),
   },
   email: {
     resendApiKey: required("RESEND_API_KEY"),
-    from: required("EMAIL_FROM", "Vaultline <no-reply@vaultline.me>"),
-    support: required("SUPPORT_EMAIL", "support@vaultline.me"),
+    from: required("EMAIL_FROM", "Vault'd <no-reply@vaultd.me>"),
+    support: required("SUPPORT_EMAIL", "support@vaultd.me"),
   },
   twilio: {
     accountSid: required("TWILIO_ACCOUNT_SID"),

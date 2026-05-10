@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Vaultline — Lock your content. Get paid.</title>
-  <meta name="description" content="Upload your photos and videos, set a price, share a link. Fans pay once and unlock forever. No subscriptions. No middlemen." />
+  <title>Vault'd — Lock your content. Get paid.</title>
+  <meta name="description" content="Upload digital content, set a price, share a link, and give fans permanent access after purchase." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300..900;1,14..32,300..900&family=Syne:wght@700;800&display=swap" rel="stylesheet" />
@@ -559,6 +559,95 @@
       letter-spacing: -.01em;
     }
 
+    /* ─── PRODUCT PATHS ───────────────────────────────────────────── */
+    .path-section {
+      padding: 100px 24px;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    .path-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 44px;
+    }
+
+    .path-card {
+      min-height: 360px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 30px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.015)),
+        var(--bg2);
+    }
+
+    .path-card h3 {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(28px, 4vw, 42px);
+      line-height: 1;
+      letter-spacing: -.03em;
+      color: #fff;
+      margin-bottom: 14px;
+    }
+
+    .path-card p {
+      color: #777;
+      line-height: 1.7;
+      max-width: 390px;
+      font-size: 15px;
+    }
+
+    .path-steps {
+      display: grid;
+      gap: 8px;
+      margin-top: 28px;
+    }
+
+    .path-steps span {
+      min-height: 42px;
+      padding: 0 14px;
+      border: 1px solid rgba(255,255,255,.06);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #cfcfcf;
+      background: rgba(255,255,255,.025);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .path-steps b {
+      color: var(--g);
+      font-family: 'Syne', sans-serif;
+      font-size: 15px;
+    }
+
+    .path-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 28px;
+    }
+
+    .path-note {
+      min-height: 48px;
+      padding: 0 14px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      color: #8b8b8b;
+      background: rgba(0,255,133,.07);
+      border: 1px solid rgba(0,255,133,.14);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
     /* ─── EARNINGS CALC ───────────────────────────── */
     .calc-section {
       padding: 100px 24px;
@@ -672,6 +761,60 @@
     .compare-cell.green { color: var(--g); font-weight: 700; }
     .compare-cell.red { color: #555; }
 
+    /* ─── FAQ ─────────────────────────────────────────────────────── */
+    .faq-section {
+      padding: 100px 24px;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .faq-grid {
+      display: grid;
+      gap: 10px;
+      margin-top: 42px;
+    }
+
+    .faq-item {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--bg2);
+      overflow: hidden;
+    }
+
+    .faq-item summary {
+      min-height: 70px;
+      padding: 0 22px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      color: #fff;
+      cursor: pointer;
+      list-style: none;
+      font-weight: 800;
+    }
+
+    .faq-item summary::-webkit-details-marker { display: none; }
+
+    .faq-item summary::after {
+      content: "+";
+      color: var(--g);
+      font-size: 24px;
+      font-weight: 700;
+      line-height: 1;
+    }
+
+    .faq-item[open] summary::after { content: "-"; }
+
+    .faq-item p {
+      margin: 0;
+      padding: 0 22px 22px;
+      color: #777;
+      line-height: 1.7;
+      font-size: 14px;
+      max-width: 760px;
+    }
+
     /* ─── CTA SECTION ─────────────────────────────── */
     .cta-section {
       padding: 100px 24px;
@@ -766,6 +909,7 @@
 
       .steps { grid-template-columns: 1fr; }
       .features-grid { grid-template-columns: 1fr; }
+      .path-grid { grid-template-columns: 1fr; }
 
       .preview-inner {
         grid-template-columns: 1fr;
@@ -789,6 +933,14 @@
     }
 
     @media (max-width: 480px) {
+      .nav-browse { display: none; }
+      .nav-fan-signup {
+        padding: 10px 12px;
+        color: #fff;
+        background: rgba(255,255,255,.09);
+        border: 1px solid rgba(255,255,255,.16);
+      }
+      .btn-solid { padding: 10px 16px; }
       .hero-ctas { flex-direction: column; align-items: center; width: 100%; }
       .btn-solid-lg, .btn-outline-lg { width: 100%; justify-content: center; max-width: 320px; }
     }
@@ -798,11 +950,13 @@
 
   <!-- NAV -->
   <nav>
-    <a href="/" class="logo">vault<em>line</em></a>
+    <a href="/" class="logo">Vault<em>'d</em></a>
     <div class="nav-right">
       <a href="#how" class="nav-link">How it works</a>
-      <a href="fan.html" class="btn btn-ghost">Browse drops</a>
-      <a href="app.html" class="btn btn-solid">Start selling</a>
+      <a href="#faq" class="nav-link">FAQ</a>
+      <a href="fan.html?discover=1#discover" class="btn btn-ghost nav-browse">Browse drops</a>
+      <a href="fan.html?signup=fan#discover" class="btn btn-ghost nav-fan-signup">Fan sign up</a>
+      <a href="app.html#create" class="btn btn-solid">Start selling</a>
     </div>
   </nav>
 
@@ -819,22 +973,22 @@
     <h1 class="hero-headline-2 reveal">Get paid.</h1>
 
     <p class="hero-sub reveal">
-      Upload photos and videos, set your price, share your link.
-      Fans pay once — they unlock forever. Zero subscriptions. Zero middlemen.
+      Upload photos, videos, templates, courses, e-books, or podcasts.
+      Set a price, share the link, and give fans permanent access after they buy.
     </p>
 
     <div class="hero-ctas reveal">
-      <a href="app.html" class="btn btn-solid-lg">
+      <a href="app.html#create" class="btn btn-solid-lg">
         Start selling free <span style="font-size:16px">→</span>
       </a>
-      <a href="fan.html" class="btn btn-outline-lg">Browse drops</a>
+      <a href="fan.html?discover=1#discover" class="btn btn-outline-lg">Browse drops</a>
     </div>
 
     <div class="hero-trust reveal">
       <span class="trust-item"><span class="trust-dot"></span>No monthly fees</span>
       <span class="trust-item"><span class="trust-dot"></span>You keep 90%</span>
       <span class="trust-item"><span class="trust-dot"></span>Fans unlock forever</span>
-      <span class="trust-item"><span class="trust-dot"></span>Any content type</span>
+      <span class="trust-item"><span class="trust-dot"></span>Multiple content types</span>
     </div>
   </section>
 
@@ -862,26 +1016,26 @@
   <div id="how" class="section">
     <div class="section-eyebrow reveal">How it works</div>
     <h2 class="section-title reveal">Three steps.<br>Then you get paid.</h2>
-    <p class="section-sub reveal">No complicated setup. No waiting period. No minimum payout threshold.</p>
+    <p class="section-sub reveal">A focused paywall flow for one-time content purchases: publish, share, unlock, deliver.</p>
 
     <div class="steps reveal">
       <div class="step">
         <div class="step-num">01</div>
         <span class="step-icon">📁</span>
         <div class="step-title">Upload your drop</div>
-        <div class="step-desc">Photos, videos, PDFs — anything. Set a price (min $5). Your content stays encrypted until someone pays.</div>
+        <div class="step-desc">Photos, videos, PDFs, templates, courses, e-books, or podcasts. Set a price of $5 or more and choose public or unlisted.</div>
       </div>
       <div class="step">
         <div class="step-icon">🔗</div>
         <div class="step-num">02</div>
         <div class="step-title">Share your link</div>
-        <div class="step-desc">Every drop gets its own link. Post it anywhere — TikTok, Twitter, Instagram. Drive traffic your way.</div>
+        <div class="step-desc">Every drop gets a paywall link. Share it anywhere, or make it public so fans can discover it from the fan side.</div>
       </div>
       <div class="step">
         <div class="step-num">03</div>
         <span class="step-icon">💸</span>
-        <div class="step-title">Collect the bag</div>
-        <div class="step-desc">Fans pay once. You keep 90%. Withdraw to your bank whenever. No hold periods, no games.</div>
+        <div class="step-title">Get paid</div>
+        <div class="step-desc">Fans pay once and keep access forever. Creator earnings and payout status stay visible in the wallet.</div>
       </div>
     </div>
   </div>
@@ -892,15 +1046,15 @@
       <div class="preview-text">
         <div class="section-eyebrow reveal">For creators</div>
         <h2 class="section-title reveal">Your content.<br>Your price.</h2>
-        <p class="section-sub reveal">You decide what it's worth. We handle the checkout, delivery, and payout — you just create.</p>
+        <p class="section-sub reveal">You decide what it is worth. Vault'd keeps the selling flow simple: media, price, link, checkout, delivery.</p>
         <ul class="check-list reveal">
           <li>Fans get permanent access — no rebilling drama</li>
-          <li>Upload any file type — photos, videos, zips, PDFs</li>
-          <li>Real-time dashboard — see every sale as it happens</li>
-          <li>Your own storefront page at vaultd.me/@you</li>
-          <li>Followers get notified when you drop new content</li>
+          <li>Sell photos, videos, templates, courses, e-books, podcasts, or hosted links</li>
+          <li>Real-time dashboard for drops, unlocks, sales, and wallet activity</li>
+          <li>A clean creator storefront plus unlisted links for private selling</li>
+          <li>Download rules let you allow, block, or charge extra for downloads</li>
         </ul>
-        <a href="app.html" class="btn btn-solid-lg reveal" style="display:inline-flex">Create your first drop →</a>
+        <a href="app.html#create" class="btn btn-solid-lg reveal" style="display:inline-flex">Create your first drop →</a>
       </div>
       <div class="reveal">
         <div class="mock-card">
@@ -927,22 +1081,64 @@
     </div>
   </div>
 
+  <!-- FAN + CREATOR PATHS -->
+  <div class="path-section">
+    <div class="section-eyebrow reveal" style="text-align:center">Built for both sides</div>
+    <h2 class="section-title reveal" style="text-align:center">Creators sell fast.<br>Fans keep what they buy.</h2>
+    <p class="section-sub reveal" style="text-align:center;margin-left:auto;margin-right:auto">
+      The site should make sense before anyone signs in. Creators get a clear selling tool, fans get a simple place to browse and keep purchases.
+    </p>
+
+    <div class="path-grid reveal">
+      <article class="path-card">
+        <div>
+          <h3>Creator flow</h3>
+          <p>Create a locked drop from your phone, choose who can buy, set download permissions, and share a checkout link that routes buyers to the right experience.</p>
+          <div class="path-steps" aria-label="Creator workflow">
+            <span><b>01</b> Add content or content URL</span>
+            <span><b>02</b> Set price, access, and download rules</span>
+            <span><b>03</b> Generate a link and track sales</span>
+          </div>
+        </div>
+        <div class="path-actions">
+          <a href="app.html#create" class="btn btn-solid-lg">Open creator dashboard</a>
+        </div>
+      </article>
+
+      <article class="path-card">
+        <div>
+          <h3>Fan flow</h3>
+          <p>Fans can browse public creators, buy from a direct drop link, and keep every unlocked item in a permanent library tied to their account.</p>
+          <div class="path-steps" aria-label="Fan workflow">
+            <span><b>01</b> Browse public drops or open a shared link</span>
+            <span><b>02</b> Pay once through checkout</span>
+            <span><b>03</b> Reopen purchases from the library</span>
+          </div>
+        </div>
+        <div class="path-actions">
+          <a href="fan.html?discover=1#discover" class="btn btn-outline-lg">Browse as a fan</a>
+          <span class="path-note">No app required for fans.</span>
+        </div>
+      </article>
+    </div>
+  </div>
+
   <!-- FEATURES -->
   <div class="section" style="max-width: 900px;">
-    <div class="section-eyebrow reveal">Why Vaultline</div>
+    <div class="section-eyebrow reveal">Why Vault'd</div>
     <h2 class="section-title reveal">Built to make you money,<br>not collect fees.</h2>
-    <p class="section-sub reveal">Every feature exists for one reason: getting more cash in your pocket.</p>
+    <p class="section-sub reveal">Every feature keeps the path from content to checkout to fan library easy to understand.</p>
 
     <div class="features-grid reveal">
       <div class="feature">
         <span class="feature-icon">🔒</span>
-        <div class="feature-title">True content protection</div>
-        <div class="feature-desc">Your files are never publicly accessible. Fans get a private, time-limited download link — not a shareable URL.</div>
+        <div class="feature-title">Locked delivery</div>
+        <div class="feature-desc">Fans see the paywall first. Purchased content is delivered through their account library and direct drop access.</div>
       </div>
       <div class="feature">
         <span class="feature-icon">⚡</span>
-        <div class="feature-title">Instant payouts</div>
-        <div class="feature-desc">No 30-day holds or weird thresholds. Once a fan pays, that money is ready to withdraw immediately.</div>
+        <div class="feature-title">Payout readiness</div>
+        <div class="feature-desc">Creators can see wallet status, payout requirements, bank setup, and recent earning activity in one place.</div>
       </div>
       <div class="feature">
         <span class="feature-icon">📊</span>
@@ -956,12 +1152,12 @@
       </div>
       <div class="feature">
         <span class="feature-icon">🔔</span>
-        <div class="feature-title">Fan notifications</div>
-        <div class="feature-desc">Fans who follow you get an email the moment you publish a new drop. Built-in marketing.</div>
+        <div class="feature-title">Fan discovery</div>
+        <div class="feature-desc">Public drops can appear in the fan browse feed, while unlisted drops stay private to people with the link.</div>
       </div>
       <div class="feature">
         <span class="feature-icon">💳</span>
-        <div class="feature-title">Zero monthly cost</div>
+        <div class="feature-title">Simple pricing</div>
         <div class="feature-desc">We only make money when you make money. No subscriptions, no listing fees — just a 10% cut on sales.</div>
       </div>
     </div>
@@ -975,7 +1171,7 @@
     <div class="compare-table reveal">
       <div class="compare-head">
         <div class="compare-head-cell">Feature</div>
-        <div class="compare-head-cell highlight">Vaultline</div>
+        <div class="compare-head-cell highlight">Vault'd</div>
         <div class="compare-head-cell">OnlyFans</div>
         <div class="compare-head-cell">Gumroad</div>
       </div>
@@ -998,17 +1194,61 @@
         <div class="compare-cell green">✓ Yes</div>
       </div>
       <div class="compare-row">
-        <div class="compare-cell feature-col">Instant withdrawals</div>
-        <div class="compare-cell highlight green">✓ Yes</div>
-        <div class="compare-cell red">7-day hold</div>
-        <div class="compare-cell red">Weekly batch</div>
+        <div class="compare-cell feature-col">Payout visibility</div>
+        <div class="compare-cell highlight green">Clear wallet</div>
+        <div class="compare-cell">Dashboard</div>
+        <div class="compare-cell">Dashboard</div>
       </div>
       <div class="compare-row">
-        <div class="compare-cell feature-col">Content type restrictions</div>
-        <div class="compare-cell highlight green">None</div>
-        <div class="compare-cell red">Heavy</div>
-        <div class="compare-cell">Moderate</div>
+        <div class="compare-cell feature-col">Public + unlisted drops</div>
+        <div class="compare-cell highlight green">Built in</div>
+        <div class="compare-cell">Profile-first</div>
+        <div class="compare-cell">Product-first</div>
       </div>
+    </div>
+  </div>
+
+  <!-- FAQ -->
+  <div class="faq-section" id="faq">
+    <div class="section-eyebrow reveal" style="text-align:center">FAQ</div>
+    <h2 class="section-title reveal" style="text-align:center">Questions fans and creators ask first.</h2>
+    <p class="section-sub reveal" style="text-align:center;margin-left:auto;margin-right:auto">
+      A paywall product needs trust fast. These answers keep the experience clear before checkout.
+    </p>
+
+    <div class="faq-grid reveal">
+      <details class="faq-item" open>
+        <summary>What is Vault'd?</summary>
+        <p>Vault'd is a mobile-first website for selling locked digital drops. Creators publish paid content links, and fans pay once to unlock permanent access.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Do fans need an app?</summary>
+        <p>No. Fans can browse public drops, open shared links, pay, and access their library from the website.</p>
+      </details>
+      <details class="faq-item">
+        <summary>What can creators sell?</summary>
+        <p>Vault'd is built for photos, videos, templates, courses, e-books, podcasts, and hosted content URLs. Content still needs to follow platform policy and the law.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Is access permanent?</summary>
+        <p>Yes. Purchases are one-time unlocks. Once a fan buys a drop, it stays in their library unless a refund, dispute, policy issue, or account issue requires review.</p>
+      </details>
+      <details class="faq-item">
+        <summary>What is public vs unlisted?</summary>
+        <p>Public drops can appear in fan discovery and on a creator storefront. Unlisted drops are only reachable by people who have the direct link.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Can creators control downloads?</summary>
+        <p>Yes. A drop can allow downloads, block downloads, or charge an extra percentage when a buyer wants downloadable access.</p>
+      </details>
+      <details class="faq-item">
+        <summary>What is the minimum price?</summary>
+        <p>The creator flow enforces a $5 minimum so checkout fees do not swallow tiny purchases.</p>
+      </details>
+      <details class="faq-item">
+        <summary>How do payouts work?</summary>
+        <p>Real payouts require a connected payout account, identity and bank requirements, and a successful payment processor setup. The wallet shows readiness and recent operations.</p>
+      </details>
     </div>
   </div>
 
@@ -1019,20 +1259,22 @@
     <h2 class="cta-title reveal">Your first drop is<br>30 minutes away.</h2>
     <p class="cta-sub reveal">Free to start. No credit card. Cancel nothing — there's nothing to cancel.</p>
     <div class="cta-buttons reveal">
-      <a href="app.html" class="btn btn-solid-lg">Create your account →</a>
-      <a href="fan.html" class="btn btn-outline-lg">Browse drops first</a>
+      <a href="app.html#create" class="btn btn-solid-lg">Create your account →</a>
+      <a href="fan.html?discover=1#discover" class="btn btn-outline-lg">Browse drops first</a>
     </div>
   </div>
 
   <!-- FOOTER -->
   <footer>
-    <div class="footer-logo">vault<em>line</em></div>
+    <div class="footer-logo">Vault<em>'d</em></div>
     <div class="footer-links">
       <a href="#how" class="footer-link">How it works</a>
-      <a href="fan.html" class="footer-link">Browse drops</a>
-      <a href="app.html" class="footer-link">Sign up</a>
+      <a href="#faq" class="footer-link">FAQ</a>
+      <a href="fan.html?discover=1#discover" class="footer-link">Browse drops</a>
+      <a href="fan.html?signup=fan#discover" class="footer-link">Fan sign up</a>
+      <a href="app.html#create" class="footer-link">Creator sign up</a>
     </div>
-    <div class="footer-copy">© 2026 Vaultline</div>
+    <div class="footer-copy">© 2026 Vault'd</div>
   </footer>
 
   <script>

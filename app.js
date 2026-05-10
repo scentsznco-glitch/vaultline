@@ -2,7 +2,8 @@ const DEFAULT_THUMBNAIL = "assets/thumb-gallery.svg";
 const DEFAULT_COVER = "assets/profile-cover.svg";
 const DEFAULT_AVATAR = "assets/avatar-tile.svg";
 const STORAGE_KEY = "vaultline-settings-v1";
-const PUBLIC_BASE_URL = "http://localhost:8787";
+const PUBLIC_BASE_URL =
+  window.location.origin && window.location.origin !== "null" ? window.location.origin : "http://localhost:8787";
 const MIN_PRICE = 5;
 
 const state = {
@@ -118,6 +119,15 @@ function normalizeHandle(value) {
   return handle || "creator";
 }
 
+function creatorStorefrontUrl() {
+  return `${PUBLIC_BASE_URL}/fan.html?handle=${encodeURIComponent(state.profile.handle || "creator")}#store`;
+}
+
+function dropBuyerUrl(dropId) {
+  const handle = encodeURIComponent(state.profile.handle || "creator");
+  return `${PUBLIC_BASE_URL}/fan.html?handle=${handle}&drop=${encodeURIComponent(dropId)}#store`;
+}
+
 function loadSettings() {
   try {
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
@@ -143,7 +153,7 @@ function loadSettings() {
           views: Math.max(0, Number(link.views) || 0),
           sales: Math.max(0, Number(link.sales) || 0),
           revenue: Math.max(0, Number(link.revenue) || 0),
-          url: String(link.url || `${PUBLIC_BASE_URL}/d/${link.id}`).replace("https://vaultline.app", PUBLIC_BASE_URL),
+          url: String(link.url || dropBuyerUrl(link.id)).replace("https://vaultline.app", PUBLIC_BASE_URL),
         }));
     }
     if (Array.isArray(saved.operations)) {
@@ -346,7 +356,7 @@ function renderLinks() {
                 </div>
               </div>
               <div class="link-price">
-                <strong>${money(link.price)}</strong>
+                <strong>${money(effectivePrice(link))}</strong>
                 <span>Pay once</span>
               </div>
               <div class="link-actions">
@@ -388,7 +398,7 @@ function renderProfileLinks() {
             <article class="profile-tile">
               <div class="profile-media">
                 <img src="${escapeHtml(link.thumbnail)}" alt="" />
-                <span class="price-badge">${money(link.price)}</span>
+                <span class="price-badge">${money(effectivePrice(link))}</span>
               </div>
               <div class="profile-tile-copy">
                 <strong>${escapeHtml(link.title)}</strong>
@@ -758,6 +768,31 @@ function downloadNoteText() {
     return `allowed with a ${state.sell.downloadExtraPercent}% download add-on`;
   }
   return state.sell.download.toLowerCase();
+}
+
+function apiAccessValue() {
+  const values = {
+    Everyone: "everyone",
+    Unlisted: "unlisted",
+  };
+  return values[state.sell.access] || "everyone";
+}
+
+function apiDownloadValue() {
+  const values = {
+    Allowed: "allowed",
+    "Allowed (Charge Extra)": "extra",
+    "Not Allowed": "blocked",
+  };
+  return values[state.sell.download] || "allowed";
+}
+
+function effectivePrice(link) {
+  const price = Number(link?.price) || 0;
+  if (link?.download === "Allowed (Charge Extra)") {
+    return Number((price * (1 + (Number(link.downloadExtraPercent) || 0) / 100)).toFixed(2));
+  }
+  return price;
 }
 
 function updateSellNote() {
@@ -1217,7 +1252,6 @@ function openAccessSheet() {
   const options = [
     ["Everyone", "Anyone can buy and unlock this content"],
     ["Unlisted", "Only people with the link can unlock this content"],
-    ["SVIP", "Only Super VIPs can unlock this content"],
   ];
   openDialog(
     "Who Can Buy",
@@ -1373,6 +1407,15 @@ function openProfileSettings() {
           </span>
           <i data-lucide="chevron-right"></i>
         </button>
+        <p class="settings-section-label">Help</p>
+        <a class="settings-row" href="/#faq">
+          <span class="settings-icon"><i data-lucide="circle-help"></i></span>
+          <span>
+            <strong>FAQ</strong>
+            <small>Pricing, unlocks, payouts, and download rules</small>
+          </span>
+          <i data-lucide="chevron-right"></i>
+        </a>
       </div>
     `,
   );
@@ -1413,15 +1456,15 @@ function openAccountSettings() {
 }
 
 function openShareProfile() {
-  const url = `${PUBLIC_BASE_URL}/${state.profile.handle}`;
+  const url = creatorStorefrontUrl();
   openDialog(
-    "Share profile",
+    "Share storefront",
     `
       <div class="share-box">
         <span class="share-url">${url}</span>
         <button class="primary-button" type="button" data-copy-url="${url}">
           <i data-lucide="copy"></i>
-          <span>Copy profile link</span>
+          <span>Copy storefront link</span>
         </button>
       </div>
     `,
@@ -1502,7 +1545,7 @@ function openPaymentSettings() {
       ${statusBlock}
       <div class="settings-note" style="margin-top:8px;">
         <i data-lucide="info"></i>
-        <span>Vaultline uses Stripe Connect. Your payouts land directly in your bank account after each sale.</span>
+        <span>Vault'd uses Stripe Connect. Your payouts land directly in your bank account after each sale.</span>
       </div>
       ${actionBlock}
     </div>`,
@@ -1560,13 +1603,14 @@ function openBundleSettings() {
 
 function openBuyerPreview(link) {
   link.views += 1;
+  const price = effectivePrice(link);
   openDialog(
     "Buyer preview",
     `
       <div class="preview-phone">
         <div class="preview-top">
           <span class="preview-handle">@${state.profile.handle}</span>
-          <span class="preview-price">${money(link.price)}</span>
+          <span class="preview-price">${money(price)}</span>
         </div>
         <div class="locked-art">
           <img src="${escapeHtml(link.thumbnail)}" alt="" />
@@ -1574,9 +1618,9 @@ function openBuyerPreview(link) {
         </div>
         <h2>${escapeHtml(link.title)}</h2>
         <p>${escapeHtml(link.note || "Pay once to unlock the file and download instantly.")}</p>
-        <button class="buyer-button" type="button" data-buy-link="${link.id}">
-          <i data-lucide="credit-card"></i>
-          <span>Pay ${money(link.price)}</span>
+        <button class="buyer-button" type="button" data-open-public-link="${link.id}">
+          <i data-lucide="external-link"></i>
+          <span>Open buyer page</span>
         </button>
       </div>
     `,
@@ -1619,8 +1663,8 @@ async function createLink(form) {
       title,
       description: String(data.get("note") || "").trim(),
       price,
-      access: state.sell.access || "everyone",
-      download: state.sell.download || "allowed",
+      access: apiAccessValue(),
+      download: apiDownloadValue(),
       downloadExtraPercent: state.sell.downloadExtraPercent || 0,
     };
 
@@ -1652,7 +1696,7 @@ async function createLink(form) {
       views: 0,
       sales: 0,
       revenue: 0,
-      url: `${PUBLIC_BASE_URL}/fan.html?handle=${encodeURIComponent(state.profile?.handle || "")}`,
+      url: dropBuyerUrl(drop.id),
     };
 
     state.links.unshift(link);
@@ -1704,7 +1748,7 @@ function showLoginOverlay(role = "creator") {
     ].join(";");
     overlay.innerHTML = `
       <div style="background:#111;border:1px solid #222;border-radius:20px;padding:32px 28px;width:100%;max-width:360px;">
-        <h2 style="margin:0 0 6px;font-size:22px;font-weight:700;color:#fff;">Sign in to Vaultline</h2>
+        <h2 style="margin:0 0 6px;font-size:22px;font-weight:700;color:#fff;">Sign in to Vault'd</h2>
         <p style="margin:0 0 24px;font-size:14px;color:#888;">We'll send you a magic link — no password needed.</p>
         <form id="vl-login-form">
           <input id="vl-login-email" type="email" required placeholder="your@email.com"
@@ -1814,7 +1858,15 @@ async function loadDropsFromApi() {
       revenue: (drop.purchases || [])
         .filter((p) => p.status === "paid")
         .reduce((sum, p) => sum + Number(p.amount || 0) * 0.9, 0),
-      url: `${PUBLIC_BASE_URL}/fan.html?handle=${encodeURIComponent(state.profile?.handle || "")}`,
+      access: drop.access === "unlisted" ? "Unlisted" : "Everyone",
+      download:
+        drop.download === "extra"
+          ? "Allowed (Charge Extra)"
+          : drop.download === "blocked"
+            ? "Not Allowed"
+            : "Allowed",
+      downloadExtraPercent: Number(drop.download_extra_percent) || 0,
+      url: dropBuyerUrl(drop.id),
     }));
     renderAll();
   } catch (err) {
@@ -1828,13 +1880,19 @@ document.addEventListener("DOMContentLoaded", () => {
   renderAll();
   syncIcons();
 
-  // Auth gate — check session then load real data
-  checkAuth().then((user) => {
-    if (user) {
-      loadCreatorProfileFromApi();
-      loadDropsFromApi();
-    }
-  });
+  const previewMode = new URLSearchParams(window.location.search).get("preview");
+  if (previewMode === "upload") {
+    currentUser = { id: "preview", email: "preview@vaultline.local", role: "creator" };
+    hideLoginOverlay();
+  } else {
+    // Auth gate — check session then load real data
+    checkAuth().then((user) => {
+      if (user) {
+        loadCreatorProfileFromApi();
+        loadDropsFromApi();
+      }
+    });
+  }
 
   const hashView = window.location.hash.replace("#", "");
   if (hashView && $(`[data-view-panel="${hashView}"]`)) {
@@ -2038,10 +2096,12 @@ document.addEventListener("DOMContentLoaded", () => {
     const logoutButton = event.target.closest("[data-logout]");
     if (logoutButton) {
       setAccountDropdown(false);
-      VaultlineAPI.authLogout().catch(() => {});
       currentUser = null;
-      showToast("Logged out");
-      setTimeout(() => showLoginOverlay("creator"), 400);
+      VaultlineAPI.authLogout()
+        .catch(() => {})
+        .finally(() => {
+          window.location.href = "index.html?logout=1";
+        });
       return;
     }
 
@@ -2114,10 +2174,10 @@ document.addEventListener("DOMContentLoaded", () => {
       if (link) openBuyerPreview(link);
     }
 
-    const buyButton = event.target.closest("[data-buy-link]");
-    if (buyButton) {
-      const link = state.links.find((item) => item.id === buyButton.dataset.buyLink);
-      if (link) recordSale(link);
+    const publicLinkButton = event.target.closest("[data-open-public-link]");
+    if (publicLinkButton) {
+      const link = state.links.find((item) => item.id === publicLinkButton.dataset.openPublicLink);
+      if (link) window.location.href = link.url;
       $("#share-dialog").close();
     }
   });

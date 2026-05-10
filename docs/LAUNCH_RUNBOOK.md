@@ -1,4 +1,4 @@
-# Vaultline Mobile Site Launch Runbook
+# Vault'd Mobile Site Launch Runbook
 
 This folder now has the polished mobile web prototype plus a real Node/Express launch scaffold under `server/`. The goal is to make the site ready for your own provider keys, not to store any passwords or Stripe login sessions in the repo.
 
@@ -65,8 +65,8 @@ http://localhost:8787/api/health
 Fill these in `.env` after creating your provider accounts:
 
 ```text
-PUBLIC_BASE_URL=https://vaultline.me
-ALLOWED_ORIGINS=https://vaultline.me,http://localhost:8787,http://127.0.0.1:8787
+PUBLIC_BASE_URL=https://vaultd.me
+ALLOWED_ORIGINS=https://vaultd.me,http://localhost:8787,http://127.0.0.1:8787
 SUPABASE_URL=
 SUPABASE_SERVICE_ROLE_KEY=
 SUPABASE_ANON_KEY=
@@ -77,8 +77,8 @@ STRIPE_PUBLISHABLE_KEY=
 STRIPE_WEBHOOK_SECRET=
 STRIPE_PLATFORM_FEE_PERCENT=10
 RESEND_API_KEY=
-EMAIL_FROM=Vaultline <no-reply@vaultline.me>
-SUPPORT_EMAIL=support@vaultline.me
+EMAIL_FROM=Vault'd <no-reply@vaultd.me>
+SUPPORT_EMAIL=support@vaultd.me
 ADMIN_EMAILS=you@example.com
 ```
 

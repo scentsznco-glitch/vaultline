@@ -1,7 +1,7 @@
-# Vaultline — Codex Handoff (2026-05-10)
+# Vault'd — Codex Handoff (2026-05-10)
 
 ## What This Is
-Vaultline is a creator content paywall / drops marketplace. Creators upload files (photos, videos, zips), set a price, share a link. Fans pay once and unlock forever. No subscriptions.
+Vault'd is a creator content paywall / drops marketplace. Creators upload files (photos, videos, zips), set a price, share a link. Fans pay once and unlock forever. No subscriptions.
 
 **Live URL:** https://vaultd.me  
 **Render service:** https://vaultline-48e8.onrender.com  
@@ -90,7 +90,7 @@ db/
 ```
 NODE_ENV=production
 PUBLIC_BASE_URL=https://vaultd.me
-ALLOWED_ORIGINS=https://vaultd.me,https://vaultline.me
+ALLOWED_ORIGINS=https://vaultd.me
 SUPABASE_URL=https://srlkkgiwdonjqwjtovog.supabase.co
 SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...

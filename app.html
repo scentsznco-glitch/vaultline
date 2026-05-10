@@ -3,18 +3,24 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Vaultline Creator</title>
-    <link rel="stylesheet" href="styles.css?v=20260510-mobile-checklist2" />
-    <script defer src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
+    <title>Vault'd Creator</title>
+    <link rel="stylesheet" href="styles.css?v=20260510-great-pass" />
+    <script defer src="assets/lucide.min.js?v=20260510-icons"></script>
     <script defer src="api.js"></script>
-    <script defer src="app.js?v=20260510-mobile-checklist2"></script>
+    <script defer src="app.js?v=20260510-great-pass"></script>
   </head>
   <body>
     <div class="app-shell">
       <aside class="sidebar" aria-label="Primary navigation">
-        <a class="brand" href="#create" aria-label="Vaultline home">
-          <span class="brand-mark"><i data-lucide="lock-keyhole"></i></span>
-          <span>Vaultline</span>
+        <a class="brand" href="#create" aria-label="Vault'd home">
+          <span class="brand-mark">
+            <svg class="vault-logo" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+              <rect x="5" y="6" width="22" height="20" rx="5"></rect>
+              <circle cx="16" cy="16" r="5"></circle>
+              <path d="M16 8v3M16 21v3M8 16h3M21 16h3M10.6 10.6l2.1 2.1M19.3 19.3l2.1 2.1M21.4 10.6l-2.1 2.1M12.7 19.3l-2.1 2.1"></path>
+            </svg>
+          </span>
+          <span>Vault'd</span>
         </a>
 
         <nav class="nav-stack">
@@ -48,9 +54,15 @@
 
       <main class="main">
         <header class="topbar">
-          <a class="mobile-brand" href="#create" aria-label="Vaultline home">
-            <span class="brand-mark"><i data-lucide="lock-keyhole"></i></span>
-            <span>Vaultline</span>
+          <a class="mobile-brand" href="#create" aria-label="Vault'd home">
+            <span class="brand-mark">
+              <svg class="vault-logo" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+                <rect x="5" y="6" width="22" height="20" rx="5"></rect>
+                <circle cx="16" cy="16" r="5"></circle>
+                <path d="M16 8v3M16 21v3M8 16h3M21 16h3M10.6 10.6l2.1 2.1M19.3 19.3l2.1 2.1M21.4 10.6l-2.1 2.1M12.7 19.3l-2.1 2.1"></path>
+              </svg>
+            </span>
+            <span>Vault'd</span>
           </a>
           <div class="top-actions">
             <button class="icon-button top-share-button" type="button" data-open-share aria-label="Share profile">
@@ -140,6 +152,30 @@
                   <i data-lucide="chevron-right"></i>
                 </button>
               </div>
+
+              <section class="sell-guidance" aria-label="Selling checklist">
+                <article>
+                  <span><i data-lucide="shield-check"></i></span>
+                  <div>
+                    <strong>Permanent unlock</strong>
+                    <small>Fans buy once and keep access in their library.</small>
+                  </div>
+                </article>
+                <article>
+                  <span><i data-lucide="eye-off"></i></span>
+                  <div>
+                    <strong>Public or unlisted</strong>
+                    <small>Publish to discovery or keep a drop link private.</small>
+                  </div>
+                </article>
+                <article>
+                  <span><i data-lucide="wallet-cards"></i></span>
+                  <div>
+                    <strong>Wallet tracked</strong>
+                    <small>Sales, payout status, and bank setup stay visible.</small>
+                  </div>
+                </article>
+              </section>
 
               <button class="sell-generate" type="submit" data-generate-link disabled>Generate Link</button>
             </div>

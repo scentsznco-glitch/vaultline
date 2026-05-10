@@ -1,80 +1,66 @@
-﻿VAULTLINE HANDOFF FILE MANIFEST
-Created: 2026-05-10_004850
+VAULT'D OPENCLAW HANDOFF FILE MANIFEST
+Updated: 2026-05-10
 
-Files:
+Purpose:
+This folder is the handoff/deploy source for the Vault'd mobile web site.
+The site is a Node/Express app serving vanilla HTML/CSS/JS plus API routes.
+
+Core deploy files:
 .env.example
 .gitignore
-_video_review\sell-flow-contact.png
+api.js
+app.html
 app.js
-assets\avatar-tile.svg
-assets\profile-cover.svg
-assets\thumb-course.svg
-assets\thumb-download.svg
-assets\thumb-gallery.svg
-assets\thumb-video.svg
-db\schema.sql
-docs\API_ROUTES.md
-docs\LAUNCH_RUNBOOK.md
-docs\SECURITY_AND_COMPLIANCE.md
-docs\STRIPE_SETUP.md
 fan.css
 fan.html
 fan.js
-FILE_MANIFEST.txt
-HANDOFF_FOR_CLAWBOT.txt
 index.html
 package.json
 package-lock.json
 README.md
-reference_media\IMG_1048.png
-reference_media\IMG_1049.png
-reference_media\IMG_1050.png
-reference_media\IMG_1051.png
-reference_media\IMG_1052.png
-reference_media\IMG_1057.png
-reference_media\IMG_1058.png
-reference_media\IMG_1059.png
-reference_media\IMG_1060.png
-reference_media\IMG_1061.png
-reference_media\IMG_1062.png
-reference_media\IMG_1063.png
-reference_media\IMG_1064.png
-reference_media\IMG_1065.png
-reference_media\IMG_1067.png
-reference_media\IMG_1068.png
-reference_media\IMG_1070.png
-reference_media\ScreenRecording_05-09-2026 22-25-16_1.mp4
-reference_media\Screenshot 2026-05-09 203119.png
-reference_media\Screenshot 2026-05-09 224717.png
-reference_media\Screenshot 2026-05-09 230758.png
-server\config.js
-server\data.js
-server\index.js
-server\services\email.js
-server\services\security.js
-server\services\storage.js
-server\services\stripe.js
 styles.css
 
-Reference media copied:
-IMG_1048.png
-IMG_1049.png
-IMG_1050.png
-IMG_1051.png
-IMG_1052.png
-IMG_1057.png
-IMG_1058.png
-IMG_1059.png
-IMG_1060.png
-IMG_1061.png
-IMG_1062.png
-IMG_1063.png
-IMG_1064.png
-IMG_1065.png
-IMG_1067.png
-IMG_1068.png
-IMG_1070.png
-ScreenRecording_05-09-2026 22-25-16_1.mp4
-Screenshot 2026-05-09 203119.png
-Screenshot 2026-05-09 224717.png
-Screenshot 2026-05-09 230758.png
+Required local assets:
+assets/avatar-tile.svg
+assets/lucide.min.js
+assets/profile-cover.svg
+assets/thumb-course.svg
+assets/thumb-download.svg
+assets/thumb-gallery.svg
+assets/thumb-video.svg
+
+Server:
+server/config.js
+server/data.js
+server/index.js
+server/services/email.js
+server/services/security.js
+server/services/storage.js
+server/services/stripe.js
+server/services/twilio.js
+
+Database:
+db/schema.sql
+
+Docs:
+docs/API_ROUTES.md
+docs/LAUNCH_RUNBOOK.md
+docs/SECURITY_AND_COMPLIANCE.md
+docs/STRIPE_SETUP.md
+OPENCLAW_DEPLOY_NOTES.md
+
+Reference-only files that do not need to deploy:
+reference_media/
+_video_review/
+HANDOFF_CODEX.md
+HANDOFF_FOR_CLAWBOT.txt
+
+Important icon note:
+The creator and fan pages load Lucide icons from the local file:
+assets/lucide.min.js
+Do not deploy app.html or fan.html without the assets folder, or icons will disappear.
+
+Do not deploy/commit:
+.env
+node_modules/
+.git/

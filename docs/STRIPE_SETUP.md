@@ -9,8 +9,8 @@ STRIPE_SECRET_KEY=
 STRIPE_PUBLISHABLE_KEY=
 STRIPE_WEBHOOK_SECRET=
 STRIPE_PLATFORM_FEE_PERCENT=10
-STRIPE_CONNECT_REFRESH_URL=https://vaultline.me/stripe/refresh
-STRIPE_CONNECT_RETURN_URL=https://vaultline.me/stripe/return
+STRIPE_CONNECT_REFRESH_URL=https://vaultd.me/stripe/refresh
+STRIPE_CONNECT_RETURN_URL=https://vaultd.me/stripe/return
 ```
 
 ## Test Mode First

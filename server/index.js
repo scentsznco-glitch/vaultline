@@ -14,10 +14,12 @@ import {
   createUser,
   deleteDropById,
   getCreatorProfile,
+  getEntitledDrop,
   getEntitledMedia,
   getPublicDrop,
   getUserByEmail,
   getStorefrontByHandle,
+  listDiscoverStorefronts,
   listCreatorDrops,
   listLibrary,
   listReports,
@@ -39,7 +41,21 @@ import { sendPhoneCode, checkPhoneCode } from "./services/twilio.js";
 
 const app = express();
 
-app.use(helmet());
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'", "https://unpkg.com", "https://js.stripe.com"],
+        styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+        imgSrc: ["'self'", "data:", "blob:", "https:"],
+        fontSrc: ["'self'", "https://fonts.gstatic.com"],
+        connectSrc: ["'self'", "https://*.supabase.co", "https://api.stripe.com"],
+        frameSrc: ["'self'", "https://js.stripe.com", "https://hooks.stripe.com"],
+      },
+    },
+  }),
+);
 const allowedOrigins = new Set([config.publicBaseUrl, ...config.allowedOrigins]);
 app.use(
   cors({
@@ -75,10 +91,20 @@ function route(handler) {
 }
 
 const emailSchema = z.string().email().max(120).transform((value) => value.toLowerCase());
+const dropAccessSchema = z.preprocess((value) => {
+  const normalized = String(value || "everyone").toLowerCase();
+  return normalized === "svip" ? "svip" : normalized === "unlisted" ? "unlisted" : "everyone";
+}, z.enum(["everyone", "unlisted", "svip"]));
+const dropDownloadSchema = z.preprocess((value) => {
+  const normalized = String(value || "allowed").toLowerCase();
+  if (normalized.includes("charge") || normalized === "extra") return "extra";
+  if (normalized.includes("not") || normalized === "blocked") return "blocked";
+  return "allowed";
+}, z.enum(["allowed", "extra", "blocked"]));
 
 app.get("/api/health", (request, response) => {
   ok(response, {
-    service: "vaultline",
+    service: "vaultd",
     launchConfigMissing: assertLaunchConfig(),
   });
 });
@@ -279,8 +305,8 @@ app.post(
         title: z.string().min(1).max(80),
         description: z.string().max(500).default(""),
         price: z.number().min(5).max(5000),
-        access: z.enum(["everyone", "unlisted", "svip"]).default("everyone"),
-        download: z.enum(["allowed", "extra", "blocked"]).default("allowed"),
+        access: dropAccessSchema.default("everyone"),
+        download: dropDownloadSchema.default("allowed"),
         downloadExtraPercent: z.number().int().min(0).max(100).default(0),
         media: z
           .array(
@@ -321,6 +347,15 @@ app.get(
   route(async (request, response) => {
     const drops = await listCreatorDrops({ creatorId: request.user.id });
     ok(response, { drops });
+  }),
+);
+
+app.get(
+  "/api/discover",
+  route(async (request, response) => {
+    const limit = z.coerce.number().int().min(1).max(100).default(60).parse(request.query.limit ?? 60);
+    const creators = await listDiscoverStorefronts({ limit });
+    ok(response, { creators });
   }),
 );
 
@@ -393,6 +428,11 @@ app.post(
       response.status(404).json({ ok: false, error: "Drop not found" });
       return;
     }
+    if (drop.access === "svip") {
+      response.status(403).json({ ok: false, error: "VIP-only drops are not available yet" });
+      return;
+    }
+    const creatorHandle = drop.creator_profiles?.handle;
     const session = await createCheckoutSession({
       drop: {
         ...drop,
@@ -401,7 +441,9 @@ app.post(
       },
       buyerEmail: request.user.email,
       successUrl: `${config.publicBaseUrl}/fan.html#library`,
-      cancelUrl: `${config.publicBaseUrl}/fan.html#store`,
+      cancelUrl: creatorHandle
+        ? `${config.publicBaseUrl}/fan.html?handle=${encodeURIComponent(creatorHandle)}#store`
+        : `${config.publicBaseUrl}/fan.html?discover=1#discover`,
     });
     ok(response, { checkoutUrl: session.url, sessionId: session.id });
   }),
@@ -427,7 +469,7 @@ app.post(
         if (session.customer_email) {
           await sendReceiptEmail({
             to: session.customer_email,
-            title: "Vaultline unlock",
+            title: "Vault'd unlock",
             amount: `$${((session.amount_total || 0) / 100).toFixed(2)}`,
             libraryUrl: `${config.publicBaseUrl}/fan.html#library`,
           });
@@ -466,7 +508,12 @@ app.get(
   "/api/library/:purchaseId/download",
   requireUser,
   route(async (request, response) => {
-    const media = await getEntitledMedia({ buyerId: request.user.id, purchaseId: request.params.purchaseId });
+    const drop = await getEntitledDrop({ buyerId: request.user.id, purchaseId: request.params.purchaseId });
+    if (drop?.download === "blocked") {
+      response.status(403).json({ ok: false, error: "Downloads are disabled for this drop" });
+      return;
+    }
+    const media = drop?.drop_media || [];
     if (!media.length) {
       response.status(403).json({ ok: false, error: "No permanent unlock found" });
       return;
@@ -563,5 +610,5 @@ app.post(
 );
 
 app.listen(config.port, () => {
-  console.log(`Vaultline server listening on http://localhost:${config.port}`);
+  console.log(`Vault'd server listening on http://localhost:${config.port}`);
 });

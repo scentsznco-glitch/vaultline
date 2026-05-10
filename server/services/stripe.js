@@ -34,7 +34,10 @@ export async function createConnectOnboardingLink(accountId) {
 export async function createCheckoutSession({ drop, buyerEmail, successUrl, cancelUrl }) {
   const client = requireStripe();
   const feePercent = Math.max(0, Math.min(80, config.stripe.platformFeePercent));
-  const unitAmount = Math.round(Number(drop.price) * 100);
+  const baseAmount = Math.round(Number(drop.price) * 100);
+  const downloadExtraPercent =
+    drop.download === "extra" ? Math.max(0, Math.min(100, Number(drop.download_extra_percent) || 0)) : 0;
+  const unitAmount = Math.round(baseAmount * (1 + downloadExtraPercent / 100));
   const applicationFeeAmount = Math.round(unitAmount * (feePercent / 100));
   const paymentIntentData = drop.stripe_account_id
     ? {
@@ -64,7 +67,9 @@ export async function createCheckoutSession({ drop, buyerEmail, successUrl, canc
           unit_amount: unitAmount,
           product_data: {
             name: drop.title,
-            description: "Permanent Vaultline unlock",
+            description: downloadExtraPercent
+              ? `Permanent Vault'd unlock with download add-on`
+              : "Permanent Vault'd unlock",
           },
         },
       },

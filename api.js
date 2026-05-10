@@ -97,6 +97,10 @@ const VaultlineAPI = (function () {
     return req("GET", `/api/storefront/${encodeURIComponent(handle)}`);
   }
 
+  function discover() {
+    return req("GET", "/api/discover");
+  }
+
   function getPublicDrop(dropId) {
     return req("GET", `/api/drops/${encodeURIComponent(dropId)}`);
   }
@@ -129,6 +133,7 @@ const VaultlineAPI = (function () {
     getConnectStatus,
     updateDrop,
     deleteDrop,
+    discover,
     getStorefront,
     getPublicDrop,
     getLibrary,

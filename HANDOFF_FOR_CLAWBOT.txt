@@ -2,7 +2,7 @@ VAULTLINE HANDOFF FOR NEXT BOT
 Generated: 2026-05-10
 
 PROJECT GOAL
-Build and finish a mobile-first web site named Vaultline, inspired by unlockt.me, where creators sell locked content behind a paywall and fans buy permanent unlocks. This is a mobile web site for now, not a native app.
+Build and finish a mobile-first web site named Vault'd, inspired by unlockt.me, where creators sell locked content behind a paywall and fans buy permanent unlocks. This is a mobile web site for now, not a native app.
 
 USER DESIGN DIRECTION
 - Keep the UI custom, polished, smooth, and studio-quality. The user rejected anything that looks like a beginner/demo design.
@@ -71,7 +71,7 @@ WHAT HAS BEEN DONE
   - Auth/session endpoints
   - Drop, purchase, entitlement, wallet, support, and report endpoints
 - Supabase project was created in the user's logged-in Supabase account:
-  - Project name: vaultline
+  - Project name: vaultd
   - Project ref: srlkkgiwdonjqwjtovog
   - Supabase URL: https://srlkkgiwdonjqwjtovog.supabase.co
   - Region: East US (Ohio), us-east-2
@@ -148,4 +148,3 @@ FILES TO IGNORE
 - node_modules/
 - .env
 - Any real secret keys or downloaded credentials.
-

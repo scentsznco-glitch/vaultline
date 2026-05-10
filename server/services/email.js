@@ -33,7 +33,7 @@ function baseTemplate({ title, preheader, body }) {
       <!-- Header -->
       <tr><td style="padding:32px 32px 0;text-align:center;">
         <div style="display:inline-block;background:#22c55e;border-radius:12px;padding:10px 18px;margin-bottom:20px;">
-          <span style="color:#000;font-weight:800;font-size:18px;letter-spacing:-0.5px;">Vaultline</span>
+          <span style="color:#000;font-weight:800;font-size:18px;letter-spacing:-0.5px;">Vault'd</span>
         </div>
       </td></tr>
       <!-- Body -->
@@ -43,8 +43,8 @@ function baseTemplate({ title, preheader, body }) {
       <!-- Footer -->
       <tr><td style="padding:20px 32px;border-top:1px solid #1f1f1f;text-align:center;">
         <p style="margin:0;font-size:12px;color:#555;line-height:1.6;">
-          You're receiving this because you have a Vaultline account.<br/>
-          &copy; ${new Date().getFullYear()} Vaultline. All rights reserved.
+          You're receiving this because you have a Vault'd account.<br/>
+          &copy; ${new Date().getFullYear()} Vault'd. All rights reserved.
         </p>
       </td></tr>
     </table>
@@ -57,16 +57,16 @@ function baseTemplate({ title, preheader, body }) {
 export function sendVerificationEmail(user, verifyUrl) {
   const body = `
     <h1 style="margin:0 0 8px;font-size:24px;font-weight:800;color:#fff;letter-spacing:-0.5px;">Verify your email</h1>
-    <p style="margin:0 0 28px;font-size:15px;color:#888;line-height:1.6;">Click the button below to confirm your Vaultline account. This link expires in 15 minutes.</p>
+    <p style="margin:0 0 28px;font-size:15px;color:#888;line-height:1.6;">Click the button below to confirm your Vault'd account. This link expires in 15 minutes.</p>
     <a href="${verifyUrl}" style="display:block;background:#22c55e;color:#000;text-decoration:none;font-weight:700;font-size:16px;text-align:center;padding:16px;border-radius:14px;margin-bottom:20px;">
       Verify email address
     </a>
-    <p style="margin:0;font-size:13px;color:#555;text-align:center;">If you didn't create a Vaultline account, you can ignore this email.</p>
+    <p style="margin:0;font-size:13px;color:#555;text-align:center;">If you didn't create a Vault'd account, you can ignore this email.</p>
   `;
   return sendEmail({
     to: user.email,
-    subject: "Verify your Vaultline email",
-    html: baseTemplate({ title: "Verify your email", preheader: "Click to confirm your Vaultline account.", body }),
+    subject: "Verify your Vault'd email",
+    html: baseTemplate({ title: "Verify your email", preheader: "Click to confirm your Vault'd account.", body }),
   });
 }
 
@@ -132,7 +132,7 @@ export function sendNewDropNotification({ to, creatorHandle, dropTitle, storefro
       <p style="margin:0;font-size:17px;color:#fff;font-weight:700;">${dropTitle}</p>
     </div>
     <a href="${storefrontUrl}" style="display:block;background:#22c55e;color:#000;text-decoration:none;font-weight:700;font-size:16px;text-align:center;padding:16px;border-radius:14px;">
-      View on Vaultline
+      View on Vault'd
     </a>
   `;
   return sendEmail({

@@ -269,6 +269,19 @@ export async function getEntitledMedia({ buyerId, purchaseId }) {
   return purchase?.drops?.drop_media || [];
 }
 
+export async function getEntitledDrop({ buyerId, purchaseId }) {
+  const client = requireDb();
+  const { data: purchase, error } = await client
+    .from("purchases")
+    .select("*, drops(download, drop_media(*))")
+    .eq("id", purchaseId)
+    .eq("buyer_id", buyerId)
+    .eq("status", "paid")
+    .maybeSingle();
+  if (error) throw error;
+  return purchase?.drops || null;
+}
+
 export async function getStorefrontByHandle(handle) {
   const client = requireDb();
   const { data: profile, error } = await client
@@ -281,13 +294,61 @@ export async function getStorefrontByHandle(handle) {
 
   const { data: drops, error: dropsError } = await client
     .from("drops")
-    .select("id, title, description, price, access, created_at, drop_media(id, file_type, file_name)")
+    .select("id, title, description, price, access, download, download_extra_percent, created_at, drop_media(id, file_type, file_name)")
     .eq("creator_id", profile.user_id)
     .eq("status", "active")
+    .eq("access", "everyone")
     .order("created_at", { ascending: false });
   if (dropsError) throw dropsError;
 
   return { profile, drops: drops || [] };
+}
+
+export async function listDiscoverStorefronts({ limit = 60 } = {}) {
+  const client = requireDb();
+  const { data, error } = await client
+    .from("drops")
+    .select("id, title, description, price, access, download, download_extra_percent, created_at, views, creator_profiles(handle, bio, user_id), drop_media(id, file_type, file_name), purchases(id, status)")
+    .eq("status", "active")
+    .eq("access", "everyone")
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  if (error) throw error;
+
+  const creators = new Map();
+  for (const drop of data || []) {
+    const profile = drop.creator_profiles;
+    if (!profile?.handle) continue;
+    if (!creators.has(profile.handle)) {
+      creators.set(profile.handle, {
+        handle: profile.handle,
+        bio: profile.bio || "",
+        dropCount: 0,
+        unlockCount: 0,
+        drops: [],
+      });
+    }
+    const creator = creators.get(profile.handle);
+    const paidPurchases = (drop.purchases || []).filter((purchase) => purchase.status === "paid").length;
+    creator.dropCount += 1;
+    creator.unlockCount += paidPurchases;
+    creator.drops.push({
+      id: drop.id,
+      title: drop.title,
+      description: drop.description || "",
+      price: Number(drop.price) || 0,
+      download: drop.download || "allowed",
+      downloadExtraPercent: Number(drop.download_extra_percent) || 0,
+      createdAt: drop.created_at,
+      mediaCount: drop.drop_media?.length || 0,
+      fileType: drop.drop_media?.[0]?.file_type || "",
+      fileName: drop.drop_media?.[0]?.file_name || "",
+      unlockCount: paidPurchases,
+      views: drop.views || 0,
+    });
+  }
+
+  return [...creators.values()];
 }
 
 export async function createReport({ reporterId, dropId, reason, details }) {

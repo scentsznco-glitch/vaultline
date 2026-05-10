@@ -1,4 +1,4 @@
-# Vaultline Mobile Site
+# Vault'd Mobile Site
 
 Mobile web prototype and launch scaffold for selling locked, permanent-unlock content.
 

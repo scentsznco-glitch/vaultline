@@ -3,24 +3,30 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Vaultline Fan</title>
-    <link rel="stylesheet" href="fan.css?v=20260510-store-metrics" />
-    <script defer src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
+    <title>Vault'd Fan</title>
+    <link rel="stylesheet" href="fan.css?v=20260510-great-pass" />
+    <script defer src="assets/lucide.min.js?v=20260510-icons"></script>
     <script defer src="api.js"></script>
-    <script defer src="fan.js?v=20260510-mobile-site-url"></script>
+    <script defer src="fan.js?v=20260510-great-pass"></script>
   </head>
   <body>
     <div class="fan-shell">
       <aside class="fan-sidebar" aria-label="Fan navigation">
-        <a class="brand" href="#store" aria-label="Vaultline fan home">
-          <span class="brand-mark"><i data-lucide="lock-keyhole"></i></span>
-          <span>Vaultline</span>
+        <a class="brand" href="#discover" aria-label="Vault'd fan home">
+          <span class="brand-mark">
+            <svg class="vault-logo" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+              <rect x="5" y="6" width="22" height="20" rx="5"></rect>
+              <circle cx="16" cy="16" r="5"></circle>
+              <path d="M16 8v3M16 21v3M8 16h3M21 16h3M10.6 10.6l2.1 2.1M19.3 19.3l2.1 2.1M21.4 10.6l-2.1 2.1M12.7 19.3l-2.1 2.1"></path>
+            </svg>
+          </span>
+          <span>Vault'd</span>
         </a>
 
         <nav class="nav-stack">
-          <button class="nav-item is-active" type="button" data-view="store">
-            <i data-lucide="store"></i>
-            <span>Store</span>
+          <button class="nav-item is-active" type="button" data-view="discover">
+            <i data-lucide="compass"></i>
+            <span>Discover</span>
           </button>
           <button class="nav-item" type="button" data-view="library">
             <i data-lucide="folder-open"></i>
@@ -44,21 +50,27 @@
 
       <main class="fan-main">
         <header class="topbar">
-          <a class="mobile-brand" href="#store" aria-label="Vaultline fan home">
-            <span class="brand-mark"><i data-lucide="lock-keyhole"></i></span>
-            <span>Vaultline</span>
+        <a class="mobile-brand" href="#discover" aria-label="Vault'd fan home">
+            <span class="brand-mark">
+              <svg class="vault-logo" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+                <rect x="5" y="6" width="22" height="20" rx="5"></rect>
+                <circle cx="16" cy="16" r="5"></circle>
+                <path d="M16 8v3M16 21v3M8 16h3M21 16h3M10.6 10.6l2.1 2.1M19.3 19.3l2.1 2.1M21.4 10.6l-2.1 2.1M12.7 19.3l-2.1 2.1"></path>
+              </svg>
+            </span>
+            <span>Vault'd</span>
           </a>
           <div class="top-actions">
-            <a class="mode-link" href="index.html#profile">
+            <a class="mode-link" href="/app.html#create" data-creator-entry>
               <i data-lucide="badge-dollar-sign"></i>
-              <span>Creator</span>
+              <span>Sell</span>
             </a>
-            <button class="icon-button" type="button" data-copy-storefront aria-label="Copy storefront">
+            <button class="icon-button" type="button" data-copy-storefront aria-label="Share current page" hidden>
               <i data-lucide="send"></i>
             </button>
-            <button class="fan-chip" type="button" data-open-account-menu aria-haspopup="menu" aria-expanded="false" aria-label="Account menu">
+            <button class="fan-chip" type="button" data-fan-signup aria-label="Sign up as a fan">
               <span class="fan-initial" aria-hidden="true">F</span>
-              <span>Fan</span>
+              <span>Sign up</span>
             </button>
             <div class="account-dropdown" id="account-dropdown" role="menu" hidden>
               <div class="account-dropdown-head">
@@ -76,7 +88,54 @@
           </div>
         </header>
 
-        <section class="view is-active" id="fan-store" data-view-panel="store">
+        <section class="view is-active" id="fan-discover" data-view-panel="discover">
+          <article class="discover-hero">
+            <div>
+              <span class="tiny-label">Fan home</span>
+              <h1>Browse drops from creators</h1>
+              <p>Find public Vault'd creators, preview their locked drops, and buy once to keep access forever.</p>
+            </div>
+            <div class="discover-actions">
+              <button class="primary-button" type="button" data-fan-signup>
+                <i data-lucide="circle-user-round"></i>
+                <span>Fan sign up</span>
+              </button>
+              <button class="secondary-button" type="button" data-refresh-discover>
+                <i data-lucide="refresh-cw"></i>
+                <span>Refresh feed</span>
+              </button>
+            </div>
+          </article>
+
+          <div class="section-heading">
+            <div>
+              <h2>For you</h2>
+              <p>Creators with live public drops appear here automatically.</p>
+            </div>
+          </div>
+
+          <div class="discover-grid" id="discover-grid"></div>
+
+          <section class="discover-explainer" aria-label="How Vault'd works for fans">
+            <article>
+              <span class="explainer-icon"><i data-lucide="compass"></i></span>
+              <strong>Find creators</strong>
+              <p>Public drops show up here, and shared links open straight to the creator storefront.</p>
+            </article>
+            <article>
+              <span class="explainer-icon"><i data-lucide="lock-keyhole"></i></span>
+              <strong>Unlock once</strong>
+              <p>Fans buy a drop one time instead of signing up for a recurring subscription.</p>
+            </article>
+            <article>
+              <span class="explainer-icon"><i data-lucide="folder-open"></i></span>
+              <strong>Keep access</strong>
+              <p>Purchased drops live in the fan library so buyers can come back later.</p>
+            </article>
+          </section>
+        </section>
+
+        <section class="view" id="fan-store" data-view-panel="store">
           <article class="store-hero">
             <div class="cover-frame">
               <img id="creator-cover" src="assets/profile-cover.svg" alt="" />
@@ -126,7 +185,7 @@
             <div>
               <span class="tiny-label">Fan library</span>
               <h1>Unlocked content</h1>
-              <p>Everything you buy from this creator lives here permanently.</p>
+              <p>Everything you buy on Vault'd lives here permanently.</p>
             </div>
             <div class="head-stat">
               <strong id="library-count">0</strong>
@@ -158,44 +217,18 @@
             <div>
               <span class="tiny-label">Account</span>
               <h1>Fan profile</h1>
-              <p>Payment, saved storefront, and your buyer account basics.</p>
+              <p>Payment, saved creators, and your buyer account basics.</p>
             </div>
           </div>
 
-          <div class="account-grid">
-            <article class="account-card">
-              <span class="card-icon"><i data-lucide="credit-card"></i></span>
-              <div>
-                <h2>Payment method</h2>
-                <p>Card ending in 4242 is ready for one-tap unlocks.</p>
-              </div>
-              <button class="small-button dark" type="button" data-open-payment-card>Edit</button>
-            </article>
-
-            <article class="account-card">
-              <span class="card-icon yellow"><i data-lucide="store"></i></span>
-              <div>
-                <h2>Saved storefront</h2>
-                <p><span data-creator-handle>@creator</span> is pinned for quick access.</p>
-              </div>
-              <button class="small-button" type="button" data-view="store">Open</button>
-            </article>
-
-            <article class="account-card wide">
-              <span class="card-icon blue"><i data-lucide="shield-check"></i></span>
-              <div>
-                <h2>Buyer protection</h2>
-                <p>Purchases are tied to your account and restored from this browser profile.</p>
-              </div>
-            </article>
-          </div>
+          <div class="account-grid" id="account-panel"></div>
         </section>
       </main>
 
       <nav class="bottom-nav" aria-label="Fan navigation">
-        <button class="is-active" type="button" data-view="store" aria-label="Store">
-          <i data-lucide="store"></i>
-          <span>Store</span>
+        <button class="is-active" type="button" data-view="discover" aria-label="Discover">
+          <i data-lucide="compass"></i>
+          <span>Discover</span>
         </button>
         <button type="button" data-view="library" aria-label="Library">
           <i data-lucide="folder-open"></i>

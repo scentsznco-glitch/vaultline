@@ -19,6 +19,10 @@
   box-sizing: border-box;
 }
 
+[hidden] {
+  display: none !important;
+}
+
 html {
   scroll-behavior: smooth;
 }
@@ -100,6 +104,16 @@ img {
 .brand-mark svg {
   width: 19px;
   height: 19px;
+}
+
+.brand-mark .vault-logo {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .nav-stack {
@@ -328,6 +342,182 @@ img {
   display: block;
 }
 
+.discover-hero {
+  min-height: 238px;
+  padding: 26px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 22px;
+  background:
+    linear-gradient(135deg, rgba(5, 184, 91, 0.12), transparent 42%),
+    linear-gradient(180deg, #ffffff, #fbfaf6);
+  box-shadow: var(--shadow);
+}
+
+.discover-hero h1 {
+  max-width: 620px;
+  margin: 0;
+  font-size: clamp(38px, 6vw, 66px);
+  line-height: 0.94;
+  letter-spacing: 0;
+}
+
+.discover-hero p {
+  max-width: 560px;
+  margin: 14px 0 0;
+  color: var(--muted);
+  font-size: 16px;
+  line-height: 1.5;
+  font-weight: 700;
+}
+
+.discover-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.discover-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.discover-explainer {
+  margin-top: 18px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.discover-explainer article {
+  min-height: 154px;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  background: var(--paper);
+  box-shadow: 0 12px 28px rgba(16, 16, 16, 0.045);
+}
+
+.explainer-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  color: var(--green);
+  background: var(--green-soft);
+}
+
+.explainer-icon svg {
+  width: 22px;
+  height: 22px;
+}
+
+.discover-explainer strong {
+  font-size: 17px;
+  letter-spacing: 0;
+}
+
+.discover-explainer p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.45;
+  font-weight: 650;
+}
+
+.discover-card {
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--paper);
+  box-shadow: 0 14px 35px rgba(16, 16, 16, 0.06);
+}
+
+.discover-media {
+  width: 100%;
+  position: relative;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  border: 0;
+  display: block;
+  background: #111;
+}
+
+.discover-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.discover-body {
+  padding: 16px;
+}
+
+.discover-body h3 {
+  margin: 0;
+  font-size: 20px;
+  line-height: 1.2;
+  letter-spacing: 0;
+}
+
+.discover-body p {
+  min-height: 42px;
+  margin: 8px 0 14px;
+  color: var(--muted);
+  line-height: 1.4;
+  font-weight: 650;
+}
+
+.discover-drop-list {
+  margin-bottom: 14px;
+  display: grid;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.discover-drop-row {
+  min-height: 42px;
+  padding: 0 12px;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--ink);
+  background: var(--paper);
+  font-weight: 800;
+  text-align: left;
+}
+
+.discover-drop-row:last-child {
+  border-bottom: 0;
+}
+
+.discover-drop-row span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.discover-drop-row strong {
+  flex: 0 0 auto;
+}
+
+.discover-card .primary-button {
+  width: 100%;
+  min-height: 46px;
+}
+
 .store-hero {
   overflow: hidden;
   border: 1px solid var(--line);
@@ -426,6 +616,7 @@ img {
   justify-content: center;
   gap: 9px;
   font-weight: 850;
+  text-decoration: none;
 }
 
 .primary-button,
@@ -786,7 +977,7 @@ img {
 
 .account-card.wide {
   grid-column: 1 / -1;
-  grid-template-columns: 52px 1fr;
+  grid-template-columns: 52px minmax(0, 1fr) auto;
 }
 
 .card-icon.yellow {
@@ -1078,7 +1269,7 @@ img {
     gap: 8px;
   }
 
-  .fan-chip span:last-child {
+  .fan-chip[data-open-account-menu] span:last-child {
     display: none;
   }
 
@@ -1178,6 +1369,8 @@ body {
 .secondary-button,
 .small-button,
 .store-hero,
+.discover-hero,
+.discover-card,
 .cover-frame,
 .creator-bar,
 .creator-stats,
@@ -1374,12 +1567,14 @@ body {
 }
 
 .drop-grid,
-.library-grid {
+.library-grid,
+.discover-grid {
   gap: 12px;
 }
 
 .drop-card,
 .library-card,
+.discover-card,
 .account-card,
 .receipt-row {
   border-color: #ded8cc;
@@ -1387,18 +1582,21 @@ body {
 }
 
 .drop-body,
-.library-body {
+.library-body,
+.discover-body {
   padding: 14px;
 }
 
 .drop-body h3,
 .library-body h3,
+.discover-body h3,
 .account-card h2 {
   font-size: 18px;
 }
 
 .drop-body p,
 .library-body p,
+.discover-body p,
 .account-card p {
   margin-top: 6px;
   font-size: 14px;
@@ -1484,6 +1682,27 @@ body {
   .topbar {
     margin: -18px -14px 18px;
     padding: 18px 14px 12px;
+  }
+
+  .discover-hero {
+    min-height: 208px;
+    padding: 20px;
+    grid-template-columns: 1fr;
+    align-items: start;
+  }
+
+  .discover-actions {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .discover-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .discover-explainer {
+    grid-template-columns: 1fr;
   }
 
   .cover-frame {
@@ -1583,6 +1802,18 @@ body {
   .fan-chip {
     height: 42px;
     min-height: 42px;
+  }
+
+  .discover-hero {
+    padding: 18px;
+  }
+
+  .discover-hero h1 {
+    font-size: 40px;
+  }
+
+  .discover-actions {
+    grid-template-columns: 1fr;
   }
 
   .mode-link,

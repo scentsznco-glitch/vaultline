@@ -1,12 +1,16 @@
 const CREATOR_STORAGE_KEY = "vaultline-settings-v1";
 const FAN_STORAGE_KEY = "vaultline-fan-v1";
-const PUBLIC_BASE_URL = "http://localhost:8787";
+const PUBLIC_BASE_URL =
+  window.location.origin && window.location.origin !== "null" ? window.location.origin : "http://localhost:8787";
 const DEFAULT_THUMBNAIL = "assets/thumb-gallery.svg";
 const DEFAULT_COVER = "assets/profile-cover.svg";
 const DEFAULT_AVATAR = "assets/avatar-tile.svg";
 
 const state = {
-  view: "store",
+  view: "discover",
+  discover: {
+    creators: [],
+  },
   creator: {
     profile: {
       handle: "creator",
@@ -64,6 +68,9 @@ function normalizeDrop(link) {
     id: String(link.id),
     title: String(link.title || "Untitled drop"),
     price: Math.max(1, Number(link.price) || 1),
+    access: String(link.access || "everyone"),
+    download: String(link.download || "allowed"),
+    downloadExtraPercent: Math.max(0, Number(link.downloadExtraPercent ?? link.download_extra_percent) || 0),
     note: String(link.note || "Permanent unlock from this creator."),
     fileName: String(link.fileName || "locked-file"),
     thumbnail: String(link.thumbnail || DEFAULT_THUMBNAIL),
@@ -72,6 +79,44 @@ function normalizeDrop(link) {
     sales: Math.max(0, Number(link.sales) || 0),
     revenue: Math.max(0, Number(link.revenue) || 0),
     url: String(link.url || `${PUBLIC_BASE_URL}/d/${link.id}`).replace("https://vaultline.app", PUBLIC_BASE_URL),
+  };
+}
+
+function normalizeDiscoverDrop(drop, creatorHandle = "creator") {
+  return {
+    id: String(drop.id || id()),
+    title: String(drop.title || "Untitled drop"),
+    note: String(drop.description || drop.note || "Permanent unlock from this creator."),
+    price: Math.max(1, Number(drop.price) || 1),
+    download: String(drop.download || "allowed"),
+    downloadExtraPercent: Math.max(0, Number(drop.downloadExtraPercent ?? drop.download_extra_percent) || 0),
+    mediaCount: Math.max(0, Number(drop.mediaCount) || 0),
+    fileName: String(drop.fileName || "locked-file"),
+    thumbnail: String(drop.thumbnail || DEFAULT_THUMBNAIL),
+    creatorHandle: String(creatorHandle || "creator").replace(/^@/, ""),
+    unlockCount: Math.max(0, Number(drop.unlockCount) || 0),
+  };
+}
+
+function effectiveDropPrice(drop) {
+  const price = Number(drop?.price) || 0;
+  if (drop?.download === "extra") {
+    return Number((price * (1 + (Number(drop.downloadExtraPercent) || 0) / 100)).toFixed(2));
+  }
+  return price;
+}
+
+function normalizeDiscoverCreator(creator = {}) {
+  const handle = String(creator.handle || "creator").replace(/^@/, "");
+  const drops = Array.isArray(creator.drops)
+    ? creator.drops.map((drop) => normalizeDiscoverDrop(drop, handle))
+    : [];
+  return {
+    handle,
+    bio: String(creator.bio || "Private drops and creator packs in one clean storefront."),
+    dropCount: Math.max(drops.length, Number(creator.dropCount) || 0),
+    unlockCount: Math.max(0, Number(creator.unlockCount) || 0),
+    drops,
   };
 }
 
@@ -122,7 +167,7 @@ function showFanLoginOverlay(onSuccess) {
     ">
       <!-- Step 1: Phone entry -->
       <div id="vl-step-phone">
-        <h2 style="margin:0 0 6px;font-size:22px;font-weight:800;color:#111;">Start with Vaultline</h2>
+        <h2 style="margin:0 0 6px;font-size:22px;font-weight:800;color:#111;">Start with Vault'd</h2>
         <p style="margin:0 0 24px;font-size:14px;color:#888;">Enter your phone number to access content.</p>
         <form id="vl-phone-form">
           <div style="display:flex;gap:8px;margin-bottom:12px;">
@@ -270,6 +315,8 @@ function showFanLoginOverlay(onSuccess) {
       const data = await VaultlineAPI.phoneVerify(currentPhone, code);
       fanUser = data.user;
       overlay.remove();
+      updateFanAccountUI();
+      loadLibraryFromApi();
       if (onSuccess) onSuccess();
     } catch (err) {
       btn.disabled = false; btn.textContent = "Verify & unlock";
@@ -294,29 +341,60 @@ async function loadStorefrontFromApi() {
   // Get handle from ?handle= query param
   const params = new URLSearchParams(location.search);
   const handle = params.get("handle");
-  if (!handle) return; // Fall through to localStorage
+  const focusedDropId = params.get("drop");
+  if (!handle && !focusedDropId) return; // Fall through to localStorage
 
   try {
-    const data = await VaultlineAPI.getStorefront(handle);
-    if (!data || !data.profile) return;
+    let publicDrops = [];
+    if (handle) {
+      const data = await VaultlineAPI.getStorefront(handle);
+      if (data?.profile) {
+        state.creator.profile.handle = data.profile.handle;
+        state.creator.profile.bio = data.profile.bio || state.creator.profile.bio;
+        publicDrops = data.drops || [];
+      }
+    }
 
-    state.creator.profile.handle = data.profile.handle;
-    state.creator.profile.bio = data.profile.bio || state.creator.profile.bio;
-    state.creator.links = (data.drops || []).map((drop) => normalizeDrop({
+    if (focusedDropId) {
+      const data = await VaultlineAPI.getPublicDrop(focusedDropId);
+      if (data?.drop) {
+        const focusedDrop = data.drop;
+        state.creator.profile.handle = focusedDrop.creator_profiles?.handle || state.creator.profile.handle;
+        if (!publicDrops.some((drop) => drop.id === focusedDrop.id)) publicDrops.unshift(focusedDrop);
+      }
+    }
+
+    state.creator.links = publicDrops.map((drop) => normalizeDrop({
       id: drop.id,
       title: drop.title,
       note: drop.description || "",
       price: drop.price,
+      access: drop.access,
+      download: drop.download,
+      downloadExtraPercent: drop.download_extra_percent,
       fileName: drop.drop_media?.length > 1
         ? `${drop.drop_media.length} media items`
         : drop.drop_media?.[0]?.file_name || drop.title,
       thumbnail: DEFAULT_THUMBNAIL,
       status: "active",
-      url: `${PUBLIC_BASE_URL}/fan.html?handle=${encodeURIComponent(data.profile.handle)}`,
+      url: `${PUBLIC_BASE_URL}/fan.html?handle=${encodeURIComponent(state.creator.profile.handle)}&drop=${encodeURIComponent(drop.id)}#store`,
     }));
     renderAll();
   } catch (err) {
     console.warn("Could not load storefront from API:", err.message);
+  }
+}
+
+async function loadDiscoverFromApi() {
+  try {
+    const data = await VaultlineAPI.discover();
+    state.discover.creators = (data.creators || []).map(normalizeDiscoverCreator);
+    renderDiscover();
+    syncIcons();
+  } catch (err) {
+    console.warn("Could not load discover feed from API:", err.message);
+    renderDiscover();
+    syncIcons();
   }
 }
 
@@ -423,6 +501,31 @@ function activeDrops() {
   return state.creator.links.filter((drop) => drop.status === "active");
 }
 
+function localDiscoverCreators() {
+  const drops = activeDrops();
+  if (!drops.length) return [];
+  return [
+    normalizeDiscoverCreator({
+      handle: state.creator.profile.handle,
+      bio: state.creator.profile.bio,
+      dropCount: drops.length,
+      unlockCount: drops.reduce((total, drop) => total + drop.sales, 0),
+      drops: drops.map((drop) => ({
+        id: drop.id,
+        title: drop.title,
+        note: drop.note,
+        price: drop.price,
+        download: drop.download,
+        downloadExtraPercent: drop.downloadExtraPercent,
+        mediaCount: 1,
+        fileName: drop.fileName,
+        thumbnail: drop.thumbnail,
+        unlockCount: drop.sales,
+      })),
+    }),
+  ];
+}
+
 function purchasedDropIds() {
   return new Set(state.fan.purchases.map((purchase) => purchase.dropId));
 }
@@ -436,7 +539,31 @@ function creatorHandle() {
 }
 
 function storefrontUrl() {
-  return `${PUBLIC_BASE_URL}/${state.creator.profile.handle || "creator"}`;
+  return `${PUBLIC_BASE_URL}/fan.html?handle=${encodeURIComponent(state.creator.profile.handle || "creator")}#store`;
+}
+
+function discoverUrl() {
+  return `${PUBLIC_BASE_URL}/fan.html?discover=1#discover`;
+}
+
+function currentShareUrl() {
+  if (state.view === "store" && state.creator.profile.handle && state.creator.profile.handle !== "creator") {
+    return new URLSearchParams(location.search).get("drop") ? window.location.href : storefrontUrl();
+  }
+  return discoverUrl();
+}
+
+function openCreatorEntry() {
+  window.location.assign("/app.html#create");
+}
+
+function updateShareActionUI() {
+  const shareButton = $(".topbar [data-copy-storefront]");
+  if (!shareButton) return;
+  const canShareStore = state.view === "store" && state.creator.profile.handle && state.creator.profile.handle !== "creator";
+  const canShareFanHome = Boolean(fanUser) && state.view === "discover";
+  shareButton.hidden = !(canShareStore || canShareFanHome);
+  shareButton.setAttribute("aria-label", canShareStore ? "Share storefront" : "Share fan home");
 }
 
 function showToast(message) {
@@ -449,9 +576,45 @@ function showToast(message) {
   }, 1800);
 }
 
+function updateFanAccountUI() {
+  const button = $(".fan-chip");
+  const dropdown = $("#account-dropdown");
+  if (!button) return;
+
+  if (fanUser) {
+    button.removeAttribute("data-fan-signup");
+    button.setAttribute("data-open-account-menu", "");
+    button.setAttribute("aria-haspopup", "menu");
+    button.setAttribute("aria-expanded", "false");
+    button.setAttribute("aria-label", "Account menu");
+    button.innerHTML = `
+      <span class="fan-initial" aria-hidden="true">F</span>
+      <span>Fan</span>
+    `;
+    if (dropdown) dropdown.hidden = true;
+    updateShareActionUI();
+    syncIcons();
+    return;
+  }
+
+  if (dropdown) dropdown.hidden = true;
+  button.removeAttribute("data-open-account-menu");
+  button.removeAttribute("aria-haspopup");
+  button.removeAttribute("aria-expanded");
+  button.setAttribute("data-fan-signup", "");
+  button.setAttribute("aria-label", "Sign up as a fan");
+  button.innerHTML = `
+    <span class="fan-initial" aria-hidden="true">F</span>
+    <span>Sign up</span>
+  `;
+  updateShareActionUI();
+  syncIcons();
+}
+
 function setAccountDropdown(open) {
   const dropdown = $("#account-dropdown");
   const button = $("[data-open-account-menu]");
+  if (!dropdown || !button) return;
   dropdown.hidden = !open;
   button.setAttribute("aria-expanded", String(open));
 }
@@ -470,7 +633,7 @@ async function copyText(value, message = "Copied") {
 }
 
 function setView(view, options = {}) {
-  if (!["store", "library", "activity", "profile"].includes(view)) return;
+  if (!["discover", "store", "library", "activity", "profile"].includes(view)) return;
   state.view = view;
   $$(".view").forEach((panel) => {
     panel.classList.toggle("is-active", panel.dataset.viewPanel === view);
@@ -481,6 +644,7 @@ function setView(view, options = {}) {
   if (location.hash !== `#${view}`) {
     history.replaceState(null, "", `#${view}`);
   }
+  updateShareActionUI();
   window.scrollTo({ top: 0, behavior: "auto" });
 }
 
@@ -505,6 +669,64 @@ function emptyState(icon, title, copy, action = "") {
       </div>
     </div>
   `;
+}
+
+function renderDiscover() {
+  const grid = $("#discover-grid");
+  if (!grid) return;
+  const creators = state.discover.creators.length ? state.discover.creators : localDiscoverCreators();
+
+  if (!creators.length) {
+    grid.innerHTML = emptyState(
+      "store",
+      "No public drops yet",
+      "Creators with live public drops will appear here. For now, start selling or check back after creators publish.",
+      `<a class="primary-button" href="/app.html#create" data-creator-entry>
+        <i data-lucide="plus-square"></i>
+        <span>Start selling</span>
+      </a>`,
+    );
+    return;
+  }
+
+  grid.innerHTML = creators
+    .map((creator) => {
+      const drops = creator.drops.slice(0, 3);
+      const prices = drops.map((drop) => effectiveDropPrice(drop)).filter(Boolean);
+      const startingPrice = prices.length ? Math.min(...prices) : 0;
+      const leadDrop = drops[0] || normalizeDiscoverDrop({}, creator.handle);
+      return `
+        <article class="discover-card">
+          <button class="discover-media" type="button" data-open-creator="${escapeHtml(creator.handle)}" aria-label="Open @${escapeHtml(creator.handle)} storefront">
+            <img src="${escapeHtml(leadDrop.thumbnail)}" alt="" />
+            <span class="media-lock"><i data-lucide="lock-keyhole"></i>${creator.dropCount} drop${creator.dropCount === 1 ? "" : "s"}</span>
+            ${startingPrice ? `<span class="price-pill">From ${money(startingPrice)}</span>` : ""}
+          </button>
+          <div class="discover-body">
+            <span class="tiny-label">@${escapeHtml(creator.handle)}</span>
+            <h3>${escapeHtml(leadDrop.title || "Creator storefront")}</h3>
+            <p>${escapeHtml(creator.bio || "Browse this creator's public locked drops.")}</p>
+            <div class="discover-drop-list">
+              ${drops
+                .map(
+                  (drop) => `
+                    <button class="discover-drop-row" type="button" data-open-creator="${escapeHtml(creator.handle)}">
+                      <span>${escapeHtml(drop.title)}</span>
+                      <strong>${money(effectiveDropPrice(drop))}</strong>
+                    </button>
+                  `,
+                )
+                .join("")}
+            </div>
+            <button class="primary-button" type="button" data-open-creator="${escapeHtml(creator.handle)}">
+              <i data-lucide="store"></i>
+              <span>View storefront</span>
+            </button>
+          </div>
+        </article>
+      `;
+    })
+    .join("");
 }
 
 function renderCreator() {
@@ -552,7 +774,7 @@ function renderStore() {
             <img src="${escapeHtml(drop.thumbnail)}" alt="" />
             <span class="media-lock"><i data-lucide="${hasDrop ? "lock-open" : "lock-keyhole"}"></i>${hasDrop ? "Unlocked" : "Locked"}</span>
             ${hasDrop ? `<span class="owned-badge"><i data-lucide="check"></i>Owned</span>` : ""}
-            <span class="price-pill">${money(drop.price)}</span>
+            <span class="price-pill">${money(effectiveDropPrice(drop))}</span>
           </div>
           <div class="drop-body">
             <h3>${escapeHtml(drop.title)}</h3>
@@ -583,8 +805,8 @@ function renderLibrary() {
       "folder-open",
       "Your library is empty",
       "Unlocked drops will appear here right after purchase.",
-      `<button class="primary-button" type="button" data-view="store">
-        <i data-lucide="store"></i>
+      `<button class="primary-button" type="button" data-view="discover">
+        <i data-lucide="compass"></i>
         <span>Browse drops</span>
       </button>`,
     );
@@ -629,8 +851,8 @@ function renderActivity() {
       "receipt-text",
       "No purchases yet",
       "Receipts will be saved here as soon as you unlock content.",
-      `<button class="primary-button" type="button" data-view="store">
-        <i data-lucide="store"></i>
+      `<button class="primary-button" type="button" data-view="discover">
+        <i data-lucide="compass"></i>
         <span>Browse drops</span>
       </button>`,
     );
@@ -656,11 +878,96 @@ function renderActivity() {
     .join("");
 }
 
+function renderAccount() {
+  const panel = $("#account-panel");
+  if (!panel) return;
+
+  if (!fanUser) {
+    panel.innerHTML = `
+      <article class="account-card wide">
+        <span class="card-icon"><i data-lucide="circle-user-round"></i></span>
+        <div>
+          <h2>Create your fan account</h2>
+          <p>Sign up once to save purchases, receipts, and your permanent content library.</p>
+        </div>
+        <button class="small-button dark" type="button" data-fan-signup>Sign up</button>
+      </article>
+
+      <article class="account-card">
+        <span class="card-icon yellow"><i data-lucide="folder-open"></i></span>
+        <div>
+          <h2>Library</h2>
+          <p>Your unlocked drops appear here after checkout.</p>
+        </div>
+        <button class="small-button" type="button" data-view="discover">Browse</button>
+      </article>
+
+      <article class="account-card wide">
+        <span class="card-icon blue"><i data-lucide="shield-check"></i></span>
+        <div>
+          <h2>Buyer protection</h2>
+          <p>Paid unlocks are tied to your verified account, not a temporary browser session.</p>
+        </div>
+      </article>
+
+      <article class="account-card wide">
+        <span class="card-icon"><i data-lucide="circle-help"></i></span>
+        <div>
+          <h2>FAQ</h2>
+          <p>See how unlocks, downloads, and fan libraries work before buying.</p>
+        </div>
+        <a class="small-button" href="/#faq">Open</a>
+      </article>
+    `;
+    return;
+  }
+
+  panel.innerHTML = `
+    <article class="account-card">
+      <span class="card-icon"><i data-lucide="credit-card"></i></span>
+      <div>
+        <h2>Payment method</h2>
+        <p>Cards are handled securely during Stripe checkout.</p>
+      </div>
+      <button class="small-button dark" type="button" data-open-payment-card>Manage</button>
+    </article>
+
+    <article class="account-card">
+      <span class="card-icon yellow"><i data-lucide="store"></i></span>
+      <div>
+        <h2>Browse creators</h2>
+        <p>Find public drops and save purchases to your library.</p>
+      </div>
+      <button class="small-button" type="button" data-view="discover">Open</button>
+    </article>
+
+    <article class="account-card wide">
+      <span class="card-icon blue"><i data-lucide="shield-check"></i></span>
+      <div>
+        <h2>Buyer protection</h2>
+        <p>Purchases are tied to your fan account and restored from your library.</p>
+      </div>
+    </article>
+
+    <article class="account-card wide">
+      <span class="card-icon"><i data-lucide="circle-help"></i></span>
+      <div>
+        <h2>FAQ</h2>
+        <p>See how unlocks, downloads, and fan libraries work before buying.</p>
+      </div>
+      <a class="small-button" href="/#faq">Open</a>
+    </article>
+  `;
+}
+
 function renderAll() {
+  renderDiscover();
   renderCreator();
   renderStore();
   renderLibrary();
   renderActivity();
+  renderAccount();
+  updateShareActionUI();
   syncIcons();
 }
 
@@ -706,7 +1013,7 @@ function openDrop(dropId) {
           <h3>${escapeHtml(drop.title)}</h3>
           <p>${escapeHtml(drop.note || "Buy once and keep it in your library.")}</p>
         </div>
-        <span class="checkout-price">${money(drop.price)}</span>
+        <span class="checkout-price">${money(effectiveDropPrice(drop))}</span>
       </div>
       <div class="checkout-line">
         <i data-lucide="${purchase ? "folder-open" : "shield-check"}"></i>
@@ -718,13 +1025,13 @@ function openDrop(dropId) {
       <div class="checkout-line">
         <i data-lucide="credit-card"></i>
         <div>
-          <strong>Card ending in 4242</strong>
-          <span>${purchase ? "Receipt saved" : `Charged ${money(drop.price)} today`}</span>
+          <strong>Secure Stripe checkout</strong>
+          <span>${purchase ? "Receipt saved to your library" : `You will review and pay ${money(effectiveDropPrice(drop))} on Stripe`}</span>
         </div>
       </div>
       <button class="primary-button" type="button" data-buy-drop="${drop.id}">
         <i data-lucide="${purchase ? "folder-open" : "credit-card"}"></i>
-        <span>${purchase ? "Open file" : `Pay ${money(drop.price)}`}</span>
+        <span>${purchase ? "Open file" : `Pay ${money(effectiveDropPrice(drop))}`}</span>
       </button>
     `,
   );
@@ -805,8 +1112,8 @@ function openPaymentCard() {
       <div class="checkout-line">
         <i data-lucide="credit-card"></i>
         <div>
-          <strong>Card ending in 4242</strong>
-          <span>Ready for one-tap unlocks</span>
+          <strong>Secure checkout</strong>
+          <span>Payment methods are managed through Stripe when you buy.</span>
         </div>
       </div>
       <div class="checkout-line">
@@ -832,21 +1139,46 @@ function refreshFromStorage() {
 
 document.addEventListener("DOMContentLoaded", () => {
   refreshFromStorage();
+  updateFanAccountUI();
+  loadDiscoverFromApi();
+  const params = new URLSearchParams(location.search);
+  const hasStorefrontHandle = Boolean(params.get("handle") || params.get("drop"));
   const initialView = location.hash.replace("#", "");
-  setView(initialView || "store", { instant: true });
+  setView(initialView || (hasStorefrontHandle ? "store" : "discover"), { instant: true });
 
   // Check fan auth + load storefront from API
   checkFanAuth().then((user) => {
+    updateFanAccountUI();
     loadStorefrontFromApi();
     if (user) loadLibraryFromApi();
+    if (params.get("signup") === "fan" && !user) {
+      showFanLoginOverlay(() => setView("library"));
+    }
   });
 
   document.addEventListener("click", (event) => {
     const accountSurface = event.target.closest(".account-dropdown, [data-open-account-menu]");
     if (!accountSurface) setAccountDropdown(false);
 
+    const creatorEntry = event.target.closest("[data-creator-entry]");
+    if (creatorEntry) {
+      event.preventDefault();
+      openCreatorEntry();
+      return;
+    }
+
     const viewButton = event.target.closest("[data-view]");
     if (viewButton) setView(viewButton.dataset.view);
+
+    const fanSignupButton = event.target.closest("[data-fan-signup]");
+    if (fanSignupButton) {
+      if (fanUser) {
+        setView("library");
+      } else {
+        showFanLoginOverlay(() => setView("library"));
+      }
+      return;
+    }
 
     const accountButton = event.target.closest("[data-open-account-menu]");
     if (accountButton) {
@@ -858,13 +1190,13 @@ document.addEventListener("DOMContentLoaded", () => {
     const logoutButton = event.target.closest("[data-logout]");
     if (logoutButton) {
       setAccountDropdown(false);
-      VaultlineAPI.authLogout().catch(() => {});
       fanUser = null;
       state.fan.purchases = [];
-      renderLibrary();
-      renderActivity();
-      syncIcons();
-      showToast("Logged out");
+      VaultlineAPI.authLogout()
+        .catch(() => {})
+        .finally(() => {
+          window.location.href = "index.html?logout=1";
+        });
       return;
     }
 
@@ -872,12 +1204,27 @@ document.addEventListener("DOMContentLoaded", () => {
     if (closeButton) closeDialog();
 
     const copyStoreButton = event.target.closest("[data-copy-storefront]");
-    if (copyStoreButton) copyText(storefrontUrl(), "Storefront link copied");
+    if (copyStoreButton) {
+      const isStore = state.view === "store" && state.creator.profile.handle !== "creator";
+      copyText(currentShareUrl(), isStore ? "Storefront link copied" : "Discover link copied");
+    }
 
     const refreshButton = event.target.closest("[data-refresh-store]");
     if (refreshButton) {
       refreshFromStorage();
       showToast("Store refreshed");
+    }
+
+    const refreshDiscoverButton = event.target.closest("[data-refresh-discover]");
+    if (refreshDiscoverButton) {
+      loadDiscoverFromApi();
+      showToast("Feed refreshed");
+    }
+
+    const openCreatorButton = event.target.closest("[data-open-creator]");
+    if (openCreatorButton) {
+      window.location.href = `fan.html?handle=${encodeURIComponent(openCreatorButton.dataset.openCreator)}#store`;
+      return;
     }
 
     const openDropButton = event.target.closest("[data-open-drop]");
@@ -913,7 +1260,9 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   window.addEventListener("hashchange", () => {
-    setView(location.hash.replace("#", "") || "store", { instant: true });
+    const params = new URLSearchParams(location.search);
+    const hasHandle = Boolean(params.get("handle") || params.get("drop"));
+    setView(location.hash.replace("#", "") || (hasHandle ? "store" : "discover"), { instant: true });
   });
 
   window.addEventListener("storage", (event) => {
