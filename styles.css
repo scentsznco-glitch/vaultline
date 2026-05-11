@@ -3923,6 +3923,13 @@ svg {
     overflow: hidden;
   }
 
+  body.is-create-view.is-sell-media-selected:not(.is-sell-detail) .sell-card {
+    padding-block: clamp(4px, 0.9svh, 10px) 0;
+    align-content: start;
+    gap: clamp(7px, 1svh, 10px);
+    overflow: visible;
+  }
+
   body.is-create-view:not(.is-sell-detail) .sell-media-button {
     gap: 10px;
   }
@@ -3946,8 +3953,17 @@ svg {
     gap: 8px;
   }
 
+  body.is-create-view.is-sell-media-selected:not(.is-sell-detail) .sell-media-stage {
+    gap: 6px;
+  }
+
   body.is-create-view:not(.is-sell-detail) .sell-media-grid {
     padding-bottom: 4px;
+  }
+
+  body.is-create-view.is-sell-media-selected:not(.is-sell-detail) .sell-media-grid {
+    gap: 10px;
+    padding-bottom: 2px;
   }
 
   body.is-create-view:not(.is-sell-detail) .sell-media-tile {
@@ -3955,8 +3971,29 @@ svg {
     border-radius: 20px;
   }
 
+  body.is-create-view.is-sell-media-selected:not(.is-sell-detail) .sell-media-tile {
+    flex-basis: clamp(136px, 39vw, 176px);
+    aspect-ratio: 1 / 1.12;
+    border-radius: 18px;
+    box-shadow: 0 10px 24px rgba(17, 17, 17, 0.12);
+  }
+
   body.is-create-view:not(.is-sell-detail) .sell-media-grid.is-single .sell-media-tile {
     flex-basis: clamp(174px, 50vw, 230px);
+  }
+
+  body.is-create-view.is-sell-media-selected:not(.is-sell-detail) .sell-media-grid.is-single .sell-media-tile {
+    flex-basis: clamp(154px, 45vw, 194px);
+  }
+
+  body.is-create-view.is-sell-media-selected:not(.is-sell-detail) .sell-media-tile img {
+    object-fit: contain;
+    object-position: center top;
+    background: #f3f2ef;
+  }
+
+  body.is-create-view.is-sell-media-selected:not(.is-sell-detail) .sell-media-tile::after {
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.02) 34%, rgba(0, 0, 0, 0.06));
   }
 
   body.is-create-view:not(.is-sell-detail) .sell-media-item-remove {
@@ -3966,9 +4003,21 @@ svg {
     right: 10px;
   }
 
+  body.is-create-view.is-sell-media-selected:not(.is-sell-detail) .sell-media-item-remove {
+    width: 34px;
+    height: 34px;
+    top: 8px;
+    right: 8px;
+  }
+
   body.is-create-view:not(.is-sell-detail) .sell-media-item-remove svg {
     width: 22px;
     height: 22px;
+  }
+
+  body.is-create-view.is-sell-media-selected:not(.is-sell-detail) .sell-media-item-remove svg {
+    width: 18px;
+    height: 18px;
   }
 
   body.is-create-view:not(.is-sell-detail) .sell-media-duration {
@@ -3983,11 +4032,22 @@ svg {
     gap: 8px;
   }
 
+  body.is-create-view.is-sell-media-selected:not(.is-sell-detail) .sell-media-actions {
+    gap: 7px;
+  }
+
   body.is-create-view:not(.is-sell-detail) .sell-media-count,
   body.is-create-view:not(.is-sell-detail) .sell-add-more-media {
     min-height: 36px;
     padding: 0 14px;
     font-size: 15px;
+  }
+
+  body.is-create-view.is-sell-media-selected:not(.is-sell-detail) .sell-media-count,
+  body.is-create-view.is-sell-media-selected:not(.is-sell-detail) .sell-add-more-media {
+    min-height: 32px;
+    padding: 0 12px;
+    font-size: 14px;
   }
 
   body.is-create-view:not(.is-sell-detail) .sell-add-more-media svg {
@@ -3997,6 +4057,10 @@ svg {
 
   body.is-create-view:not(.is-sell-detail) .sell-price {
     gap: 7px;
+  }
+
+  body.is-create-view.is-sell-media-selected:not(.is-sell-detail) .sell-price {
+    gap: 5px;
   }
 
   body.is-create-view:not(.is-sell-detail) .sell-media-button:not([hidden]) + .sell-price {
@@ -4018,9 +4082,22 @@ svg {
     font-size: clamp(34px, 7.2svh, 42px);
   }
 
+  body.is-create-view.is-sell-media-selected:not(.is-sell-detail) .sell-price-input {
+    min-height: clamp(50px, 7svh, 56px);
+    padding-inline: 18px;
+    font-size: clamp(30px, 6.2svh, 38px);
+  }
+
   body.is-create-view:not(.is-sell-detail) .creator-receive,
   body.is-create-view:not(.is-sell-detail) .price-error {
     font-size: 15px;
+  }
+
+  body.is-create-view.is-sell-media-selected:not(.is-sell-detail) .creator-receive,
+  body.is-create-view.is-sell-media-selected:not(.is-sell-detail) .price-error {
+    margin-top: 0;
+    font-size: 13px;
+    line-height: 1.1;
   }
 
   body.is-create-view:not(.is-sell-detail) .sell-options {
@@ -4032,15 +4109,30 @@ svg {
     padding: 0 14px;
   }
 
+  body.is-create-view.is-sell-media-selected:not(.is-sell-detail) .sell-row {
+    min-height: 43px;
+    padding: 0 12px;
+  }
+
   body.is-create-view:not(.is-sell-detail) .sell-row span,
   body.is-create-view:not(.is-sell-detail) .sell-row strong {
     font-size: 17px;
+  }
+
+  body.is-create-view.is-sell-media-selected:not(.is-sell-detail) .sell-row span,
+  body.is-create-view.is-sell-media-selected:not(.is-sell-detail) .sell-row strong {
+    font-size: 15px;
   }
 
   body.is-create-view:not(.is-sell-detail) .sell-generate {
     min-height: 56px;
     margin-top: 0;
     font-size: 20px;
+  }
+
+  body.is-create-view.is-sell-media-selected:not(.is-sell-detail) .sell-generate {
+    min-height: 48px;
+    font-size: 18px;
   }
 }
 
@@ -4072,6 +4164,11 @@ svg {
     gap: 10px;
   }
 
+  body.is-create-view.is-sell-media-selected:not(.is-sell-detail) .sell-card {
+    padding-block: 2px 0;
+    gap: 6px;
+  }
+
   body.is-create-view:not(.is-sell-detail) .sell-plus {
     width: 84px;
     height: 84px;
@@ -4092,10 +4189,22 @@ svg {
     border-radius: 18px;
   }
 
+  body.is-create-view.is-sell-media-selected:not(.is-sell-detail) .sell-media-tile,
+  body.is-create-view.is-sell-media-selected:not(.is-sell-detail) .sell-media-grid.is-single .sell-media-tile {
+    flex-basis: clamp(118px, 33vw, 146px);
+    border-radius: 16px;
+  }
+
   body.is-create-view:not(.is-sell-detail) .sell-media-count,
   body.is-create-view:not(.is-sell-detail) .sell-add-more-media {
     min-height: 32px;
     font-size: 14px;
+  }
+
+  body.is-create-view.is-sell-media-selected:not(.is-sell-detail) .sell-media-count,
+  body.is-create-view.is-sell-media-selected:not(.is-sell-detail) .sell-add-more-media {
+    min-height: 28px;
+    font-size: 13px;
   }
 
   body.is-create-view:not(.is-sell-detail) .sell-price > span:first-child {
@@ -4116,11 +4225,24 @@ svg {
     font-size: 34px;
   }
 
+  body.is-create-view.is-sell-media-selected:not(.is-sell-detail) .sell-price-input {
+    min-height: 48px;
+    font-size: 30px;
+  }
+
   body.is-create-view:not(.is-sell-detail) .sell-row {
     min-height: 49px;
   }
 
+  body.is-create-view.is-sell-media-selected:not(.is-sell-detail) .sell-row {
+    min-height: 40px;
+  }
+
   body.is-create-view:not(.is-sell-detail) .sell-generate {
     min-height: 52px;
+  }
+
+  body.is-create-view.is-sell-media-selected:not(.is-sell-detail) .sell-generate {
+    min-height: 44px;
   }
 }

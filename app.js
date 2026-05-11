@@ -959,9 +959,10 @@ function syncPriceInputWidth(input, shellSelector) {
   const displayValue = value.startsWith("$") ? value : `$${value}`;
   const cleanLength = Math.max(4.4, Math.min(value.length + 1.4, 12));
   input.style.setProperty("--price-value-ch", cleanLength.toFixed(1));
-  input.style.setProperty("--price-value-width", `${measureInputTextWidth(input, displayValue)}px`);
 
   const priceShell = input.closest(shellSelector);
+  const measuredWidth = measureInputTextWidth(priceShell || input, displayValue);
+  input.style.setProperty("--price-value-width", `${measuredWidth}px`);
   if (priceShell) {
     const shellLength = Math.max(5, Math.min(value.length + 2.3, 13));
     priceShell.dataset.priceDisplay = displayValue;
@@ -1144,6 +1145,7 @@ function updateSellMediaPreview() {
   const items = state.sell.mediaItems;
   const showPreview = state.sell.mediaKind === "photo-video" && items.length > 0;
 
+  document.body.classList.toggle("is-sell-media-selected", showPreview);
   if (stage) stage.hidden = !showPreview;
   if (emptyButton) emptyButton.hidden = showPreview;
   if (count) count.textContent = mediaCountLabel(items.length);
