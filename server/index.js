@@ -603,7 +603,8 @@ app.post(
       return;
     }
     const creatorHandle = drops[0].creator_profiles?.handle;
-    const stripeAccountId = drops[0].creator_profiles?.stripe_account_id;
+    const creatorProfile = drops[0].creator_profiles;
+    const stripeAccountId = creatorProfile?.charges_enabled ? creatorProfile?.stripe_account_id : null;
     const session = await createCheckoutSession({
       drops: drops.map((drop) => ({
         ...drop,

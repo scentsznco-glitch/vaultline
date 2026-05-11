@@ -226,7 +226,7 @@ export async function getPublicDrop(dropId) {
   const client = requireDb();
   const { data, error } = await client
     .from("drops")
-    .select("*, creator_profiles(handle, stripe_account_id), drop_media(id, file_type, file_name)")
+    .select("*, creator_profiles(handle, stripe_account_id, charges_enabled), drop_media(id, file_type, file_name)")
     .eq("id", dropId)
     .eq("status", "active")
     .maybeSingle();
