@@ -24,6 +24,7 @@ export const config = {
     publishableKey: required("STRIPE_PUBLISHABLE_KEY"),
     webhookSecret: required("STRIPE_WEBHOOK_SECRET"),
     platformFeePercent: Number(required("STRIPE_PLATFORM_FEE_PERCENT", "10")),
+    customerPrivacySecurityFeePercent: Number(required("STRIPE_CUSTOMER_PRIVACY_SECURITY_FEE_PERCENT", "15")),
     connectRefreshUrl: required("STRIPE_CONNECT_REFRESH_URL", "https://vaultd.me/stripe/refresh"),
     connectReturnUrl: required("STRIPE_CONNECT_RETURN_URL", "https://vaultd.me/stripe/return"),
   },

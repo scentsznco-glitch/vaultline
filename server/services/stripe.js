@@ -31,19 +31,39 @@ export async function createConnectOnboardingLink(accountId) {
   });
 }
 
-export async function createCheckoutSession({ drop, buyerEmail, successUrl, cancelUrl }) {
-  const client = requireStripe();
-  const feePercent = Math.max(0, Math.min(80, config.stripe.platformFeePercent));
+function checkoutBundleDiscountRate(count) {
+  if (count >= 4) return 0.3;
+  if (count === 3) return 0.2;
+  if (count === 2) return 0.1;
+  return 0;
+}
+
+function dropContentAmountCents(drop, discountRate = 0) {
   const baseAmount = Math.round(Number(drop.price) * 100);
   const downloadExtraPercent =
     drop.download === "extra" ? Math.max(0, Math.min(100, Number(drop.download_extra_percent) || 0)) : 0;
-  const unitAmount = Math.round(baseAmount * (1 + downloadExtraPercent / 100));
-  const applicationFeeAmount = Math.round(unitAmount * (feePercent / 100));
-  const paymentIntentData = drop.stripe_account_id
+  const contentAmount = Math.round(baseAmount * (1 + downloadExtraPercent / 100));
+  return Math.max(50, Math.round(contentAmount * (1 - discountRate)));
+}
+
+export async function createCheckoutSession({ drop, drops = [], buyerEmail, successUrl, cancelUrl }) {
+  const client = requireStripe();
+  const feePercent = Math.max(0, Math.min(80, config.stripe.platformFeePercent));
+  const customerFeePercent = Math.max(0, Math.min(80, config.stripe.customerPrivacySecurityFeePercent));
+  const checkoutDrops = drops.length ? drops : [drop];
+  const discountRate = checkoutBundleDiscountRate(checkoutDrops.length);
+  const dropAmounts = Object.fromEntries(
+    checkoutDrops.map((item) => [item.id, dropContentAmountCents(item, discountRate)]),
+  );
+  const contentAmount = Object.values(dropAmounts).reduce((total, amount) => total + amount, 0);
+  const privacySecurityFeeAmount = Math.round(contentAmount * (customerFeePercent / 100));
+  const applicationFeeAmount = Math.round(contentAmount * (feePercent / 100)) + privacySecurityFeeAmount;
+  const primaryDrop = checkoutDrops[0];
+  const paymentIntentData = primaryDrop.stripe_account_id
     ? {
         application_fee_amount: applicationFeeAmount,
         transfer_data: {
-          destination: drop.stripe_account_id,
+          destination: primaryDrop.stripe_account_id,
         },
       }
     : undefined;
@@ -54,26 +74,53 @@ export async function createCheckoutSession({ drop, buyerEmail, successUrl, canc
     success_url: successUrl,
     cancel_url: cancelUrl,
     metadata: {
-      drop_id: drop.id,
-      creator_id: drop.creator_id,
-      buyer_id: drop.buyer_id || "",
+      drop_id: primaryDrop.id,
+      drop_ids: JSON.stringify(checkoutDrops.map((item) => item.id)),
+      drop_amounts: JSON.stringify(dropAmounts),
+      creator_id: primaryDrop.creator_id,
+      buyer_id: primaryDrop.buyer_id || "",
+      content_amount_cents: String(contentAmount),
+      privacy_security_fee_cents: String(privacySecurityFeeAmount),
+      customer_fee_percent: String(customerFeePercent),
+      platform_fee_percent: String(feePercent),
+      application_fee_cents: String(applicationFeeAmount),
+      bundle_discount_percent: String(Math.round(discountRate * 100)),
     },
     payment_intent_data: paymentIntentData,
+    invoice_creation: {
+      enabled: true,
+      invoice_data: {
+        description: "Vault'd permanent unlock",
+      },
+    },
     line_items: [
-      {
+      ...checkoutDrops.map((item) => ({
         quantity: 1,
         price_data: {
           currency: "usd",
-          unit_amount: unitAmount,
+          unit_amount: dropAmounts[item.id],
           product_data: {
-            name: drop.title,
-            description: downloadExtraPercent
-              ? `Permanent Vault'd unlock with download add-on`
+            name: item.title,
+            description: discountRate
+              ? `Permanent Vault'd unlock with ${Math.round(discountRate * 100)}% bundle discount`
               : "Permanent Vault'd unlock",
           },
         },
-      },
-    ],
+      })),
+      privacySecurityFeeAmount
+        ? {
+            quantity: 1,
+            price_data: {
+              currency: "usd",
+              unit_amount: privacySecurityFeeAmount,
+              product_data: {
+                name: "Privacy & security fees",
+                description: "Buyer protection, private access, and secure delivery for this unlock.",
+              },
+            },
+          }
+        : null,
+    ].filter(Boolean),
   });
 }
 

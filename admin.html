@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Vault'd Admin</title>
+    <link rel="stylesheet" href="admin.css?v=20260510-launch-admin" />
+    <script defer src="assets/lucide.min.js?v=20260510-icons"></script>
+    <script defer src="api.js"></script>
+    <script defer src="admin.js?v=20260510-launch-admin"></script>
+  </head>
+  <body>
+    <div class="admin-shell">
+      <header class="admin-topbar">
+        <a class="brand" href="/" aria-label="Vault'd home">
+          <span class="brand-mark">
+            <svg class="vault-logo" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+              <rect x="5" y="6" width="22" height="20" rx="5"></rect>
+              <circle cx="16" cy="16" r="5"></circle>
+              <path d="M16 8v3M16 21v3M8 16h3M21 16h3M10.6 10.6l2.1 2.1M19.3 19.3l2.1 2.1M21.4 10.6l-2.1 2.1M12.7 19.3l-2.1 2.1"></path>
+            </svg>
+          </span>
+          <span>Vault'd</span>
+        </a>
+        <div class="top-actions">
+          <a class="ghost-link" href="/app.html#profile">Creator</a>
+          <button class="icon-button" type="button" data-refresh-admin aria-label="Refresh admin data">
+            <i data-lucide="refresh-cw"></i>
+          </button>
+          <button class="logout-button" type="button" data-admin-logout hidden>
+            <i data-lucide="log-out"></i>
+            <span>Log out</span>
+          </button>
+        </div>
+      </header>
+
+      <section class="auth-card" data-auth-panel>
+        <p class="eyebrow">Private admin</p>
+        <h1>Moderation console</h1>
+        <p>Sign in with an email listed in <code>ADMIN_EMAILS</code> to review reports, support tickets, and launch readiness.</p>
+        <form class="auth-form" data-admin-login>
+          <label>
+            <span>Admin email</span>
+            <input name="email" type="email" placeholder="you@vaultd.me" autocomplete="email" required />
+          </label>
+          <button type="submit">
+            <i data-lucide="mail"></i>
+            <span>Send magic link</span>
+          </button>
+        </form>
+        <p class="auth-message" data-auth-message></p>
+      </section>
+
+      <main class="admin-main" data-admin-panel hidden>
+        <section class="admin-hero">
+          <div>
+            <p class="eyebrow">Operations</p>
+            <h1>Launch and moderation</h1>
+            <p>Track required services, review reported drops, and work buyer or creator support tickets.</p>
+          </div>
+          <span class="admin-chip" data-admin-email>Admin</span>
+        </section>
+
+        <section class="launch-grid" id="launch-grid" aria-label="Launch readiness"></section>
+
+        <section class="workbench">
+          <div class="tabs" role="tablist" aria-label="Admin work areas">
+            <button class="is-active" type="button" data-admin-tab="reports">
+              <i data-lucide="flag"></i>
+              <span>Reports</span>
+            </button>
+            <button type="button" data-admin-tab="support">
+              <i data-lucide="life-buoy"></i>
+              <span>Support</span>
+            </button>
+            <button type="button" data-admin-tab="audit">
+              <i data-lucide="logs"></i>
+              <span>Audit</span>
+            </button>
+          </div>
+
+          <div class="toolbar" data-report-toolbar>
+            <label>
+              <span>Report status</span>
+              <select data-report-status>
+                <option value="open">Open</option>
+                <option value="reviewing">Reviewing</option>
+                <option value="resolved">Resolved</option>
+                <option value="dismissed">Dismissed</option>
+                <option value="">All</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="toolbar" data-ticket-toolbar hidden>
+            <label>
+              <span>Ticket status</span>
+              <select data-ticket-status>
+                <option value="open">Open</option>
+                <option value="waiting">Waiting</option>
+                <option value="resolved">Resolved</option>
+                <option value="">All</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="admin-list" id="reports-list"></div>
+          <div class="admin-list" id="tickets-list" hidden></div>
+          <div class="admin-list" id="audit-list" hidden></div>
+        </section>
+      </main>
+    </div>
+    <div class="toast" id="toast" hidden></div>
+  </body>
+</html>

@@ -3,9 +3,16 @@ create table if not exists users (
   email text not null unique,
   role text not null check (role in ('creator', 'fan', 'admin')),
   email_verified boolean not null default false,
+  age_confirmed_at timestamptz,
+  suspended_at timestamptz,
+  suspension_reason text,
   created_at timestamptz not null default now(),
   last_login_at timestamptz
 );
+
+alter table users add column if not exists age_confirmed_at timestamptz;
+alter table users add column if not exists suspended_at timestamptz;
+alter table users add column if not exists suspension_reason text;
 
 create table if not exists email_verifications (
   id text primary key,
@@ -66,7 +73,7 @@ create table if not exists purchases (
   id text primary key,
   buyer_id text not null references users(id) on delete cascade,
   drop_id text not null references drops(id) on delete restrict,
-  stripe_session_id text not null unique,
+  stripe_session_id text not null,
   stripe_payment_intent_id text,
   amount numeric(10,2) not null,
   currency text not null default 'usd',
@@ -76,6 +83,8 @@ create table if not exists purchases (
   refunded_at timestamptz,
   disputed_at timestamptz
 );
+
+alter table purchases drop constraint if exists purchases_stripe_session_id_key;
 
 create table if not exists entitlements (
   id text primary key,
@@ -141,8 +150,10 @@ create table if not exists audit_logs (
 );
 
 create index if not exists drops_creator_status_idx on drops(creator_id, status);
+create index if not exists users_suspended_idx on users(suspended_at);
 create index if not exists purchases_buyer_idx on purchases(buyer_id, created_at desc);
 create index if not exists purchases_drop_idx on purchases(drop_id, created_at desc);
+create unique index if not exists purchases_session_drop_idx on purchases(stripe_session_id, drop_id);
 create index if not exists entitlements_buyer_drop_idx on entitlements(buyer_id, drop_id);
 create index if not exists email_verifications_token_idx on email_verifications(token_hash);
 create index if not exists operations_user_idx on operations(user_id, created_at desc);

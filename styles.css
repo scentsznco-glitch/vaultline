@@ -58,14 +58,14 @@
 }
 
 .sell-card {
-  min-height: 440px;
-  padding: 36px 30px 28px;
+  min-height: 410px;
+  padding: 32px 30px 26px;
   border: 1px solid var(--line);
   border-radius: 8px;
   display: grid;
   align-content: center;
   justify-items: center;
-  gap: 26px;
+  gap: 22px;
   background: var(--paper);
 }
 
@@ -277,7 +277,7 @@
   border: 0;
   display: grid;
   justify-items: center;
-  gap: 14px;
+  gap: 16px;
   color: var(--ink);
   background: transparent;
 }
@@ -320,24 +320,33 @@
 }
 
 .sell-price > span:first-child {
-  font-size: 28px;
+  color: #777777;
+  font-size: 22px;
   font-weight: 650;
 }
 
 .sell-price-input {
-  display: flex;
+  min-width: min(390px, calc(100vw - 116px));
+  min-height: 112px;
+  padding: 0 44px;
+  border: 1px solid #ecebe7;
+  border-radius: 999px;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: #bfbfbf;
-  font-size: 78px;
+  gap: 8px;
+  color: #a6a6a6;
+  background: #ffffff;
+  box-shadow: 0 8px 24px rgba(17, 17, 17, 0.03), inset 0 0 0 1px rgba(17, 17, 17, 0.015);
+  font-size: 76px;
   line-height: 1;
   font-weight: 700;
 }
 
 .sell-price-input input {
-  width: 4ch;
-  min-width: 1ch;
-  max-width: 8ch;
+  width: 4ch !important;
+  min-width: 4ch;
+  max-width: 4ch;
   border: 0;
   outline: 0;
   color: #a8a8a8;
@@ -345,6 +354,7 @@
   font-size: inherit;
   font-weight: inherit;
   letter-spacing: 0;
+  text-align: left;
 }
 
 .sell-price-input input::placeholder {
@@ -358,7 +368,7 @@
 }
 
 .sell-options {
-  margin-top: 24px;
+  margin-top: 18px;
   border: 1px solid var(--line);
   border-radius: 8px;
   overflow: hidden;
@@ -456,7 +466,7 @@
 .sell-generate {
   width: 100%;
   min-height: 72px;
-  margin-top: 34px;
+  margin-top: 22px;
   border: 0;
   border-radius: 999px;
   color: var(--paper);
@@ -893,7 +903,7 @@ body.is-sell-detail .main {
   }
 
   .sell-card {
-    min-height: 420px;
+    min-height: 390px;
   }
 
   .sell-guidance {
@@ -907,30 +917,32 @@ body.is-sell-detail .main {
 
 @media (max-width: 560px) {
   .sell-screen {
-    padding: 0 18px 92px;
+    padding: 0 18px 82px;
   }
 
   .sell-top {
-    margin-bottom: 18px;
+    min-height: 48px;
+    margin-bottom: 14px;
   }
 
   .sell-top h1 {
-    font-size: 52px;
+    font-size: 50px;
   }
 
   .sell-card {
-    min-height: 390px;
-    padding: 30px 18px 22px;
+    min-height: 350px;
+    padding: 24px 18px 20px;
+    gap: 18px;
   }
 
   .sell-plus {
-    width: 132px;
-    height: 132px;
+    width: 118px;
+    height: 118px;
   }
 
   .sell-plus svg {
-    width: 66px;
-    height: 66px;
+    width: 58px;
+    height: 58px;
   }
 
   .sell-media-stage {
@@ -1002,19 +1014,24 @@ body.is-sell-detail .main {
   }
 
   .sell-media-button strong {
-    font-size: 34px;
+    font-size: 33px;
   }
 
   .sell-price > span:first-child {
-    font-size: 24px;
+    font-size: 21px;
   }
 
   .sell-price-input {
-    font-size: 64px;
+    min-width: min(330px, calc(100vw - 78px));
+    min-height: 94px;
+    padding: 0 30px;
+    font-size: 60px;
   }
 
   .sell-price-input input {
-    width: 4ch;
+    width: 4ch !important;
+    min-width: 4ch;
+    max-width: 4ch;
   }
 
   .sell-row {
@@ -1031,8 +1048,8 @@ body.is-sell-detail .main {
   }
 
   .sell-generate {
-    min-height: 64px;
-    margin-top: 28px;
+    min-height: 62px;
+    margin-top: 20px;
     font-size: 22px;
   }
 
@@ -1941,10 +1958,26 @@ svg {
 }
 
 .launch-checklist-head {
+  width: 100%;
+  padding: 0;
   display: grid;
   grid-template-columns: 48px minmax(0, 1fr) auto;
   align-items: start;
   gap: 12px;
+  border: 0;
+  color: inherit;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.launch-checklist-head:focus-visible {
+  outline: none;
+}
+
+.launch-checklist-head:focus-visible .launch-checklist-toggle {
+  border-color: rgba(0, 184, 89, 0.45);
+  box-shadow: 0 0 0 4px rgba(0, 184, 89, 0.12);
 }
 
 .launch-checklist-icon {
@@ -1962,22 +1995,30 @@ svg {
   height: 24px;
 }
 
+.launch-checklist-text {
+  display: block;
+}
+
 .launch-checklist .eyebrow {
+  display: block;
   margin: 0 0 4px;
   color: var(--green);
 }
 
-.launch-checklist h2,
-.launch-checklist p {
+.launch-checklist-title,
+.launch-checklist-copy {
   margin: 0;
 }
 
-.launch-checklist h2 {
+.launch-checklist-title {
+  display: block;
   font-size: 24px;
+  font-weight: 900;
   line-height: 1.05;
 }
 
-.launch-checklist p {
+.launch-checklist-copy {
+  display: block;
   margin-top: 6px;
   color: var(--muted);
   font-size: 14px;
@@ -1994,6 +2035,50 @@ svg {
   color: var(--ink);
   background: var(--yellow);
   font-size: 14px;
+}
+
+.launch-checklist-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.launch-checklist-toggle {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--muted);
+  background: var(--paper);
+  transition: transform 0.18s ease, background 0.18s ease;
+}
+
+.launch-checklist-toggle svg {
+  width: 17px;
+  height: 17px;
+}
+
+.launch-checklist.is-collapsed {
+  gap: 0;
+}
+
+.launch-checklist.is-collapsed #launch-checklist-copy {
+  display: none;
+}
+
+.launch-checklist.is-collapsed .launch-checklist-toggle {
+  transform: rotate(180deg);
+}
+
+.launch-checklist-body {
+  display: grid;
+  gap: 14px;
+}
+
+.launch-checklist-body[hidden] {
+  display: none;
 }
 
 .launch-progress {
@@ -2047,19 +2132,22 @@ svg {
   height: 36px;
   display: grid;
   place-items: center;
-  border-radius: 999px;
+  border: 1px solid #e4e0d8;
+  border-radius: 12px;
   color: var(--muted);
   background: #f0efeb;
 }
 
 .launch-checklist-item.is-complete .launch-check {
-  color: var(--paper);
-  background: var(--green);
+  border-color: rgba(0, 184, 89, 0.24);
+  color: var(--green);
+  background: var(--green-soft);
 }
 
 .launch-check svg {
   width: 19px;
   height: 19px;
+  stroke-width: 2.7;
 }
 
 .launch-item-copy strong,
@@ -3180,6 +3268,74 @@ svg {
   font-weight: 750;
 }
 
+.settings-back {
+  width: fit-content;
+  min-height: 40px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--ink);
+  background: var(--paper);
+  font-weight: 900;
+}
+
+.settings-back svg {
+  width: 17px;
+  height: 17px;
+}
+
+.settings-faq {
+  display: grid;
+  gap: 10px;
+}
+
+.settings-faq-item {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--paper);
+}
+
+.settings-faq-item summary {
+  min-height: 58px;
+  padding: 14px 46px 14px 14px;
+  position: relative;
+  cursor: pointer;
+  list-style: none;
+  color: var(--ink);
+  font-size: 16px;
+  font-weight: 900;
+}
+
+.settings-faq-item summary::-webkit-details-marker {
+  display: none;
+}
+
+.settings-faq-item summary::after {
+  content: "+";
+  position: absolute;
+  right: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--green);
+  font-size: 24px;
+  line-height: 1;
+}
+
+.settings-faq-item[open] summary::after {
+  content: "-";
+}
+
+.settings-faq-item p {
+  margin: -4px 14px 16px;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.45;
+  font-weight: 750;
+}
+
 .share-box {
   padding: 12px;
   display: grid;
@@ -3340,7 +3496,7 @@ svg {
     height: 44px;
   }
 
-  .launch-checklist h2 {
+  .launch-checklist-title {
     font-size: 22px;
   }
 

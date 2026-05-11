@@ -1,0 +1,432 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Vault'd Policies</title>
+    <meta name="description" content="Vault'd terms, privacy, content, refund, DMCA, payout, and buyer support policies." />
+    <style>
+      :root {
+        color-scheme: light;
+        --ink: #080808;
+        --muted: #696969;
+        --line: #dedbd3;
+        --paper: #f7f5ef;
+        --card: #ffffff;
+        --green: #05c46b;
+        --yellow: #ffd45a;
+        --black: #0d0d0d;
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background: var(--paper);
+        color: var(--ink);
+      }
+
+      a { color: inherit; }
+
+      .policy-shell {
+        width: min(100%, 920px);
+        margin: 0 auto;
+        padding: 18px 18px 44px;
+      }
+
+      .policy-nav {
+        position: sticky;
+        top: 0;
+        z-index: 5;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        padding: 16px 0;
+        background: color-mix(in srgb, var(--paper) 88%, transparent);
+        backdrop-filter: blur(16px);
+      }
+
+      .brand {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        text-decoration: none;
+        font-weight: 900;
+        letter-spacing: -0.02em;
+      }
+
+      .brand-mark {
+        width: 36px;
+        height: 36px;
+        display: grid;
+        place-items: center;
+        border-radius: 10px;
+        background: var(--black);
+        color: #fff;
+      }
+
+      .brand-mark svg {
+        width: 22px;
+        height: 22px;
+        stroke: currentColor;
+        stroke-width: 2;
+        fill: none;
+      }
+
+      .nav-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .nav-actions a,
+      .policy-link {
+        min-height: 42px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 14px;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        background: #fff;
+        font-size: 14px;
+        font-weight: 800;
+        text-decoration: none;
+      }
+
+      .nav-actions .primary {
+        background: var(--green);
+        border-color: var(--green);
+        color: #03140b;
+      }
+
+      .policy-hero {
+        margin-top: 20px;
+        padding: clamp(28px, 8vw, 62px);
+        border-radius: 28px;
+        background:
+          radial-gradient(circle at top right, rgba(5, 196, 107, .22), transparent 34%),
+          linear-gradient(145deg, #ffffff, #efebe1);
+        border: 1px solid var(--line);
+        box-shadow: 0 28px 80px rgba(0,0,0,.08);
+      }
+
+      .eyebrow {
+        margin: 0 0 12px;
+        color: var(--green);
+        font-size: 12px;
+        font-weight: 900;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: clamp(44px, 9vw, 84px);
+        line-height: .92;
+        letter-spacing: -0.055em;
+      }
+
+      .hero-copy {
+        max-width: 640px;
+        margin: 18px 0 0;
+        color: var(--muted);
+        font-size: 18px;
+        line-height: 1.55;
+        font-weight: 650;
+      }
+
+      .policy-index {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 10px;
+        margin: 18px 0 28px;
+      }
+
+      .policy-index a {
+        min-height: 56px;
+        padding: 14px;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        background: var(--card);
+        text-decoration: none;
+        font-weight: 850;
+      }
+
+      .policy-section {
+        margin-top: 18px;
+        padding: clamp(22px, 5vw, 34px);
+        border: 1px solid var(--line);
+        border-radius: 22px;
+        background: var(--card);
+        box-shadow: 0 16px 44px rgba(0,0,0,.05);
+      }
+
+      .policy-section h2 {
+        margin: 0 0 8px;
+        font-size: clamp(28px, 6vw, 42px);
+        line-height: 1;
+        letter-spacing: -0.04em;
+      }
+
+      .updated {
+        margin: 0 0 22px;
+        color: var(--muted);
+        font-weight: 700;
+      }
+
+      .policy-section h3 {
+        margin: 24px 0 8px;
+        font-size: 18px;
+      }
+
+      .policy-section p,
+      .policy-section li {
+        color: #3f3f3f;
+        line-height: 1.6;
+        font-size: 15px;
+        font-weight: 560;
+      }
+
+      .policy-section ul {
+        padding-left: 19px;
+        margin: 8px 0 0;
+      }
+
+      .callout {
+        margin: 18px 0;
+        padding: 16px;
+        border-radius: 16px;
+        background: #ecfff5;
+        border: 1px solid #bdf4d5;
+        color: #06391f;
+        font-weight: 760;
+      }
+
+      .warning {
+        background: #fff6d8;
+        border-color: #ffe18a;
+        color: #3e2a00;
+      }
+
+      footer {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        gap: 12px;
+        margin-top: 28px;
+        color: var(--muted);
+        font-weight: 750;
+      }
+
+      @media (max-width: 700px) {
+        .policy-shell { padding: 14px 14px 36px; }
+        .policy-nav { align-items: flex-start; }
+        .nav-actions a:first-child { display: none; }
+        .policy-index { grid-template-columns: 1fr; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="policy-shell">
+      <nav class="policy-nav" aria-label="Policy navigation">
+        <a class="brand" href="/" aria-label="Vault'd home">
+          <span class="brand-mark">
+            <svg viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+              <rect x="5" y="6" width="22" height="20" rx="5"></rect>
+              <circle cx="16" cy="16" r="5"></circle>
+              <path d="M16 8v3M16 21v3M8 16h3M21 16h3M10.6 10.6l2.1 2.1M19.3 19.3l2.1 2.1M21.4 10.6l-2.1 2.1M12.7 19.3l-2.1 2.1"></path>
+            </svg>
+          </span>
+          <span>Vault'd</span>
+        </a>
+        <div class="nav-actions">
+          <a href="/fan.html?discover=1#discover">Browse</a>
+          <a class="primary" href="/app.html#create">Start selling</a>
+        </div>
+      </nav>
+
+      <header class="policy-hero">
+        <p class="eyebrow">Trust center</p>
+        <h1>Policies for paid unlocks.</h1>
+        <p class="hero-copy">
+          These rules explain how Vault'd handles accounts, purchases, creator payouts,
+          private files, reports, refunds, and copyright notices.
+        </p>
+      </header>
+
+      <div class="policy-index" aria-label="Policy index">
+        <a href="#terms">Terms of Service</a>
+        <a href="#privacy">Privacy Policy</a>
+        <a href="#content">Content Policy</a>
+        <a href="#refunds">Refund Policy</a>
+        <a href="#dmca">DMCA/Takedown</a>
+        <a href="#payouts">Payout Rules</a>
+      </div>
+
+      <section class="policy-section" id="terms">
+        <p class="eyebrow">Terms</p>
+        <h2>Terms of Service</h2>
+        <p class="updated">Last updated May 10, 2026</p>
+        <p>
+          Vault'd is a mobile website where creators can sell locked digital drops
+          and fans can buy one-time permanent unlocks. By using Vault'd, you agree
+          to these terms and the policies on this page.
+        </p>
+        <h3>Accounts</h3>
+        <ul>
+          <li>You must be at least 18 years old to create, sell, buy, or unlock content on Vault'd.</li>
+          <li>You are responsible for keeping your login email, phone, and account access secure.</li>
+          <li>Vault'd may restrict or close accounts that create risk, violate policy, abuse refunds, or attempt fraud.</li>
+        </ul>
+        <h3>Purchases</h3>
+        <ul>
+          <li>A purchase unlocks access to the specific drop purchased. Unlocks are intended to remain in the fan library unless a refund, dispute, policy issue, or account issue requires removal.</li>
+          <li>Creators set the content price. Buyers may also see a separate Privacy &amp; security fees line before checkout.</li>
+          <li>Payment processing, card handling, creator onboarding, and payout requirements are handled by Stripe or another approved payment provider.</li>
+        </ul>
+        <h3>Creator responsibilities</h3>
+        <ul>
+          <li>Creators must own or have rights to sell everything they upload or link.</li>
+          <li>Creators must describe drops honestly and deliver the content promised.</li>
+          <li>Creators must follow the Content Policy and payment processor rules.</li>
+        </ul>
+      </section>
+
+      <section class="policy-section" id="privacy">
+        <p class="eyebrow">Privacy</p>
+        <h2>Privacy Policy</h2>
+        <p class="updated">Last updated May 10, 2026</p>
+        <p>
+          Vault'd collects only the information needed to operate accounts, sell
+          drops, process payments, prevent fraud, deliver support, and comply with
+          legal obligations.
+        </p>
+        <h3>Information we collect</h3>
+        <ul>
+          <li>Account details such as email, phone number, role, handle, and profile settings.</li>
+          <li>Creator payout status, Stripe connected account IDs, checkout session IDs, payment IDs, receipts, and operation history.</li>
+          <li>Uploaded file metadata, private storage object paths, support tickets, reports, audit logs, and basic technical logs.</li>
+        </ul>
+        <h3>How we use information</h3>
+        <ul>
+          <li>To authenticate users, create drops, process purchases, deliver permanent unlocks, and provide signed download links.</li>
+          <li>To send login links, receipts, payout notices, support replies, and security alerts.</li>
+          <li>To investigate reports, chargebacks, fraud, abuse, copyright issues, and policy violations.</li>
+        </ul>
+        <h3>Service providers</h3>
+        <p>
+          Vault'd may use providers such as Stripe for payments and Connect onboarding,
+          Supabase for database/private storage, Resend for email, and Twilio for
+          phone verification. Vault'd does not store card numbers, raw identity
+          documents, SSNs, or bank logins.
+        </p>
+        <h3>Your choices</h3>
+        <p>
+          Contact support@vaultd.me to request account help, data access, correction,
+          deletion, or privacy support. Some records may be retained when needed for
+          transactions, legal compliance, abuse prevention, accounting, disputes, or security.
+        </p>
+      </section>
+
+      <section class="policy-section" id="content">
+        <p class="eyebrow">Safety</p>
+        <h2>Content Policy</h2>
+        <p class="updated">Last updated May 10, 2026</p>
+        <div class="callout warning">
+          Vault'd is built for lawful creator files, templates, courses, e-books,
+          podcasts, media packs, and private digital downloads. Payment processor
+          rules apply to every creator and every drop.
+        </div>
+        <h3>Not allowed</h3>
+        <ul>
+          <li>Sexually explicit material, pornography, sexual services, escort services, adult live chat, or content sold for sexual gratification.</li>
+          <li>Any content involving minors, non-consensual imagery, exploitation, trafficking, coercion, or sexual abuse material.</li>
+          <li>Content that violates copyright, trademark, privacy, publicity, or contract rights.</li>
+          <li>Illegal goods or services, weapons instructions, malware, credential theft, scams, fraud, or financial deception.</li>
+          <li>Doxxing, threats, harassment, hate, extremism, graphic violence, self-harm promotion, or content that creates safety risk.</li>
+        </ul>
+        <h3>Enforcement</h3>
+        <p>
+          Vault'd may hide, remove, refund, freeze, or report content if it appears
+          to violate this policy, payment partner rules, or the law. Repeated or
+          serious violations can lead to account suspension and payout holds where permitted.
+        </p>
+      </section>
+
+      <section class="policy-section" id="refunds">
+        <p class="eyebrow">Purchases</p>
+        <h2>Refund Policy</h2>
+        <p class="updated">Last updated May 10, 2026</p>
+        <p>
+          Digital drops are delivered after purchase, so sales are generally final.
+          Vault'd may review refund requests when there is a duplicate charge,
+          unauthorized purchase, inaccessible content, missing promised content,
+          fraud, or a policy issue.
+        </p>
+        <ul>
+          <li>Approved refunds may revoke the buyer's access to the unlocked drop.</li>
+          <li>Chargebacks and disputes may immediately revoke access while the payment is reviewed.</li>
+          <li>Creator payout timing can be affected by refunds, disputes, fraud checks, or payment processor holds.</li>
+        </ul>
+        <p>For purchase help, contact support@vaultd.me with your account email and receipt details.</p>
+      </section>
+
+      <section class="policy-section" id="dmca">
+        <p class="eyebrow">Copyright</p>
+        <h2>DMCA and Takedown Policy</h2>
+        <p class="updated">Last updated May 10, 2026</p>
+        <p>
+          Vault'd respects copyright and responds to complete copyright complaints.
+          Send notices to support@vaultd.me with enough detail for Vault'd to review
+          the claim and locate the content.
+        </p>
+        <h3>Copyright notice should include</h3>
+        <ul>
+          <li>Your name, email, address, and phone number.</li>
+          <li>Identification of the copyrighted work you claim was infringed.</li>
+          <li>The Vault'd URL, drop ID, creator handle, or other information needed to locate the reported content.</li>
+          <li>A statement that you have a good-faith belief the use is not authorized by the copyright owner, agent, or law.</li>
+          <li>A statement that the information is accurate and, under penalty of perjury, you are the owner or authorized to act for the owner.</li>
+          <li>Your physical or electronic signature.</li>
+        </ul>
+        <p>
+          Vault'd may remove or restrict reported content and may provide creators
+          a chance to respond where appropriate. Repeat infringers can lose access
+          to selling tools.
+        </p>
+      </section>
+
+      <section class="policy-section" id="payouts">
+        <p class="eyebrow">Creators</p>
+        <h2>Creator Payout Rules</h2>
+        <p class="updated">Last updated May 10, 2026</p>
+        <ul>
+          <li>Creators must connect their own Stripe payout account before receiving payouts.</li>
+          <li>Stripe handles required bank, tax, identity, and payout onboarding details. Vault'd stores payout readiness status, not raw bank or identity documents.</li>
+          <li>Vault'd currently keeps 10% of the creator-side content price. Buyers may see a separate 15% Privacy &amp; security fees line at checkout.</li>
+          <li>Payouts can be delayed or blocked by Stripe requirements, refunds, disputes, fraud checks, tax issues, policy reviews, or legal obligations.</li>
+        </ul>
+      </section>
+
+      <section class="policy-section" id="support">
+        <p class="eyebrow">Help</p>
+        <h2>Buyer Support</h2>
+        <p class="updated">Last updated May 10, 2026</p>
+        <p>
+          Contact support@vaultd.me for login trouble, missing library items,
+          duplicate charges, broken downloads, reports, copyright concerns, or
+          account questions. Include your account email, creator handle, drop title,
+          and receipt ID if available.
+        </p>
+      </section>
+
+      <footer>
+        <span>&copy; 2026 Vault'd</span>
+        <span>support@vaultd.me</span>
+      </footer>
+    </div>
+  </body>
+</html>

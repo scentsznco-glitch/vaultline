@@ -21,10 +21,59 @@ export async function getUserByEmail(email) {
   return data;
 }
 
-export async function createUser({ email, role = "fan" }) {
+export async function getUserById(userId) {
   const client = requireDb();
-  const user = { id: id("usr"), email: email.toLowerCase(), role, email_verified: false };
+  const { data, error } = await client.from("users").select("*").eq("id", userId).maybeSingle();
+  if (error) throw error;
+  return data;
+}
+
+export async function createUser({ email, role = "fan", ageConfirmedAt = null }) {
+  const client = requireDb();
+  const user = {
+    id: id("usr"),
+    email: email.toLowerCase(),
+    role,
+    email_verified: false,
+    age_confirmed_at: ageConfirmedAt,
+  };
   const { data, error } = await client.from("users").insert(user).select("*").single();
+  if (error) throw error;
+  return data;
+}
+
+export async function markUserAgeConfirmed({ userId, ageConfirmedAt = new Date().toISOString() }) {
+  const client = requireDb();
+  const { data, error } = await client
+    .from("users")
+    .update({ age_confirmed_at: ageConfirmedAt })
+    .eq("id", userId)
+    .select("*")
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+export async function suspendUser({ userId, reason = "" }) {
+  const client = requireDb();
+  const { data, error } = await client
+    .from("users")
+    .update({ suspended_at: new Date().toISOString(), suspension_reason: reason || "Admin action" })
+    .eq("id", userId)
+    .select("*")
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+export async function unsuspendUser({ userId }) {
+  const client = requireDb();
+  const { data, error } = await client
+    .from("users")
+    .update({ suspended_at: null, suspension_reason: null })
+    .eq("id", userId)
+    .select("*")
+    .single();
   if (error) throw error;
   return data;
 }
@@ -149,6 +198,18 @@ export async function updateDropStatus({ dropId, creatorId, status }) {
   return data;
 }
 
+export async function adminUpdateDropStatus({ dropId, status }) {
+  const client = requireDb();
+  const { data, error } = await client
+    .from("drops")
+    .update({ status, updated_at: new Date().toISOString() })
+    .eq("id", dropId)
+    .select("*")
+    .single();
+  if (error) throw error;
+  return data;
+}
+
 export async function deleteDropById({ dropId, creatorId }) {
   const client = requireDb();
   // Delete media records first to keep storage_path refs for cleanup
@@ -170,15 +231,33 @@ export async function getPublicDrop(dropId) {
     .eq("status", "active")
     .maybeSingle();
   if (error) throw error;
+  if (data?.creator_id) {
+    const creator = await getUserById(data.creator_id);
+    if (creator?.suspended_at) return null;
+  }
   return data;
 }
 
-export async function createPurchase({ buyerId, dropId, stripeSessionId, amount }) {
+export async function createPurchase({ buyerId, dropId, stripeSessionId, stripePaymentIntentId, amount, applicationFeeAmount = 0 }) {
   const client = requireDb();
-  const purchase = { id: id("pur"), buyer_id: buyerId, drop_id: dropId, stripe_session_id: stripeSessionId, amount, status: "paid" };
+  const purchase = {
+    id: id("pur"),
+    buyer_id: buyerId,
+    drop_id: dropId,
+    stripe_session_id: stripeSessionId,
+    stripe_payment_intent_id: stripePaymentIntentId || null,
+    amount,
+    application_fee_amount: applicationFeeAmount,
+    status: "paid",
+  };
   const { data, error } = await client.from("purchases").insert(purchase).select("*").single();
   if (error?.code === "23505") {
-    const { data: existing, error: existingError } = await client.from("purchases").select("*").eq("stripe_session_id", stripeSessionId).single();
+    const { data: existing, error: existingError } = await client
+      .from("purchases")
+      .select("*")
+      .eq("stripe_session_id", stripeSessionId)
+      .eq("drop_id", dropId)
+      .single();
     if (existingError) throw existingError;
     return existing;
   }
@@ -186,34 +265,35 @@ export async function createPurchase({ buyerId, dropId, stripeSessionId, amount 
   await client
     .from("entitlements")
     .upsert({ id: id("ent"), buyer_id: buyerId, drop_id: dropId, purchase_id: data.id, revoked_at: null, revoked_reason: null }, { onConflict: "buyer_id,drop_id" });
-  await createOperation({ userId: buyerId, purchaseId: data.id, type: "sale", amount, externalId: stripeSessionId });
+  await createOperation({ userId: buyerId, purchaseId: data.id, type: "sale", amount, externalId: `${stripeSessionId}_${dropId}` });
   return data;
 }
 
 export async function markPurchaseStatusBySession({ stripeSessionId, status, reason }) {
   const client = requireDb();
   const timestampColumn = status === "refunded" ? "refunded_at" : "disputed_at";
-  const { data: purchase, error } = await client
+  const { data: purchases, error } = await client
     .from("purchases")
     .update({ status, [timestampColumn]: new Date().toISOString() })
     .eq("stripe_session_id", stripeSessionId)
-    .select("*")
-    .maybeSingle();
+    .select("*");
   if (error) throw error;
-  if (!purchase) return null;
+  if (!purchases?.length) return null;
 
-  await client
-    .from("entitlements")
-    .update({ revoked_at: new Date().toISOString(), revoked_reason: reason || status })
-    .eq("purchase_id", purchase.id);
-  await createOperation({
-    userId: purchase.buyer_id,
-    purchaseId: purchase.id,
-    type: status === "refunded" ? "refund" : "dispute",
-    amount: purchase.amount,
-    externalId: `${status}_${stripeSessionId}`,
-  });
-  return purchase;
+  for (const purchase of purchases) {
+    await client
+      .from("entitlements")
+      .update({ revoked_at: new Date().toISOString(), revoked_reason: reason || status })
+      .eq("purchase_id", purchase.id);
+    await createOperation({
+      userId: purchase.buyer_id,
+      purchaseId: purchase.id,
+      type: status === "refunded" ? "refund" : "dispute",
+      amount: purchase.amount,
+      externalId: `${status}_${stripeSessionId}_${purchase.drop_id}`,
+    });
+  }
+  return purchases[0];
 }
 
 export async function createOperation({ userId, purchaseId, type, amount = 0, status = "complete", externalId, metadata = {} }) {
@@ -237,9 +317,10 @@ export async function listLibrary({ buyerId }) {
   const client = requireDb();
   const { data, error } = await client
     .from("purchases")
-    .select("*, drops(id, title, description, price, creator_profiles(handle), drop_media(id, file_type, file_name))")
+    .select("*, entitlements!inner(revoked_at), drops(id, title, description, price, creator_profiles(handle), drop_media(id, file_type, file_name))")
     .eq("buyer_id", buyerId)
     .eq("status", "paid")
+    .is("entitlements.revoked_at", null)
     .order("created_at", { ascending: false });
   if (error) throw error;
   return data || [];
@@ -260,10 +341,11 @@ export async function getEntitledMedia({ buyerId, purchaseId }) {
   const client = requireDb();
   const { data: purchase, error: purchaseError } = await client
     .from("purchases")
-    .select("*, drops(drop_media(*))")
+    .select("*, entitlements!inner(revoked_at), drops(drop_media(*))")
     .eq("id", purchaseId)
     .eq("buyer_id", buyerId)
     .eq("status", "paid")
+    .is("entitlements.revoked_at", null)
     .maybeSingle();
   if (purchaseError) throw purchaseError;
   return purchase?.drops?.drop_media || [];
@@ -273,13 +355,26 @@ export async function getEntitledDrop({ buyerId, purchaseId }) {
   const client = requireDb();
   const { data: purchase, error } = await client
     .from("purchases")
-    .select("*, drops(download, drop_media(*))")
+    .select("*, entitlements!inner(revoked_at), drops(download, drop_media(*))")
     .eq("id", purchaseId)
     .eq("buyer_id", buyerId)
     .eq("status", "paid")
+    .is("entitlements.revoked_at", null)
     .maybeSingle();
   if (error) throw error;
   return purchase?.drops || null;
+}
+
+export async function revokeEntitlement({ purchaseId, reason = "Admin action" }) {
+  const client = requireDb();
+  const { data, error } = await client
+    .from("entitlements")
+    .update({ revoked_at: new Date().toISOString(), revoked_reason: reason })
+    .eq("purchase_id", purchaseId)
+    .select("*")
+    .single();
+  if (error) throw error;
+  return data;
 }
 
 export async function getStorefrontByHandle(handle) {
@@ -291,6 +386,8 @@ export async function getStorefrontByHandle(handle) {
     .maybeSingle();
   if (error) throw error;
   if (!profile) return null;
+  const creator = await getUserById(profile.user_id);
+  if (creator?.suspended_at) return null;
 
   const { data: drops, error: dropsError } = await client
     .from("drops")
@@ -315,10 +412,23 @@ export async function listDiscoverStorefronts({ limit = 60 } = {}) {
     .limit(limit);
   if (error) throw error;
 
+  const creatorIds = [...new Set((data || []).map((drop) => drop.creator_profiles?.user_id).filter(Boolean))];
+  const activeCreators = new Set();
+  if (creatorIds.length) {
+    const { data: users, error: userError } = await client
+      .from("users")
+      .select("id")
+      .in("id", creatorIds)
+      .is("suspended_at", null);
+    if (userError) throw userError;
+    for (const user of users || []) activeCreators.add(user.id);
+  }
+
   const creators = new Map();
   for (const drop of data || []) {
     const profile = drop.creator_profiles;
     if (!profile?.handle) continue;
+    if (!activeCreators.has(profile.user_id)) continue;
     if (!creators.has(profile.handle)) {
       creators.set(profile.handle, {
         handle: profile.handle,
@@ -361,11 +471,25 @@ export async function createReport({ reporterId, dropId, reason, details }) {
 
 export async function listReports({ status }) {
   const client = requireDb();
-  let query = client.from("reports").select("*, drops(title), users(email)").order("created_at", { ascending: false });
+  let query = client
+    .from("reports")
+    .select("*, drops(id, title, creator_id, creator_profiles(handle)), users(email)")
+    .order("created_at", { ascending: false });
   if (status) query = query.eq("status", status);
   const { data, error } = await query;
   if (error) throw error;
   return data || [];
+}
+
+export async function getReportById(reportId) {
+  const client = requireDb();
+  const { data, error } = await client
+    .from("reports")
+    .select("*, drops(id, title, creator_id, creator_profiles(handle)), users(email)")
+    .eq("id", reportId)
+    .maybeSingle();
+  if (error) throw error;
+  return data;
 }
 
 export async function updateReportStatus({ reportId, status }) {
@@ -399,4 +523,32 @@ export async function updateSupportTicketStatus({ ticketId, status }) {
   const { data, error } = await client.from("support_tickets").update({ status }).eq("id", ticketId).select("*").single();
   if (error) throw error;
   return data;
+}
+
+export async function createAuditLog({ actorId, action, targetType, targetId, metadata = {} }) {
+  const client = requireDb();
+  const { data, error } = await client
+    .from("audit_logs")
+    .insert({
+      actor_id: actorId || null,
+      action,
+      target_type: targetType || null,
+      target_id: targetId || null,
+      metadata,
+    })
+    .select("*")
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+export async function listAuditLogs({ limit = 25 } = {}) {
+  const client = requireDb();
+  const { data, error } = await client
+    .from("audit_logs")
+    .select("*")
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  if (error) throw error;
+  return data || [];
 }

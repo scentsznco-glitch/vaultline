@@ -2,13 +2,15 @@ const DEFAULT_THUMBNAIL = "assets/thumb-gallery.svg";
 const DEFAULT_COVER = "assets/profile-cover.svg";
 const DEFAULT_AVATAR = "assets/avatar-tile.svg";
 const STORAGE_KEY = "vaultline-settings-v1";
-const PUBLIC_BASE_URL =
-  window.location.origin && window.location.origin !== "null" ? window.location.origin : "http://localhost:8787";
+const PUBLIC_BASE_URL = "https://vaultd.me";
 const MIN_PRICE = 5;
 
 const state = {
   filter: "all",
   selectedPreview: DEFAULT_THUMBNAIL,
+  ui: {
+    launchChecklistCollapsed: false,
+  },
   profile: {
     handle: "creator",
     bio: "Private drops, files, and creator packs in one clean storefront.",
@@ -119,13 +121,24 @@ function normalizeHandle(value) {
   return handle || "creator";
 }
 
+function publicUrl(path) {
+  return `${PUBLIC_BASE_URL}${path.startsWith("/") ? path : `/${path}`}`;
+}
+
+function normalizePublicUrl(value) {
+  return String(value || "")
+    .replace(/^https?:\/\/(?:localhost|127\.0\.0\.1)(?::\d+)?/i, PUBLIC_BASE_URL)
+    .replace(/^https?:\/\/vaultline\.app/i, PUBLIC_BASE_URL)
+    .replace(/^http:\/\/vaultd\.me/i, PUBLIC_BASE_URL);
+}
+
 function creatorStorefrontUrl() {
-  return `${PUBLIC_BASE_URL}/fan.html?handle=${encodeURIComponent(state.profile.handle || "creator")}#store`;
+  return publicUrl(`/fan.html?handle=${encodeURIComponent(state.profile.handle || "creator")}#store`);
 }
 
 function dropBuyerUrl(dropId) {
   const handle = encodeURIComponent(state.profile.handle || "creator");
-  return `${PUBLIC_BASE_URL}/fan.html?handle=${handle}&drop=${encodeURIComponent(dropId)}#store`;
+  return publicUrl(`/fan.html?handle=${handle}&drop=${encodeURIComponent(dropId)}#store`);
 }
 
 function loadSettings() {
@@ -153,7 +166,7 @@ function loadSettings() {
           views: Math.max(0, Number(link.views) || 0),
           sales: Math.max(0, Number(link.sales) || 0),
           revenue: Math.max(0, Number(link.revenue) || 0),
-          url: String(link.url || dropBuyerUrl(link.id)).replace("https://vaultline.app", PUBLIC_BASE_URL),
+          url: normalizePublicUrl(link.url || dropBuyerUrl(link.id)),
         }));
     }
     if (Array.isArray(saved.operations)) {
@@ -511,6 +524,17 @@ function renderLaunchChecklist() {
   const progressText = $("#launch-checklist-progress");
   const copy = $("#launch-checklist-copy");
   const bar = $("#launch-progress-bar");
+  const checklist = $(".launch-checklist");
+  const checklistBody = $("#launch-checklist-body");
+  const checklistToggle = $("[data-toggle-launch-checklist]");
+  const isCollapsed = Boolean(state.ui.launchChecklistCollapsed);
+
+  checklist?.classList.toggle("is-collapsed", isCollapsed);
+  if (checklistBody) checklistBody.hidden = isCollapsed;
+  if (checklistToggle) {
+    checklistToggle.setAttribute("aria-expanded", String(!isCollapsed));
+    checklistToggle.setAttribute("aria-label", `${isCollapsed ? "Expand" : "Collapse"} launch checklist`);
+  }
 
   if (progressText) progressText.textContent = `${completed}/${total}`;
   if (copy) {
@@ -541,6 +565,8 @@ function renderLaunchChecklist() {
   $$("[data-onboarding-action]", list).forEach((button) => {
     button.addEventListener("click", () => runOnboardingAction(button.dataset.onboardingAction));
   });
+
+  syncIcons();
 }
 
 function runOnboardingAction(action) {
@@ -670,8 +696,7 @@ function sellValidationMessage() {
 function syncPriceWidth() {
   const priceInput = $("#price-input");
   if (!priceInput) return;
-  const visibleValue = priceInput.value || priceInput.placeholder || "0.00";
-  priceInput.style.width = `${Math.max(1, visibleValue.length)}ch`;
+  priceInput.style.width = "4ch";
 }
 
 function syncPriceErrors() {
@@ -925,7 +950,8 @@ function resetSellMediaSelection() {
   $("#note-input").value = "Pay once to unlock this content.";
   $("#content-url-input").value = "";
   $("#sell-media-title").textContent = "Add Media";
-  $("#file-meta").textContent = "Photo, video, template, course, e-book, or podcast";
+  const fileMeta = $("#file-meta");
+  if (fileMeta) fileMeta.textContent = "Photo, video, template, course, e-book, or podcast";
   $("#sell-media-icon").innerHTML = '<i data-lucide="plus"></i>';
   updateSellMediaPreview();
   updatePreview();
@@ -972,6 +998,7 @@ function createMediaItem(file) {
   const item = {
     id: id(),
     name: file.name,
+    file,
     size: file.size,
     type,
     duration: 0,
@@ -1012,7 +1039,8 @@ function addMediaFiles(files) {
 
   $("#title-input").value = state.sell.mediaItems.length === 1 ? state.sell.mediaItems[0].name.replace(/\.[^.]+$/, "") : `${state.sell.mediaItems.length} media drop`;
   $("#sell-media-title").textContent = "Photo, Video";
-  $("#file-meta").textContent = mediaSummary();
+  const fileMeta = $("#file-meta");
+  if (fileMeta) fileMeta.textContent = mediaSummary();
   $("#sell-media-icon").innerHTML = '<i data-lucide="image"></i>';
   updateSellNote();
   updateSellMediaPreview();
@@ -1032,7 +1060,8 @@ function removeSellMediaItem(itemId) {
   state.sell.mediaFileType = state.sell.mediaItems.some((item) => item.type === "video") ? "video" : "image";
   state.selectedPreview = state.sell.mediaItems[0]?.preview || DEFAULT_THUMBNAIL;
   $("#title-input").value = state.sell.mediaItems.length === 1 ? state.sell.mediaItems[0].name.replace(/\.[^.]+$/, "") : `${state.sell.mediaItems.length} media drop`;
-  $("#file-meta").textContent = mediaSummary();
+  const fileMeta = $("#file-meta");
+  if (fileMeta) fileMeta.textContent = mediaSummary();
   updateSellNote();
   updateSellMediaPreview();
   updatePreview();
@@ -1408,14 +1437,73 @@ function openProfileSettings() {
           <i data-lucide="chevron-right"></i>
         </button>
         <p class="settings-section-label">Help</p>
-        <a class="settings-row" href="/#faq">
+        <button class="settings-row" type="button" data-open-settings-faq>
           <span class="settings-icon"><i data-lucide="circle-help"></i></span>
           <span>
             <strong>FAQ</strong>
             <small>Pricing, unlocks, payouts, and download rules</small>
           </span>
           <i data-lucide="chevron-right"></i>
+        </button>
+        <a class="settings-row" href="/policies.html">
+          <span class="settings-icon"><i data-lucide="file-text"></i></span>
+          <span>
+            <strong>Policies</strong>
+            <small>Terms, privacy, refunds, DMCA, and content rules</small>
+          </span>
+          <i data-lucide="chevron-right"></i>
         </a>
+      </div>
+    `,
+  );
+}
+
+function openSettingsFaq() {
+  openDialog(
+    "FAQ",
+    `
+      <div class="settings-faq">
+        <button class="settings-back" type="button" data-open-profile-settings>
+          <i data-lucide="arrow-left"></i>
+          <span>Profile settings</span>
+        </button>
+
+        <details class="settings-faq-item" open>
+          <summary>What is Vault'd?</summary>
+          <p>Vault'd lets creators sell locked digital drops from a mobile web storefront. Fans pay once and keep permanent access in their library.</p>
+        </details>
+        <details class="settings-faq-item">
+          <summary>Do fans need an app?</summary>
+          <p>No. Fans can browse drops, open shared links, buy content, and view their library from the website.</p>
+        </details>
+        <details class="settings-faq-item">
+          <summary>What can creators sell?</summary>
+          <p>Photos, videos, templates, courses, e-books, podcasts, and hosted content URLs, as long as the content follows platform policy and the law.</p>
+        </details>
+        <details class="settings-faq-item">
+          <summary>Are unlocks permanent?</summary>
+          <p>Yes. Purchases are one-time unlocks. Access remains unless there is a refund, dispute, policy issue, or account review.</p>
+        </details>
+        <details class="settings-faq-item">
+          <summary>What is public vs unlisted?</summary>
+          <p>Public drops can appear in discovery and on the creator storefront. Unlisted drops are only available to people with the direct link.</p>
+        </details>
+        <details class="settings-faq-item">
+          <summary>Can creators control downloads?</summary>
+          <p>Yes. Downloads can be allowed, blocked, or offered for an extra percentage on top of the base content price.</p>
+        </details>
+        <details class="settings-faq-item">
+          <summary>What is the minimum price?</summary>
+          <p>Drops must be at least $5 so payment fees do not swallow tiny purchases.</p>
+        </details>
+        <details class="settings-faq-item">
+          <summary>What fees show at checkout?</summary>
+          <p>Creators keep 90% of the content price. Buyers see the content price plus a separate 15% Privacy & security fees line before paying.</p>
+        </details>
+        <details class="settings-faq-item">
+          <summary>How do payouts work?</summary>
+          <p>Payouts require a connected Stripe account, identity checks, and enabled bank payouts. The wallet shows whether payout setup is ready.</p>
+        </details>
       </div>
     `,
   );
@@ -1508,7 +1596,7 @@ function openPaymentSettings() {
     statusBlock = `
       <div class="settings-note" style="border-color:#22c55e33;">
         <i data-lucide="check-circle" style="color:#22c55e;"></i>
-        <span style="color:#22c55e;">Stripe account active. Charges and payouts are enabled.</span>
+        <span style="color:#22c55e;">Stripe payout account active. Charges and payouts are enabled.</span>
       </div>`;
     actionBlock = `
       <button class="secondary-button" type="button" id="stripe-connect-btn">
@@ -1519,7 +1607,7 @@ function openPaymentSettings() {
     statusBlock = `
       <div class="settings-note" style="border-color:#f59e0b33;">
         <i data-lucide="clock" style="color:#f59e0b;"></i>
-        <span style="color:#f59e0b;">Stripe connected &mdash; finish identity verification to enable payouts.</span>
+        <span style="color:#f59e0b;">Stripe payout account connected &mdash; finish identity verification to enable payouts.</span>
       </div>`;
     actionBlock = `
       <button class="primary-button" type="button" id="stripe-connect-btn">
@@ -1530,12 +1618,12 @@ function openPaymentSettings() {
     statusBlock = `
       <div class="settings-note">
         <i data-lucide="credit-card"></i>
-        <span>Connect a Stripe account to accept payments and receive payouts directly.</span>
+        <span>Connect your Stripe payout account to accept payments and receive creator payouts.</span>
       </div>`;
     actionBlock = `
       <button class="primary-button" type="button" id="stripe-connect-btn">
         <i data-lucide="link"></i>
-        <span>Connect with Stripe</span>
+        <span>Connect Stripe payout account</span>
       </button>`;
   }
 
@@ -1545,7 +1633,7 @@ function openPaymentSettings() {
       ${statusBlock}
       <div class="settings-note" style="margin-top:8px;">
         <i data-lucide="info"></i>
-        <span>Vault'd uses Stripe Connect. Your payouts land directly in your bank account after each sale.</span>
+        <span>Vault'd uses Stripe Connect, so bank details and identity checks stay with Stripe. Your payouts land directly in your bank account after each sale.</span>
       </div>
       ${actionBlock}
     </div>`,
@@ -1628,6 +1716,27 @@ function openBuyerPreview(link) {
   renderAll();
 }
 
+function isPreviewCreatorSession() {
+  return isLocalPreviewMode() && (currentUser?.id === "preview" || previewParamEnabled());
+}
+
+function isLocalPreviewMode() {
+  return ["localhost", "127.0.0.1", ""].includes(window.location.hostname) || window.location.protocol === "file:";
+}
+
+function previewParamEnabled() {
+  return new URLSearchParams(window.location.search).get("preview") === "upload";
+}
+
+function stripProductionPreviewParam() {
+  if (isLocalPreviewMode() || !previewParamEnabled()) return;
+  const params = new URLSearchParams(window.location.search);
+  params.delete("preview");
+  const query = params.toString();
+  const nextUrl = `${window.location.pathname}${query ? `?${query}` : ""}${window.location.hash}`;
+  window.history.replaceState({}, "", nextUrl);
+}
+
 async function createLink(form) {
   syncSellDetailFields();
   const data = new FormData(form);
@@ -1675,10 +1784,7 @@ async function createLink(form) {
       itemsToUpload = [{ name: "link.txt", file: new Blob([contentUrl], { type: "text/plain" }) }];
     }
 
-    const result = await VaultlineAPI.createDrop(dropData, itemsToUpload);
-    const drop = result.drop;
-
-    const link = {
+    const buildLink = (drop) => ({
       id: drop.id,
       title: drop.title,
       price: drop.price,
@@ -1697,13 +1803,26 @@ async function createLink(form) {
       sales: 0,
       revenue: 0,
       url: dropBuyerUrl(drop.id),
-    };
+    });
+
+    let link;
+    if (isPreviewCreatorSession()) {
+      link = buildLink({
+        id: id(),
+        title: dropData.title,
+        price: dropData.price,
+        description: dropData.description,
+      });
+    } else {
+      const result = await VaultlineAPI.createDrop(dropData, itemsToUpload);
+      link = buildLink(result.drop);
+    }
 
     state.links.unshift(link);
     saveSettings();
     renderAll();
     setView("links");
-    showToast("Drop published ✓");
+    showToast(isPreviewCreatorSession() ? "Link generated" : "Drop published");
   } catch (err) {
     showToast(err.message || "Upload failed");
     console.error("createLink error:", err);
@@ -1754,6 +1873,10 @@ function showLoginOverlay(role = "creator") {
           <input id="vl-login-email" type="email" required placeholder="your@email.com"
             style="width:100%;box-sizing:border-box;background:#1a1a1a;border:1px solid #333;border-radius:12px;
                    color:#fff;font-size:15px;padding:13px 16px;margin-bottom:14px;outline:none;" />
+          <label style="display:flex;align-items:flex-start;gap:10px;margin:0 0 14px;color:#cfcfcf;font-size:13px;line-height:1.4;">
+            <input id="vl-login-age" type="checkbox" required style="margin-top:2px;accent-color:#22c55e;" />
+            <span>I confirm I am 18 or older and agree to Vault'd terms.</span>
+          </label>
           <button type="submit"
             style="width:100%;background:#22c55e;color:#000;font-weight:700;font-size:15px;
                    border:none;border-radius:12px;padding:14px;cursor:pointer;">
@@ -1768,13 +1891,19 @@ function showLoginOverlay(role = "creator") {
     document.getElementById("vl-login-form").addEventListener("submit", async (event) => {
       event.preventDefault();
       const email = document.getElementById("vl-login-email").value.trim();
+      const ageConfirmed = document.getElementById("vl-login-age").checked;
       const status = document.getElementById("vl-login-status");
       const btn = event.target.querySelector("button");
+      if (!ageConfirmed) {
+        status.style.color = "#f87171";
+        status.textContent = "Confirm you are 18+ to continue.";
+        return;
+      }
       btn.disabled = true;
       btn.textContent = "Sending…";
       status.textContent = "";
       try {
-        await VaultlineAPI.authStart(email, role);
+        await VaultlineAPI.authStart(email, role, ageConfirmed);
         status.style.color = "#22c55e";
         status.textContent = "✓ Check your email for the magic link";
         btn.textContent = "Link sent";
@@ -1857,7 +1986,17 @@ async function loadDropsFromApi() {
       sales: (drop.purchases || []).filter((p) => p.status === "paid").length,
       revenue: (drop.purchases || [])
         .filter((p) => p.status === "paid")
-        .reduce((sum, p) => sum + Number(p.amount || 0) * 0.9, 0),
+        .reduce(
+          (sum) =>
+            sum +
+            effectiveDropPrice({
+              price: drop.price,
+              download: drop.download,
+              downloadExtraPercent: Number(drop.download_extra_percent) || 0,
+            }) *
+              0.9,
+          0,
+        ),
       access: drop.access === "unlisted" ? "Unlisted" : "Everyone",
       download:
         drop.download === "extra"
@@ -1880,8 +2019,8 @@ document.addEventListener("DOMContentLoaded", () => {
   renderAll();
   syncIcons();
 
-  const previewMode = new URLSearchParams(window.location.search).get("preview");
-  if (previewMode === "upload") {
+  stripProductionPreviewParam();
+  if (previewParamEnabled() && isLocalPreviewMode()) {
     currentUser = { id: "preview", email: "preview@vaultline.local", role: "creator" };
     hideLoginOverlay();
   } else {
@@ -1979,6 +2118,13 @@ document.addEventListener("DOMContentLoaded", () => {
   document.addEventListener("click", (event) => {
     const accountMenuSurface = event.target.closest(".account-dropdown, [data-open-account-menu]");
     if (!accountMenuSurface) setAccountDropdown(false);
+
+    const launchChecklistToggle = event.target.closest("[data-toggle-launch-checklist]");
+    if (launchChecklistToggle) {
+      state.ui.launchChecklistCollapsed = !state.ui.launchChecklistCollapsed;
+      renderLaunchChecklist();
+      return;
+    }
 
     const viewButton = event.target.closest("[data-view]");
     if (viewButton) setView(viewButton.dataset.view);
@@ -2110,6 +2256,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const settingsButton = event.target.closest("[data-open-profile-settings]");
     if (settingsButton) openProfileSettings();
+
+    const settingsFaqButton = event.target.closest("[data-open-settings-faq]");
+    if (settingsFaqButton) openSettingsFaq();
 
     const editProfileButton = event.target.closest("[data-open-edit-profile]");
     if (editProfileButton) openEditProfile();

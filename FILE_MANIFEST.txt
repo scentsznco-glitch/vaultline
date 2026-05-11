@@ -9,12 +9,16 @@ Core deploy files:
 .env.example
 .gitignore
 api.js
+admin.css
+admin.html
+admin.js
 app.html
 app.js
 fan.css
 fan.html
 fan.js
 index.html
+policies.html
 package.json
 package-lock.json
 README.md
@@ -59,6 +63,12 @@ Important icon note:
 The creator and fan pages load Lucide icons from the local file:
 assets/lucide.min.js
 Do not deploy app.html or fan.html without the assets folder, or icons will disappear.
+
+Current fee logic:
+Stripe Checkout uses a 10% creator-side platform commission and a separate 15% buyer line item named "Privacy & security fees".
+
+Current launch hardening:
+Creator/fan sign-up records 18+ confirmation, protected routes block suspended or non-age-confirmed accounts, admin can hide reported drops/suspend creators/revoke entitlements, and API route groups have basic rate limits.
 
 Do not deploy/commit:
 .env

@@ -9,6 +9,7 @@ STRIPE_SECRET_KEY=
 STRIPE_PUBLISHABLE_KEY=
 STRIPE_WEBHOOK_SECRET=
 STRIPE_PLATFORM_FEE_PERCENT=10
+STRIPE_CUSTOMER_PRIVACY_SECURITY_FEE_PERCENT=15
 STRIPE_CONNECT_REFRESH_URL=https://vaultd.me/stripe/refresh
 STRIPE_CONNECT_RETURN_URL=https://vaultd.me/stripe/return
 ```
@@ -43,7 +44,8 @@ Copy that webhook endpoint signing secret into `STRIPE_WEBHOOK_SECRET`.
 ## What The Server Does
 
 - `POST /api/creator/connect/onboarding` creates a Stripe Express connected account and returns an onboarding URL.
-- `POST /api/checkout/session` creates a Checkout Session for a permanent unlock.
+- `POST /api/checkout/session` creates a Checkout Session for a permanent unlock with two invoice lines: the content price and a buyer-facing `Privacy & security fees` line.
+- `STRIPE_PLATFORM_FEE_PERCENT=10` is the creator-side platform commission. `STRIPE_CUSTOMER_PRIVACY_SECURITY_FEE_PERCENT=15` is charged to the buyer as a separate checkout/invoice line.
 - `POST /api/webhooks/stripe` verifies the webhook signature, creates entitlements, updates payout readiness, and revokes access on refunds/disputes.
 
 ## Live Mode Checklist
@@ -53,7 +55,7 @@ Copy that webhook endpoint signing secret into `STRIPE_WEBHOOK_SECRET`.
 - Fan download fails before payment and works after payment.
 - Refund or dispute revokes access.
 - Creator Connect account shows charges and payouts enabled.
-- Your platform fee is correct.
+- The 10% platform commission and 15% buyer privacy/security fee are correct in test Checkout.
 - Refund/dispute/support policies are published.
 
 Official references:

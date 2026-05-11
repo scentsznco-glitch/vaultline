@@ -127,7 +127,6 @@
                 <button class="sell-media-button" id="sell-media-empty" type="button" data-open-media-sheet>
                   <span class="sell-plus" id="sell-media-icon"><i data-lucide="plus"></i></span>
                   <strong id="sell-media-title">Add Media</strong>
-                  <small id="file-meta">Photo, video, template, course, e-book, or podcast</small>
                 </button>
 
                 <label class="sell-price">
@@ -152,30 +151,6 @@
                   <i data-lucide="chevron-right"></i>
                 </button>
               </div>
-
-              <section class="sell-guidance" aria-label="Selling checklist">
-                <article>
-                  <span><i data-lucide="shield-check"></i></span>
-                  <div>
-                    <strong>Permanent unlock</strong>
-                    <small>Fans buy once and keep access in their library.</small>
-                  </div>
-                </article>
-                <article>
-                  <span><i data-lucide="eye-off"></i></span>
-                  <div>
-                    <strong>Public or unlisted</strong>
-                    <small>Publish to discovery or keep a drop link private.</small>
-                  </div>
-                </article>
-                <article>
-                  <span><i data-lucide="wallet-cards"></i></span>
-                  <div>
-                    <strong>Wallet tracked</strong>
-                    <small>Sales, payout status, and bank setup stay visible.</small>
-                  </div>
-                </article>
-              </section>
 
               <button class="sell-generate" type="submit" data-generate-link disabled>Generate Link</button>
             </div>
@@ -437,19 +412,32 @@
           </article>
 
           <article class="tool-panel launch-checklist" aria-labelledby="launch-checklist-title">
-            <div class="launch-checklist-head">
+            <button
+              class="launch-checklist-head"
+              type="button"
+              data-toggle-launch-checklist
+              aria-expanded="true"
+              aria-controls="launch-checklist-body"
+            >
               <span class="launch-checklist-icon"><i data-lucide="list-checks"></i></span>
-              <div>
-                <p class="eyebrow">Mobile site setup</p>
-                <h2 id="launch-checklist-title">Launch checklist</h2>
-                <p id="launch-checklist-copy">Finish the basics before sharing your paid mobile storefront.</p>
+              <span class="launch-checklist-text">
+                <span class="eyebrow">Mobile site setup</span>
+                <span class="launch-checklist-title" id="launch-checklist-title">Launch checklist</span>
+                <span class="launch-checklist-copy" id="launch-checklist-copy">Finish the basics before sharing your paid mobile storefront.</span>
+              </span>
+              <span class="launch-checklist-controls">
+                <strong id="launch-checklist-progress">0/5</strong>
+                <span class="launch-checklist-toggle" aria-hidden="true">
+                  <i data-lucide="chevron-up"></i>
+                </span>
+              </span>
+            </button>
+            <div class="launch-checklist-body" id="launch-checklist-body">
+              <div class="launch-progress" aria-hidden="true">
+                <span id="launch-progress-bar"></span>
               </div>
-              <strong id="launch-checklist-progress">0/5</strong>
+              <div class="launch-checklist-items" id="launch-checklist-items"></div>
             </div>
-            <div class="launch-progress" aria-hidden="true">
-              <span id="launch-progress-bar"></span>
-            </div>
-            <div class="launch-checklist-items" id="launch-checklist-items"></div>
           </article>
 
           <article class="tool-panel bundle-panel">

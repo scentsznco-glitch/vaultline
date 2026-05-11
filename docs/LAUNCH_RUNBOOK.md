@@ -29,12 +29,12 @@ This folder now has the polished mobile web prototype plus a real Node/Express l
    - You still need: verify your sending domain and add `RESEND_API_KEY`.
 
 7. Identity, Compliance, and Safety
-   - Done: creator payout readiness is tracked from Stripe account updates; reports and support tickets are stored.
-   - You still need: publish Terms, Privacy, Content Policy, Refund Policy, and DMCA/Takedown pages before accepting real payments.
+   - Done: creator payout readiness is tracked from Stripe account updates; reports and support tickets are stored. A public policy center is available at `/policies.html`. Creator/fan sign-up records an age confirmation timestamp, and protected actions require active age-confirmed accounts.
+   - You still need: legal review, final business/entity details, and DMCA designated-agent registration if you want DMCA safe-harbor coverage.
 
 8. Fan Library and Admin Operations
-   - Done: fans can list library purchases and request protected downloads; admins can inspect launch readiness, reports, and support tickets.
-   - You still need: build a private admin screen when you are ready to moderate from a UI instead of API calls.
+   - Done: fans can list library purchases and request protected downloads. Revoked entitlements are blocked from library/downloads. Admins can inspect launch readiness, reports, support tickets, moderation actions, purchase revocation, and audit logs from `/admin.html`.
+   - You still need: add your admin email to `ADMIN_EMAILS` and test moderation actions on production data.
 
 ## Local Setup
 
@@ -76,6 +76,9 @@ STRIPE_SECRET_KEY=
 STRIPE_PUBLISHABLE_KEY=
 STRIPE_WEBHOOK_SECRET=
 STRIPE_PLATFORM_FEE_PERCENT=10
+STRIPE_CUSTOMER_PRIVACY_SECURITY_FEE_PERCENT=15
+STRIPE_CONNECT_REFRESH_URL=https://vaultd.me/stripe/refresh
+STRIPE_CONNECT_RETURN_URL=https://vaultd.me/stripe/return
 RESEND_API_KEY=
 EMAIL_FROM=Vault'd <no-reply@vaultd.me>
 SUPPORT_EMAIL=support@vaultd.me
@@ -115,9 +118,11 @@ charge.dispute.created
 - Fan library shows the unlocked purchase.
 - Fan download route returns a short-lived signed URL only after purchase.
 - Refund or dispute revokes access.
+- Manual admin entitlement revocation removes library/download access.
 - Report flow stores a report.
 - Support flow stores a ticket and sends a notice.
-- Admin email can view `/api/admin/launch`.
+- Admin email can view `/admin.html`, `/api/admin/launch`, reports, support, and audit logs.
+- Admin can hide a reported drop and suspend/unsuspend the creator in test data.
 
 ## Official Setup References
 

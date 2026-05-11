@@ -12,7 +12,7 @@
   <body>
     <div class="fan-shell">
       <aside class="fan-sidebar" aria-label="Fan navigation">
-        <a class="brand" href="#discover" aria-label="Vault'd fan home">
+        <a class="brand" href="/" aria-label="Vault'd home" data-fan-brand-home>
           <span class="brand-mark">
             <svg class="vault-logo" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
               <rect x="5" y="6" width="22" height="20" rx="5"></rect>
@@ -50,7 +50,7 @@
 
       <main class="fan-main">
         <header class="topbar">
-        <a class="mobile-brand" href="#discover" aria-label="Vault'd fan home">
+        <a class="mobile-brand" href="/" aria-label="Vault'd home" data-fan-brand-home>
             <span class="brand-mark">
               <svg class="vault-logo" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
                 <rect x="5" y="6" width="22" height="20" rx="5"></rect>
@@ -96,13 +96,9 @@
               <p>Find public Vault'd creators, preview their locked drops, and buy once to keep access forever.</p>
             </div>
             <div class="discover-actions">
-              <button class="primary-button" type="button" data-fan-signup>
+              <button class="primary-button" type="button" id="fan-home-primary-action" data-fan-signup>
                 <i data-lucide="circle-user-round"></i>
                 <span>Fan sign up</span>
-              </button>
-              <button class="secondary-button" type="button" data-refresh-discover>
-                <i data-lucide="refresh-cw"></i>
-                <span>Refresh feed</span>
               </button>
             </div>
           </article>

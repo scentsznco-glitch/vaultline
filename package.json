@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node server/index.js",
     "dev": "node server/index.js",
-    "check": "node --check server/index.js && node --check server/config.js && node --check server/data.js && node --check server/services/stripe.js && node --check server/services/storage.js && node --check server/services/email.js && node --check server/services/security.js && node --check app.js && node --check fan.js"
+    "check": "node --check server/index.js && node --check server/config.js && node --check server/data.js && node --check server/services/stripe.js && node --check server/services/storage.js && node --check server/services/email.js && node --check server/services/security.js && node --check app.js && node --check fan.js && node --check admin.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "latest",

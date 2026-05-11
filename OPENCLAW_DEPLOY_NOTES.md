@@ -10,7 +10,21 @@ https://vaultd.me
 - Public landing logo restored to the clean `Vault'd` wordmark only.
 - Creator and fan dashboards use a local custom vault-door brand mark.
 - Fan discover page has a clearer logged-out browse/sign-up flow.
-- Creator sell screen has guidance cards for permanent unlocks, public/unlisted drops, and wallet tracking.
+- Creator sell screen has a compact Unlockt-style price pill and a shorter no-scroll mobile layout.
+- Stripe Checkout now creates invoice lines for the content price plus a separate 15% `Privacy & security fees` buyer fee, while keeping the creator-side platform commission at 10%.
+- Creator profile launch checklist is now collapsible and uses a softer completed check badge instead of a filled green circle.
+- Profile settings FAQ now opens in-place inside the modal instead of navigating users away from the creator dashboard.
+- Generated storefront, fan discover, and paid drop links now use `https://vaultd.me` even when the site is previewed on localhost.
+- Local preview Generate Link now publishes a local drop instead of failing against protected upload routes; real signed-in sessions still use the backend upload API.
+- Fan discover no longer shows a redundant `Refresh feed` button.
+- Logged-out fan brand/icon clicks now return to the public landing page.
+- Stripe payout modal now clarifies that creators connect their own Stripe payout account and Stripe keeps bank/identity details.
+- Production preview mode is now guarded: `?preview=upload` only works on localhost/file previews, and the server strips it in production.
+- Public policy center added at `/policies.html` with Terms, Privacy, Content Policy, Refunds, DMCA/Takedown, Payout Rules, and Buyer Support.
+- Private admin console added at `/admin.html` for launch readiness, report review, and support ticket moderation.
+- Age confirmation is now required during creator email sign-in and fan phone sign-up; publishing, Stripe onboarding, and checkout require an active age-confirmed account.
+- Admin moderation now supports hiding/restoring reported drops, suspending/unsuspending creators, revoking purchase entitlements, and reviewing audit logs.
+- API hardening added route-level rate limits, safer session parsing, suspended-user checks, and public filtering for suspended creators.
 - `Fan sign up` is visible and readable in the mobile landing header.
 - App and fan pages load Lucide from `assets/lucide.min.js` instead of an external CDN.
 - `.env.example` now uses `vaultd.me` and includes Twilio placeholders.
@@ -55,6 +69,8 @@ PUBLIC_BASE_URL=https://vaultd.me
 ALLOWED_ORIGINS=https://vaultd.me
 STRIPE_CONNECT_REFRESH_URL=https://vaultd.me/stripe/refresh
 STRIPE_CONNECT_RETURN_URL=https://vaultd.me/stripe/return
+STRIPE_PLATFORM_FEE_PERCENT=10
+STRIPE_CUSTOMER_PRIVACY_SECURITY_FEE_PERCENT=15
 EMAIL_FROM=Vault'd <no-reply@vaultd.me>
 SUPPORT_EMAIL=support@vaultd.me
 ```
@@ -92,6 +108,15 @@ Also visually check:
 - `https://vaultd.me/`
 - `https://vaultd.me/fan.html?discover=1#discover`
 - `https://vaultd.me/app.html#create`
+- `https://vaultd.me/admin.html`
+
+Before testing new accounts, rerun `db/schema.sql` or at least apply the latest `users` columns:
+
+```sql
+alter table users add column if not exists age_confirmed_at timestamptz;
+alter table users add column if not exists suspended_at timestamptz;
+alter table users add column if not exists suspension_reason text;
+```
 
 ## Safety
 Do not deploy:

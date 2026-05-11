@@ -1,15 +1,18 @@
 const CREATOR_STORAGE_KEY = "vaultline-settings-v1";
 const FAN_STORAGE_KEY = "vaultline-fan-v1";
-const PUBLIC_BASE_URL =
-  window.location.origin && window.location.origin !== "null" ? window.location.origin : "http://localhost:8787";
+const PUBLIC_BASE_URL = "https://vaultd.me";
 const DEFAULT_THUMBNAIL = "assets/thumb-gallery.svg";
 const DEFAULT_COVER = "assets/profile-cover.svg";
 const DEFAULT_AVATAR = "assets/avatar-tile.svg";
+const CUSTOMER_PRIVACY_SECURITY_FEE_PERCENT = 15;
 
 const state = {
   view: "discover",
   discover: {
     creators: [],
+  },
+  checkout: {
+    dropIds: [],
   },
   creator: {
     profile: {
@@ -63,6 +66,17 @@ function syncIcons() {
   }
 }
 
+function publicUrl(path) {
+  return `${PUBLIC_BASE_URL}${path.startsWith("/") ? path : `/${path}`}`;
+}
+
+function normalizePublicUrl(value) {
+  return String(value || "")
+    .replace(/^https?:\/\/(?:localhost|127\.0\.0\.1)(?::\d+)?/i, PUBLIC_BASE_URL)
+    .replace(/^https?:\/\/vaultline\.app/i, PUBLIC_BASE_URL)
+    .replace(/^http:\/\/vaultd\.me/i, PUBLIC_BASE_URL);
+}
+
 function normalizeDrop(link) {
   return {
     id: String(link.id),
@@ -71,6 +85,7 @@ function normalizeDrop(link) {
     access: String(link.access || "everyone"),
     download: String(link.download || "allowed"),
     downloadExtraPercent: Math.max(0, Number(link.downloadExtraPercent ?? link.download_extra_percent) || 0),
+    mediaCount: Math.max(1, Number(link.mediaCount ?? link.media_count) || 1),
     note: String(link.note || "Permanent unlock from this creator."),
     fileName: String(link.fileName || "locked-file"),
     thumbnail: String(link.thumbnail || DEFAULT_THUMBNAIL),
@@ -78,7 +93,13 @@ function normalizeDrop(link) {
     views: Math.max(0, Number(link.views) || 0),
     sales: Math.max(0, Number(link.sales) || 0),
     revenue: Math.max(0, Number(link.revenue) || 0),
-    url: String(link.url || `${PUBLIC_BASE_URL}/d/${link.id}`).replace("https://vaultline.app", PUBLIC_BASE_URL),
+    createdAt: String(link.createdAt || link.created_at || new Date().toISOString()),
+    url: normalizePublicUrl(
+      link.url ||
+        publicUrl(
+          `/fan.html?handle=${encodeURIComponent(state.creator.profile.handle || "creator")}&drop=${encodeURIComponent(link.id)}#store`,
+        ),
+    ),
   };
 }
 
@@ -104,6 +125,69 @@ function effectiveDropPrice(drop) {
     return Number((price * (1 + (Number(drop.downloadExtraPercent) || 0) / 100)).toFixed(2));
   }
   return price;
+}
+
+function privacySecurityFee(drop) {
+  return Number((effectiveDropPrice(drop) * (CUSTOMER_PRIVACY_SECURITY_FEE_PERCENT / 100)).toFixed(2));
+}
+
+function buyerCheckoutTotal(drop) {
+  return Number((effectiveDropPrice(drop) + privacySecurityFee(drop)).toFixed(2));
+}
+
+function roundMoney(value) {
+  return Number((Math.max(0, Number(value) || 0)).toFixed(2));
+}
+
+function checkoutBundleDiscountRate(count) {
+  if (count >= 4) return 0.3;
+  if (count === 3) return 0.2;
+  if (count === 2) return 0.1;
+  return 0;
+}
+
+function checkoutProgressText(count) {
+  if (count <= 1) return "Add 1 more to get 10% off";
+  if (count === 2) return "Add 1 more to get 20% off";
+  if (count === 3) return "Add 1 more to get 30% off";
+  return "Best bundle discount unlocked";
+}
+
+function checkoutProgressPercent(count) {
+  return Math.min(100, Math.max(18, count * 25));
+}
+
+function findActiveDrop(dropId) {
+  return activeDrops().find((item) => item.id === dropId);
+}
+
+function checkoutDrops() {
+  const seen = new Set();
+  return state.checkout.dropIds
+    .map((dropId) => findActiveDrop(dropId))
+    .filter((drop) => {
+      if (!drop || seen.has(drop.id)) return false;
+      seen.add(drop.id);
+      return true;
+    });
+}
+
+function checkoutTotals(drops) {
+  const subtotal = roundMoney(drops.reduce((sum, drop) => sum + effectiveDropPrice(drop), 0));
+  const discountRate = checkoutBundleDiscountRate(drops.length);
+  const discount = roundMoney(subtotal * discountRate);
+  const order = roundMoney(subtotal - discount);
+  const privacyFee = roundMoney(order * (CUSTOMER_PRIVACY_SECURITY_FEE_PERCENT / 100));
+  const total = roundMoney(order + privacyFee);
+  return { subtotal, discountRate, discount, order, privacyFee, total };
+}
+
+function recommendedDropsForCheckout(drops) {
+  const selected = new Set(drops.map((drop) => drop.id));
+  const owned = purchasedDropIds();
+  return activeDrops()
+    .filter((drop) => !selected.has(drop.id) && !owned.has(drop.id))
+    .slice(0, 6);
 }
 
 function normalizeDiscoverCreator(creator = {}) {
@@ -189,6 +273,10 @@ function showFanLoginOverlay(onSuccess) {
             <span style="font-size:16px;">&#x1F6E1;</span>
             Your number is safe. Anonymous and protected.
           </div>
+          <label style="display:flex;align-items:flex-start;gap:10px;margin:0 0 16px;font-size:13px;color:#555;line-height:1.4;">
+            <input id="vl-phone-age" type="checkbox" required style="margin-top:2px;accent-color:#22c55e;" />
+            <span>I confirm I am 18 or older and agree to Vault'd terms.</span>
+          </label>
           <button type="submit" id="vl-phone-btn"
             style="
               width:100%;background:#111;color:#fff;font-weight:700;font-size:16px;
@@ -248,12 +336,15 @@ function showFanLoginOverlay(onSuccess) {
 
   // Enable Continue only when input has value
   const phoneInput = overlay.querySelector("#vl-phone-input");
+  const ageInput = overlay.querySelector("#vl-phone-age");
   const phoneBtn = overlay.querySelector("#vl-phone-btn");
   const status = overlay.querySelector("#vl-login-status");
 
-  phoneInput.addEventListener("input", () => {
-    phoneBtn.style.opacity = phoneInput.value.trim() ? "1" : ".4";
-  });
+  const syncPhoneButton = () => {
+    phoneBtn.style.opacity = phoneInput.value.trim() && ageInput.checked ? "1" : ".4";
+  };
+  phoneInput.addEventListener("input", syncPhoneButton);
+  ageInput.addEventListener("change", syncPhoneButton);
 
   // Step 1 submit
   overlay.querySelector("#vl-phone-form").addEventListener("submit", async (e) => {
@@ -265,11 +356,16 @@ function showFanLoginOverlay(onSuccess) {
       status.textContent = "Enter a valid 10-digit US phone number";
       return;
     }
+    if (!ageInput.checked) {
+      status.style.color = "#ef4444";
+      status.textContent = "Confirm you are 18+ to continue.";
+      return;
+    }
     phoneBtn.disabled = true;
     phoneBtn.textContent = "Sending…";
     status.textContent = "";
     try {
-      await VaultlineAPI.phoneStart(phone, "fan");
+      await VaultlineAPI.phoneStart(phone, "fan", true);
       currentPhone = phone;
       overlay.querySelector("#vl-step-phone").hidden = true;
       const otpStep = overlay.querySelector("#vl-step-otp");
@@ -298,7 +394,7 @@ function showFanLoginOverlay(onSuccess) {
     const btn = overlay.querySelector("#vl-otp-resend");
     btn.textContent = "Sending…"; btn.disabled = true;
     try {
-      await VaultlineAPI.phoneStart(currentPhone, "fan");
+      await VaultlineAPI.phoneStart(currentPhone, "fan", true);
       btn.textContent = "Sent!";
       setTimeout(() => { btn.textContent = "Didn\u2019t get it? Resend"; btn.disabled = false; }, 3000);
     } catch { btn.textContent = "Didn\u2019t get it? Resend"; btn.disabled = false; }
@@ -315,7 +411,7 @@ function showFanLoginOverlay(onSuccess) {
       const data = await VaultlineAPI.phoneVerify(currentPhone, code);
       fanUser = data.user;
       overlay.remove();
-      updateFanAccountUI();
+      updateFanSessionUI();
       loadLibraryFromApi();
       if (onSuccess) onSuccess();
     } catch (err) {
@@ -372,12 +468,14 @@ async function loadStorefrontFromApi() {
       access: drop.access,
       download: drop.download,
       downloadExtraPercent: drop.download_extra_percent,
+      mediaCount: drop.drop_media?.length || 1,
       fileName: drop.drop_media?.length > 1
         ? `${drop.drop_media.length} media items`
         : drop.drop_media?.[0]?.file_name || drop.title,
       thumbnail: DEFAULT_THUMBNAIL,
       status: "active",
-      url: `${PUBLIC_BASE_URL}/fan.html?handle=${encodeURIComponent(state.creator.profile.handle)}&drop=${encodeURIComponent(drop.id)}#store`,
+      createdAt: drop.created_at,
+      url: publicUrl(`/fan.html?handle=${encodeURIComponent(state.creator.profile.handle)}&drop=${encodeURIComponent(drop.id)}#store`),
     }));
     renderAll();
   } catch (err) {
@@ -539,16 +637,21 @@ function creatorHandle() {
 }
 
 function storefrontUrl() {
-  return `${PUBLIC_BASE_URL}/fan.html?handle=${encodeURIComponent(state.creator.profile.handle || "creator")}#store`;
+  return publicUrl(`/fan.html?handle=${encodeURIComponent(state.creator.profile.handle || "creator")}#store`);
 }
 
 function discoverUrl() {
-  return `${PUBLIC_BASE_URL}/fan.html?discover=1#discover`;
+  return publicUrl("/fan.html?discover=1#discover");
 }
 
 function currentShareUrl() {
   if (state.view === "store" && state.creator.profile.handle && state.creator.profile.handle !== "creator") {
-    return new URLSearchParams(location.search).get("drop") ? window.location.href : storefrontUrl();
+    const dropId = new URLSearchParams(location.search).get("drop");
+    return dropId
+      ? publicUrl(
+          `/fan.html?handle=${encodeURIComponent(state.creator.profile.handle)}&drop=${encodeURIComponent(dropId)}#store`,
+        )
+      : storefrontUrl();
   }
   return discoverUrl();
 }
@@ -608,6 +711,35 @@ function updateFanAccountUI() {
     <span>Sign up</span>
   `;
   updateShareActionUI();
+  syncIcons();
+}
+
+function updateFanHomeActionUI() {
+  const button = $("#fan-home-primary-action");
+  if (!button) return;
+
+  if (fanUser) {
+    button.removeAttribute("data-fan-signup");
+    button.setAttribute("data-view", "library");
+    button.innerHTML = `
+      <i data-lucide="folder-open"></i>
+      <span>Open my library</span>
+    `;
+    return;
+  }
+
+  button.removeAttribute("data-view");
+  button.setAttribute("data-fan-signup", "");
+  button.innerHTML = `
+    <i data-lucide="circle-user-round"></i>
+    <span>Fan sign up</span>
+  `;
+}
+
+function updateFanSessionUI() {
+  updateFanAccountUI();
+  updateFanHomeActionUI();
+  renderAccount();
   syncIcons();
 }
 
@@ -918,6 +1050,15 @@ function renderAccount() {
         </div>
         <a class="small-button" href="/#faq">Open</a>
       </article>
+
+      <article class="account-card wide">
+        <span class="card-icon"><i data-lucide="file-text"></i></span>
+        <div>
+          <h2>Policies</h2>
+          <p>Read the terms, privacy, refunds, content rules, and DMCA process.</p>
+        </div>
+        <a class="small-button" href="/policies.html">Open</a>
+      </article>
     `;
     return;
   }
@@ -949,13 +1090,22 @@ function renderAccount() {
       </div>
     </article>
 
+      <article class="account-card wide">
+        <span class="card-icon"><i data-lucide="circle-help"></i></span>
+        <div>
+          <h2>FAQ</h2>
+          <p>See how unlocks, downloads, and fan libraries work before buying.</p>
+        </div>
+        <a class="small-button" href="/#faq">Open</a>
+      </article>
+
     <article class="account-card wide">
-      <span class="card-icon"><i data-lucide="circle-help"></i></span>
+      <span class="card-icon"><i data-lucide="file-text"></i></span>
       <div>
-        <h2>FAQ</h2>
-        <p>See how unlocks, downloads, and fan libraries work before buying.</p>
+        <h2>Policies</h2>
+        <p>Review terms, privacy, refunds, content rules, and DMCA support.</p>
       </div>
-      <a class="small-button" href="/#faq">Open</a>
+      <a class="small-button" href="/policies.html">Open</a>
     </article>
   `;
 }
@@ -993,7 +1143,7 @@ function openDialog(title, body) {
   syncIcons();
 }
 
-function openDrop(dropId) {
+function openDropLegacy(dropId) {
   const drop = activeDrops().find((item) => item.id === dropId);
   if (!drop) {
     showToast("Drop is no longer available");
@@ -1001,6 +1151,9 @@ function openDrop(dropId) {
   }
   markDropViewed(drop.id);
   const purchase = ownedPurchase(drop.id);
+  const contentPrice = effectiveDropPrice(drop);
+  const privacyFee = privacySecurityFee(drop);
+  const checkoutTotal = buyerCheckoutTotal(drop);
   openDialog(
     purchase ? "Unlocked drop" : "Unlock drop",
     `
@@ -1013,7 +1166,7 @@ function openDrop(dropId) {
           <h3>${escapeHtml(drop.title)}</h3>
           <p>${escapeHtml(drop.note || "Buy once and keep it in your library.")}</p>
         </div>
-        <span class="checkout-price">${money(effectiveDropPrice(drop))}</span>
+        <span class="checkout-price">${money(contentPrice)}</span>
       </div>
       <div class="checkout-line">
         <i data-lucide="${purchase ? "folder-open" : "shield-check"}"></i>
@@ -1022,22 +1175,33 @@ function openDrop(dropId) {
           <span>${purchase ? escapeHtml(purchase.fileName) : "Saved to your fan account after payment"}</span>
         </div>
       </div>
+      ${
+        purchase
+          ? ""
+          : `<div class="checkout-line">
+              <i data-lucide="shield-check"></i>
+              <div>
+                <strong>Privacy &amp; security fees</strong>
+                <span>${CUSTOMER_PRIVACY_SECURITY_FEE_PERCENT}% buyer fee shown separately at checkout: ${money(privacyFee)}</span>
+              </div>
+            </div>`
+      }
       <div class="checkout-line">
         <i data-lucide="credit-card"></i>
         <div>
           <strong>Secure Stripe checkout</strong>
-          <span>${purchase ? "Receipt saved to your library" : `You will review and pay ${money(effectiveDropPrice(drop))} on Stripe`}</span>
+          <span>${purchase ? "Receipt saved to your library" : `You will review and pay ${money(checkoutTotal)} on Stripe`}</span>
         </div>
       </div>
       <button class="primary-button" type="button" data-buy-drop="${drop.id}">
         <i data-lucide="${purchase ? "folder-open" : "credit-card"}"></i>
-        <span>${purchase ? "Open file" : `Pay ${money(effectiveDropPrice(drop))}`}</span>
+        <span>${purchase ? "Open file" : `Pay ${money(checkoutTotal)}`}</span>
       </button>
     `,
   );
 }
 
-async function buyDrop(dropId) {
+async function buyDropLegacy(dropId) {
   const currentPurchase = ownedPurchase(dropId);
   if (currentPurchase) {
     openPurchase(currentPurchase.id);
@@ -1105,6 +1269,249 @@ function openPurchase(purchaseId) {
   );
 }
 
+function checkoutScreen() {
+  let screen = $("#checkout-screen");
+  if (screen) return screen;
+  screen = document.createElement("section");
+  screen.id = "checkout-screen";
+  screen.className = "checkout-screen";
+  screen.setAttribute("role", "dialog");
+  screen.setAttribute("aria-modal", "true");
+  screen.setAttribute("aria-label", "Checkout");
+  screen.hidden = true;
+  document.body.appendChild(screen);
+  return screen;
+}
+
+function closeCheckout() {
+  const screen = $("#checkout-screen");
+  if (screen) screen.hidden = true;
+  document.body.classList.remove("checkout-open");
+  state.checkout.dropIds = [];
+}
+
+function renderCheckout() {
+  const screen = checkoutScreen();
+  const drops = checkoutDrops();
+  if (!drops.length) {
+    closeCheckout();
+    return;
+  }
+
+  const primary = drops[0];
+  const totals = checkoutTotals(drops);
+  const related = recommendedDropsForCheckout(drops);
+  const handle = state.creator.profile.handle || primary.creatorHandle || "creator";
+  const selectedCount = drops.length;
+  const purchaseRef = primary.id.slice(0, 10).toUpperCase();
+  const discountLabel = totals.discountRate ? `${Math.round(totals.discountRate * 100)}% bundle discount` : "";
+
+  screen.innerHTML = `
+    <header class="checkout-header">
+      <button class="checkout-back" type="button" data-checkout-close aria-label="Back to storefront">
+        <i data-lucide="chevron-left"></i>
+      </button>
+      <strong>Checkout</strong>
+      <span aria-hidden="true"></span>
+    </header>
+
+    <div class="checkout-scroll">
+      <section class="checkout-section">
+        <h2>Order summary</h2>
+        <article class="checkout-order-card">
+          <div class="checkout-creator">
+            <img src="${escapeHtml(state.creator.avatarImage || DEFAULT_AVATAR)}" alt="" />
+            <div>
+              <strong>${escapeHtml(handle)}</strong>
+              <span>${selectedCount} item${selectedCount === 1 ? "" : "s"}</span>
+            </div>
+          </div>
+          <div class="checkout-order-list">
+            ${drops
+              .map(
+                (drop) => `
+                  <div class="checkout-order-item">
+                    <img src="${escapeHtml(drop.thumbnail)}" alt="" />
+                    <div>
+                      <strong>${escapeHtml(drop.title || `Purchase Link #${purchaseRef}`)}</strong>
+                      <span>Access to ${Math.max(1, Number(drop.mediaCount) || 1)} content item${Number(drop.mediaCount) === 1 ? "" : "s"} from ${escapeHtml(handle)}</span>
+                    </div>
+                    <b>${money(effectiveDropPrice(drop))}</b>
+                    ${
+                      drops.length > 1
+                        ? `<button class="checkout-remove" type="button" data-checkout-remove="${escapeHtml(drop.id)}" aria-label="Remove ${escapeHtml(drop.title)}">
+                            <i data-lucide="x"></i>
+                          </button>`
+                        : ""
+                    }
+                  </div>
+                `,
+              )
+              .join("")}
+          </div>
+        </article>
+
+        <div class="checkout-totals">
+          <div>
+            <span>Order</span>
+            <strong>${money(totals.subtotal)}</strong>
+          </div>
+          ${
+            totals.discount
+              ? `<div class="discount">
+                  <span>${discountLabel}</span>
+                  <strong>-${money(totals.discount)}</strong>
+                </div>`
+              : ""
+          }
+          <div>
+            <span>Privacy &amp; security fees</span>
+            <strong>${money(totals.privacyFee)}</strong>
+          </div>
+          <div class="total">
+            <span>Total</span>
+            <strong>${money(totals.total)}</strong>
+          </div>
+        </div>
+      </section>
+
+      <section class="checkout-section">
+        <h2>Buy more links from <span>@${escapeHtml(handle)}</span></h2>
+        <p>Add multiple drops at the same time and save up to 30%.</p>
+        ${
+          related.length
+            ? `<div class="checkout-related-rail">
+                ${related
+                  .map(
+                    (drop) => `
+                      <article class="checkout-related-card">
+                        <div class="checkout-related-media">
+                          <img src="${escapeHtml(drop.thumbnail)}" alt="" />
+                          <span><i data-lucide="copy"></i>${Math.max(1, Number(drop.mediaCount) || 1)} media</span>
+                        </div>
+                        <strong>${escapeHtml(drop.title)}</strong>
+                        <small>${formatDate(drop.createdAt || new Date().toISOString())}</small>
+                        <div>
+                          <b>${money(effectiveDropPrice(drop))}</b>
+                          <button type="button" data-checkout-add="${escapeHtml(drop.id)}">Add</button>
+                        </div>
+                      </article>
+                    `,
+                  )
+                  .join("")}
+              </div>`
+            : `<div class="checkout-empty-addons">
+                <i data-lucide="check-circle-2"></i>
+                <strong>No more public drops from this creator yet</strong>
+              </div>`
+        }
+      </section>
+
+      <section class="checkout-section checkout-payment-section">
+        <h2>Payment method</h2>
+        <div class="checkout-method">
+          <span><i data-lucide="credit-card"></i></span>
+          <div>
+            <strong>Secure card checkout</strong>
+            <small>Cards, receipts, and invoice details are handled by Stripe.</small>
+          </div>
+        </div>
+        <label class="checkout-message">
+          <span>Message to creator</span>
+          <textarea rows="3" placeholder="Add a quick note (optional)"></textarea>
+        </label>
+      </section>
+    </div>
+
+    <footer class="checkout-paybar">
+      <div class="checkout-progress-label">
+        <i data-lucide="badge-percent"></i>
+        <span>${checkoutProgressText(selectedCount)}</span>
+      </div>
+      <div class="checkout-progress" aria-hidden="true">
+        <span style="width:${checkoutProgressPercent(selectedCount)}%"></span>
+        <i></i><i></i><i></i>
+      </div>
+      <button class="checkout-pay-button" type="button" data-checkout-pay>
+        <span class="checkout-count">${selectedCount}</span>
+        <strong>Proceed to pay</strong>
+        <b>${money(totals.total)}</b>
+      </button>
+    </footer>
+  `;
+
+  screen.hidden = false;
+  document.body.classList.add("checkout-open");
+  syncIcons();
+}
+
+function openCheckout(dropIds) {
+  const nextIds = Array.isArray(dropIds) ? dropIds : [dropIds];
+  const current = new Set(state.checkout.dropIds);
+  nextIds.forEach((dropId) => {
+    const drop = findActiveDrop(dropId);
+    if (drop && !ownedPurchase(drop.id)) current.add(drop.id);
+  });
+  state.checkout.dropIds = [...current];
+  if (!state.checkout.dropIds.length) {
+    showToast("Drop is no longer available");
+    return;
+  }
+  state.checkout.dropIds.forEach(markDropViewed);
+  renderCheckout();
+}
+
+async function buyCheckout() {
+  const drops = checkoutDrops();
+  if (!drops.length) {
+    showToast("Drop is no longer available");
+    return;
+  }
+
+  if (!fanUser) {
+    showFanLoginOverlay(() => buyCheckout());
+    return;
+  }
+
+  try {
+    const data = await VaultlineAPI.startCheckout(drops.map((drop) => drop.id));
+    if (data.checkoutUrl) {
+      window.location.href = data.checkoutUrl;
+    } else {
+      showToast("Checkout unavailable");
+    }
+  } catch (err) {
+    if (err.message?.toLowerCase().includes("stripe") || err.message?.toLowerCase().includes("not configured")) {
+      showToast("Payments coming soon - Stripe not configured yet");
+    } else {
+      showToast(err.message || "Checkout failed");
+    }
+  }
+}
+
+function openDrop(dropId) {
+  const drop = findActiveDrop(dropId);
+  if (!drop) {
+    showToast("Drop is no longer available");
+    return;
+  }
+  const purchase = ownedPurchase(drop.id);
+  if (purchase) {
+    openPurchase(purchase.id);
+    return;
+  }
+  openCheckout(drop.id);
+}
+
+async function buyDrop(dropId) {
+  const purchase = ownedPurchase(dropId);
+  if (purchase) {
+    openPurchase(purchase.id);
+    return;
+  }
+  openCheckout(dropId);
+}
+
 function openPaymentCard() {
   openDialog(
     "Payment method",
@@ -1139,7 +1546,7 @@ function refreshFromStorage() {
 
 document.addEventListener("DOMContentLoaded", () => {
   refreshFromStorage();
-  updateFanAccountUI();
+  updateFanSessionUI();
   loadDiscoverFromApi();
   const params = new URLSearchParams(location.search);
   const hasStorefrontHandle = Boolean(params.get("handle") || params.get("drop"));
@@ -1148,7 +1555,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Check fan auth + load storefront from API
   checkFanAuth().then((user) => {
-    updateFanAccountUI();
+    updateFanSessionUI();
     loadStorefrontFromApi();
     if (user) loadLibraryFromApi();
     if (params.get("signup") === "fan" && !user) {
@@ -1164,6 +1571,17 @@ document.addEventListener("DOMContentLoaded", () => {
     if (creatorEntry) {
       event.preventDefault();
       openCreatorEntry();
+      return;
+    }
+
+    const fanBrandHome = event.target.closest("[data-fan-brand-home]");
+    if (fanBrandHome) {
+      event.preventDefault();
+      if (fanUser) {
+        setView("discover");
+      } else {
+        window.location.href = "/";
+      }
       return;
     }
 
@@ -1203,6 +1621,31 @@ document.addEventListener("DOMContentLoaded", () => {
     const closeButton = event.target.closest("[data-close-dialog]");
     if (closeButton) closeDialog();
 
+    const checkoutCloseButton = event.target.closest("[data-checkout-close]");
+    if (checkoutCloseButton) {
+      closeCheckout();
+      return;
+    }
+
+    const checkoutAddButton = event.target.closest("[data-checkout-add]");
+    if (checkoutAddButton) {
+      openCheckout(checkoutAddButton.dataset.checkoutAdd);
+      return;
+    }
+
+    const checkoutRemoveButton = event.target.closest("[data-checkout-remove]");
+    if (checkoutRemoveButton) {
+      state.checkout.dropIds = state.checkout.dropIds.filter((dropId) => dropId !== checkoutRemoveButton.dataset.checkoutRemove);
+      renderCheckout();
+      return;
+    }
+
+    const checkoutPayButton = event.target.closest("[data-checkout-pay]");
+    if (checkoutPayButton) {
+      buyCheckout();
+      return;
+    }
+
     const copyStoreButton = event.target.closest("[data-copy-storefront]");
     if (copyStoreButton) {
       const isStore = state.view === "store" && state.creator.profile.handle !== "creator";
@@ -1213,12 +1656,6 @@ document.addEventListener("DOMContentLoaded", () => {
     if (refreshButton) {
       refreshFromStorage();
       showToast("Store refreshed");
-    }
-
-    const refreshDiscoverButton = event.target.closest("[data-refresh-discover]");
-    if (refreshDiscoverButton) {
-      loadDiscoverFromApi();
-      showToast("Feed refreshed");
     }
 
     const openCreatorButton = event.target.closest("[data-open-creator]");
@@ -1256,7 +1693,10 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape") setAccountDropdown(false);
+    if (event.key === "Escape") {
+      setAccountDropdown(false);
+      closeCheckout();
+    }
   });
 
   window.addEventListener("hashchange", () => {

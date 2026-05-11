@@ -14,6 +14,8 @@ USER DESIGN DIRECTION
 - Do not allow Generate Link/Create when required fields are blank.
 - Upload/Sell tab should feel simple like the reference screenshots:
   - Add media first.
+  - Price input should be a centered pill like Unlockt, not a plain input or huge cropped text.
+  - The main Sell screen should be compact enough to feel like one mobile page with minimal/no scrolling.
   - Allow multiple media files in one drop.
   - Allow mixed photos and videos.
   - Once media is selected, hide the large "Photo, Video" intro block.
@@ -39,6 +41,9 @@ USER DESIGN DIRECTION
 - Fan side:
   - Needs the same high-level polish as creator side.
   - Fan/store stats should not look like boxed spreadsheet cells.
+- Fees:
+  - Creator-side platform commission is 10%.
+  - Buyer checkout/invoices should include a separate 15% line labeled "Privacy & security fees".
 
 WHAT IS IN THIS FOLDER
 - index.html, styles.css, app.js
@@ -79,6 +84,24 @@ WHAT HAS BEEN DONE
 - The Supabase SQL editor automation was unreliable with long pasted schema. The schema should be run manually or via a proper Supabase CLI/API session.
 - npm install completed successfully.
 - npm run check completed successfully before this handoff.
+- Latest update tightened the Sell screen price UI and added the separate Stripe buyer fee line while keeping creator commission at 10%.
+- Latest profile update made the launch checklist collapsible and replaced the completed-item green circle with a cleaner check badge.
+- Latest settings update made FAQ open inside the Profile settings modal instead of navigating back to the landing page.
+- Latest link update makes generated storefront, fan discover, and paid drop links use https://vaultd.me instead of localhost during local testing.
+- Latest sell-flow fix makes Generate Link work in local preview mode without calling protected backend upload routes, and keeps selected media File objects available for real uploads.
+- Latest fan-discover update removed the redundant Refresh feed button; users can refresh the web page instead.
+- Latest fan navigation update makes the Vault'd brand/icon on the logged-out fan page return to the public landing page instead of acting like a fan tab switch.
+- Latest Stripe copy update clarifies creators connect their own Stripe payout account and that bank/identity details stay with Stripe.
+- Latest launch-readiness update completed items 5, 6, and 7 from the checklist:
+  - Preview upload mode is local-only and stripped in production.
+  - Public policy center was added at /policies.html.
+  - Private admin console was added at /admin.html for launch readiness, reports, and support tickets.
+- Latest launch-hardening update completed items 6, 7, and 8:
+  - Creator email sign-in and fan phone sign-up now require 18+ confirmation.
+  - Backend stores age_confirmed_at and blocks publishing, Stripe onboarding, and checkout for accounts that have not confirmed.
+  - Suspended users are blocked from authenticated actions and hidden from public discovery/storefront/drop reads.
+  - Admin console now has moderation actions to hide/restore reported drops, suspend/unsuspend creators, revoke purchase entitlements, and view audit logs.
+  - API routes now have basic rate limits for auth, writes, checkout, support/report, and admin surfaces.
 
 IMPORTANT SECURITY NOTE
 Do not ask the user to paste API keys into chat. If keys are needed, have the user add them directly into a local .env file or deployment secret manager. Do not include .env in this handoff package.
@@ -88,6 +111,7 @@ WHAT IS LEFT TO LAUNCH
    - Open Supabase project srlkkgiwdonjqwjtovog.
    - Run db/schema.sql in SQL editor, or use Supabase CLI with the project linked.
    - Confirm the private storage bucket "locked-media" exists.
+   - If the tables already exist, rerun the full schema or at least add users.age_confirmed_at, users.suspended_at, and users.suspension_reason.
 2. Create local/deployment environment variables from .env.example.
    Required:
    - SUPABASE_URL=https://srlkkgiwdonjqwjtovog.supabase.co
@@ -107,28 +131,26 @@ WHAT IS LEFT TO LAUNCH
    - Verify a sending domain in Resend.
    - Update EMAIL_FROM.
    - Test verification email flow.
-5. Connect frontend to backend.
-   - Current pages are static/local prototype behavior.
-   - Wire creator/fan UI to real API endpoints in server/index.js.
-   - Ensure media uploads use signed upload URLs and private Supabase storage.
-6. Finish creator sell/upload flow.
-   - Multiple mixed media uploads.
-   - Draggable/swipeable selected media rail.
-   - Remove media tile X buttons.
-   - Required-field validation.
-   - Minimum $5 validation.
-   - Download/charge-extra menu behavior.
-7. Finish buyer/fan flow.
-   - Public creator storefront.
+5. Test full creator and fan API flows end-to-end on the deployed host.
+   - Creator email sign-in with age confirmation.
+   - Stripe Connect onboarding.
+   - Media upload through signed URLs.
+   - Generate paid drop.
+   - Fan phone sign-up with age confirmation.
    - Buy/unlock checkout.
-   - Fan library of permanently unlocked content.
+   - Fan library permanent access.
    - Signed download/view links only after entitlement check.
-8. Add production hardening.
-   - Age/identity/payment requirements for creators.
-   - DMCA/report/support flows.
-   - Admin review tools.
-   - Terms, privacy, content policy.
-   - Rate limiting/CORS/domain settings.
+6. Test admin and safety workflows on production test data.
+   - Add your admin email to ADMIN_EMAILS.
+   - Create a test report and hide/restore the reported drop.
+   - Suspend/unsuspend a test creator.
+   - Revoke a test purchase entitlement and confirm the fan cannot download it.
+   - Review /admin.html audit logs.
+7. Add production hardening outside the app.
+   - Legal review of the new policy center and final business/entity details.
+   - DMCA designated-agent registration if pursuing DMCA safe-harbor coverage.
+   - Edge/WAF rate limits in the host or CDN in addition to the server's in-memory limits.
+   - CORS/domain settings.
    - Deployment setup and smoke tests.
 
 USEFUL COMMANDS

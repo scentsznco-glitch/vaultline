@@ -23,12 +23,12 @@ const VaultlineAPI = (function () {
     return req("GET", "/api/auth/me");
   }
 
-  function authStart(email, role) {
-    return req("POST", "/api/auth/start", { email, role });
+  function authStart(email, role, ageConfirmed = false) {
+    return req("POST", "/api/auth/start", { email, role, ageConfirmed });
   }
 
-  function phoneStart(phone, role) {
-    return req("POST", "/api/auth/phone/start", { phone, role });
+  function phoneStart(phone, role, ageConfirmed = false) {
+    return req("POST", "/api/auth/phone/start", { phone, role, ageConfirmed });
   }
 
   function phoneVerify(phone, code) {
@@ -114,8 +114,44 @@ const VaultlineAPI = (function () {
     return req("GET", `/api/library/${encodeURIComponent(purchaseId)}/download`);
   }
 
-  function startCheckout(dropId) {
-    return req("POST", "/api/checkout/session", { dropId });
+  function startCheckout(dropIds) {
+    const ids = Array.isArray(dropIds) ? dropIds.filter(Boolean) : [dropIds].filter(Boolean);
+    return req("POST", "/api/checkout/session", ids.length > 1 ? { dropIds: ids } : { dropId: ids[0] });
+  }
+
+  // ── Admin ─────────────────────────────────────────────────────────────────
+  function adminLaunch() {
+    return req("GET", "/api/admin/launch");
+  }
+
+  function adminReports(status = "") {
+    const query = status ? `?status=${encodeURIComponent(status)}` : "";
+    return req("GET", `/api/admin/reports${query}`);
+  }
+
+  function adminUpdateReport(reportId, status) {
+    return req("POST", `/api/admin/reports/${encodeURIComponent(reportId)}`, { status });
+  }
+
+  function adminSupportTickets(status = "") {
+    const query = status ? `?status=${encodeURIComponent(status)}` : "";
+    return req("GET", `/api/admin/support/tickets${query}`);
+  }
+
+  function adminUpdateSupportTicket(ticketId, status) {
+    return req("POST", `/api/admin/support/tickets/${encodeURIComponent(ticketId)}`, { status });
+  }
+
+  function adminModerateReport(reportId, action) {
+    return req("POST", `/api/admin/reports/${encodeURIComponent(reportId)}/moderation`, { action });
+  }
+
+  function adminRevokePurchase(purchaseId, reason) {
+    return req("POST", `/api/admin/purchases/${encodeURIComponent(purchaseId)}/revoke`, { reason });
+  }
+
+  function adminAuditLogs(limit = 25) {
+    return req("GET", `/api/admin/audit-logs?limit=${encodeURIComponent(limit)}`);
   }
 
   return {
@@ -139,6 +175,14 @@ const VaultlineAPI = (function () {
     getLibrary,
     getDownloadUrls,
     startCheckout,
+    adminLaunch,
+    adminReports,
+    adminUpdateReport,
+    adminModerateReport,
+    adminSupportTickets,
+    adminUpdateSupportTicket,
+    adminRevokePurchase,
+    adminAuditLogs,
   };
 })();
 
