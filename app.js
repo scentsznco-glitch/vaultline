@@ -5,6 +5,12 @@ const STORAGE_KEY = "vaultline-settings-v1";
 const PUBLIC_BASE_URL = "https://vaultd.me";
 const MIN_PRICE = 5;
 const CREATOR_PAYOUT_RATE = 0.9;
+const MAX_STORED_IMAGE_DATA_URL_LENGTH = 180000;
+const MAX_STORED_PROFILE_IMAGE_DATA_URL_LENGTH = 900000;
+const PREVIEW_IMAGE_MAX_EDGE = 960;
+const LINK_THUMBNAIL_MAX_EDGE = 420;
+const UPLOAD_IMAGE_MAX_EDGE = 1800;
+const UPLOAD_IMAGE_QUALITY = 0.84;
 
 const state = {
   filter: "all",
@@ -142,6 +148,119 @@ function attachMoneyInput(selector) {
   });
 }
 
+function isDataImage(value) {
+  return typeof value === "string" && value.startsWith("data:image/");
+}
+
+function isQuotaExceededError(error) {
+  return Boolean(
+    error
+      && (error.name === "QuotaExceededError"
+        || error.name === "NS_ERROR_DOM_QUOTA_REACHED"
+        || /quota/i.test(String(error.message || ""))),
+  );
+}
+
+function safePersistedImage(value, fallback = DEFAULT_THUMBNAIL, maxLength = MAX_STORED_IMAGE_DATA_URL_LENGTH) {
+  const src = String(value || "");
+  if (!src) return fallback;
+  if (isDataImage(src) && src.length > maxLength) return fallback;
+  return src;
+}
+
+function fileToDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.addEventListener("load", () => resolve(String(reader.result || "")));
+    reader.addEventListener("error", () => reject(reader.error || new Error("Could not read file")));
+    reader.readAsDataURL(file);
+  });
+}
+
+function resizeImageDataUrl(src, { maxEdge = PREVIEW_IMAGE_MAX_EDGE, quality = 0.82 } = {}) {
+  if (!isDataImage(src)) return Promise.resolve(src);
+  return new Promise((resolve) => {
+    const image = new Image();
+    image.onload = () => {
+      try {
+        const sourceWidth = image.naturalWidth || image.width || 1;
+        const sourceHeight = image.naturalHeight || image.height || 1;
+        const scale = Math.min(1, maxEdge / Math.max(sourceWidth, sourceHeight));
+        const width = Math.max(1, Math.round(sourceWidth * scale));
+        const height = Math.max(1, Math.round(sourceHeight * scale));
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        canvas.getContext("2d").drawImage(image, 0, 0, width, height);
+        resolve(canvas.toDataURL("image/jpeg", quality));
+      } catch {
+        resolve(src);
+      }
+    };
+    image.onerror = () => resolve(src);
+    image.src = src;
+  });
+}
+
+function dataUrlToBlob(dataUrl) {
+  const [header, encoded] = String(dataUrl || "").split(",");
+  if (!header || !encoded) return null;
+  const match = header.match(/^data:([^;]+);base64$/);
+  if (!match) return null;
+  const binary = atob(encoded);
+  const bytes = new Uint8Array(binary.length);
+  for (let index = 0; index < binary.length; index += 1) {
+    bytes[index] = binary.charCodeAt(index);
+  }
+  return new Blob([bytes], { type: match[1] || "image/jpeg" });
+}
+
+function jpgName(fileName) {
+  const base = String(fileName || "media").replace(/\.[^.]+$/, "");
+  return `${base || "media"}.jpg`;
+}
+
+async function compactImagePreview(
+  src,
+  fallback = DEFAULT_THUMBNAIL,
+  maxEdge = PREVIEW_IMAGE_MAX_EDGE,
+  quality = 0.78,
+  maxLength = null,
+) {
+  if (!isDataImage(src)) return String(src || fallback);
+  const resized = await resizeImageDataUrl(src, { maxEdge, quality });
+  return maxLength ? safePersistedImage(resized, fallback, maxLength) : String(resized || fallback);
+}
+
+async function linkThumbnailForMedia(mediaItems) {
+  const src = mediaItems[0]?.preview || state.selectedPreview || DEFAULT_THUMBNAIL;
+  return compactImagePreview(src, DEFAULT_THUMBNAIL, LINK_THUMBNAIL_MAX_EDGE, 0.74, MAX_STORED_IMAGE_DATA_URL_LENGTH);
+}
+
+async function optimizeUploadItem(item) {
+  const file = item?.file;
+  if (!file || !String(file.type || "").startsWith("image/") || file.type === "image/gif") return item;
+  if (file.size <= 900000) return item;
+
+  try {
+    const src = await fileToDataUrl(file);
+    const resized = await resizeImageDataUrl(src, { maxEdge: UPLOAD_IMAGE_MAX_EDGE, quality: UPLOAD_IMAGE_QUALITY });
+    const blob = dataUrlToBlob(resized);
+    if (!blob || blob.size >= file.size) return item;
+    return {
+      ...item,
+      name: jpgName(item.name || file.name),
+      file: new File([blob], jpgName(item.name || file.name), { type: blob.type || "image/jpeg", lastModified: Date.now() }),
+    };
+  } catch {
+    return item;
+  }
+}
+
+function prepareUploadItems(items) {
+  return Promise.all(items.map((item) => optimizeUploadItem(item)));
+}
+
 function id() {
   return Math.random().toString(36).slice(2, 9);
 }
@@ -214,8 +333,8 @@ function loadSettings() {
     if (saved.production) state.production = { ...state.production, ...saved.production };
     if (saved.bundle) state.bundle = { ...state.bundle, ...saved.bundle };
     if (saved.payout) state.payout = { ...state.payout, ...saved.payout };
-    if (saved.coverImage) state.coverImage = saved.coverImage;
-    if (saved.avatarImage) state.avatarImage = saved.avatarImage;
+    if (saved.coverImage) state.coverImage = safePersistedImage(saved.coverImage, DEFAULT_COVER, MAX_STORED_PROFILE_IMAGE_DATA_URL_LENGTH);
+    if (saved.avatarImage) state.avatarImage = safePersistedImage(saved.avatarImage, DEFAULT_AVATAR, MAX_STORED_PROFILE_IMAGE_DATA_URL_LENGTH);
     if (Number.isFinite(Number(saved.withdrawn))) state.withdrawn = Math.max(0, Number(saved.withdrawn));
     if (Array.isArray(saved.links)) {
       state.links = saved.links
@@ -226,7 +345,7 @@ function loadSettings() {
           price: Math.max(1, Number(link.price) || 1),
           note: String(link.note || ""),
           fileName: String(link.fileName || "locked-file"),
-          thumbnail: String(link.thumbnail || DEFAULT_THUMBNAIL),
+          thumbnail: safePersistedImage(link.thumbnail, DEFAULT_THUMBNAIL),
           status: link.status === "expired" ? "expired" : "active",
           views: Math.max(0, Number(link.views) || 0),
           sales: Math.max(0, Number(link.sales) || 0),
@@ -249,22 +368,62 @@ function loadSettings() {
   }
 }
 
+function settingsPayload({ stripProfileImages = false, stripDataThumbnails = false } = {}) {
+  return {
+    profile: state.profile,
+    account: state.account,
+    production: state.production,
+    bundle: state.bundle,
+    payout: state.payout,
+    coverImage: stripProfileImages
+      ? DEFAULT_COVER
+      : safePersistedImage(state.coverImage, DEFAULT_COVER, MAX_STORED_PROFILE_IMAGE_DATA_URL_LENGTH),
+    avatarImage: stripProfileImages
+      ? DEFAULT_AVATAR
+      : safePersistedImage(state.avatarImage, DEFAULT_AVATAR, MAX_STORED_PROFILE_IMAGE_DATA_URL_LENGTH),
+    withdrawn: state.withdrawn,
+    operations: state.operations,
+    links: state.links.map((link) => ({
+      ...link,
+      thumbnail: stripDataThumbnails ? DEFAULT_THUMBNAIL : safePersistedImage(link.thumbnail, DEFAULT_THUMBNAIL),
+    })),
+  };
+}
+
+function applyStorageCompaction() {
+  state.links = state.links.map((link) => ({
+    ...link,
+    thumbnail: safePersistedImage(link.thumbnail, DEFAULT_THUMBNAIL),
+  }));
+  state.coverImage = safePersistedImage(state.coverImage, DEFAULT_COVER, MAX_STORED_PROFILE_IMAGE_DATA_URL_LENGTH);
+  state.avatarImage = safePersistedImage(state.avatarImage, DEFAULT_AVATAR, MAX_STORED_PROFILE_IMAGE_DATA_URL_LENGTH);
+}
+
 function saveSettings() {
-  localStorage.setItem(
-    STORAGE_KEY,
-    JSON.stringify({
-      profile: state.profile,
-      account: state.account,
-      production: state.production,
-      bundle: state.bundle,
-      payout: state.payout,
-      coverImage: state.coverImage,
-      avatarImage: state.avatarImage,
-      withdrawn: state.withdrawn,
-      operations: state.operations,
-      links: state.links,
-    }),
-  );
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(settingsPayload()));
+  } catch (error) {
+    if (!isQuotaExceededError(error)) throw error;
+    console.warn("Local storage quota hit; saving compact Vault'd state.");
+    applyStorageCompaction();
+    localStorage.removeItem(STORAGE_KEY);
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(settingsPayload({ stripDataThumbnails: true })));
+    } catch (retryError) {
+      if (!isQuotaExceededError(retryError)) throw retryError;
+      localStorage.removeItem(STORAGE_KEY);
+      try {
+        localStorage.setItem(
+          STORAGE_KEY,
+          JSON.stringify(settingsPayload({ stripDataThumbnails: true, stripProfileImages: true })),
+        );
+      } catch (finalError) {
+        if (!isQuotaExceededError(finalError)) throw finalError;
+        // Storage completely full — key already cleared, silently continue without persisting
+        console.warn("Local storage completely full; skipping persist.");
+      }
+    }
+  }
 }
 
 function isPayoutReady() {
@@ -376,6 +535,8 @@ function showToast(message) {
 
 function setView(view, syncHash = true) {
   if (!$(`[data-view-panel="${view}"]`)) return;
+
+  document.body.classList.toggle("is-create-view", view === "create");
 
   $$("[data-view-panel]").forEach((panel) => {
     panel.classList.toggle("is-active", panel.dataset.viewPanel === view);
@@ -795,15 +956,42 @@ function syncPriceWidth() {
 function syncPriceInputWidth(input, shellSelector) {
   if (!input) return;
   const value = input.value || input.placeholder || "0.00";
-  const cleanLength = Math.max(4.4, Math.min(value.length + 0.3, 11));
+  const cleanLength = Math.max(4.4, Math.min(value.length + 1.4, 12));
   input.style.setProperty("--price-value-ch", cleanLength.toFixed(1));
+  input.style.setProperty("--price-value-width", `${measureInputTextWidth(input, value)}px`);
 
   const priceShell = input.closest(shellSelector);
   if (priceShell) {
-    const shellLength = Math.max(5, Math.min(value.length + 1, 12));
+    const shellLength = Math.max(5, Math.min(value.length + 2.3, 13));
     priceShell.style.setProperty("--price-ch", shellLength.toFixed(1));
+    priceShell.style.setProperty("--price-value-width", input.style.getPropertyValue("--price-value-width"));
     priceShell.classList.toggle("has-price", priceValue(value) > 0);
   }
+}
+
+function measureInputTextWidth(input, value) {
+  const text = value || input.placeholder || "0.00";
+  let measure = measureInputTextWidth.node;
+  if (!measure) {
+    measure = document.createElement("span");
+    measure.setAttribute("aria-hidden", "true");
+    measure.style.position = "fixed";
+    measure.style.left = "-9999px";
+    measure.style.top = "-9999px";
+    measure.style.whiteSpace = "pre";
+    measure.style.pointerEvents = "none";
+    document.body.append(measure);
+    measureInputTextWidth.node = measure;
+  }
+
+  const style = window.getComputedStyle(input);
+  measure.style.font = style.font;
+  measure.style.fontWeight = style.fontWeight;
+  measure.style.fontSize = style.fontSize;
+  measure.style.fontFamily = style.fontFamily;
+  measure.style.letterSpacing = style.letterSpacing;
+  measure.textContent = text;
+  return Math.ceil(measure.getBoundingClientRect().width + 14);
 }
 
 function syncCreatorPayoutLabels() {
@@ -1125,13 +1313,15 @@ function createMediaItem(file) {
   };
 
   if (type === "image") {
-    const reader = new FileReader();
-    reader.addEventListener("load", () => {
-      item.preview = reader.result;
+    fileToDataUrl(file).then((src) => compactImagePreview(src, mediaPreviewFallback(type), PREVIEW_IMAGE_MAX_EDGE, 0.78, 650000)).then((preview) => {
+      item.preview = preview;
+      updateSellMediaPreview();
+      updatePreview();
+    }).catch(() => {
+      item.preview = mediaPreviewFallback(type);
       updateSellMediaPreview();
       updatePreview();
     });
-    reader.readAsDataURL(file);
   } else if (type === "video") {
     createVideoThumbnail(file, item);
   }
@@ -1207,11 +1397,14 @@ function createVideoThumbnail(file, item) {
 
   const capture = () => {
     try {
+      const sourceWidth = video.videoWidth || 720;
+      const sourceHeight = video.videoHeight || 900;
+      const scale = Math.min(1, PREVIEW_IMAGE_MAX_EDGE / Math.max(sourceWidth, sourceHeight));
       const canvas = document.createElement("canvas");
-      canvas.width = video.videoWidth || 720;
-      canvas.height = video.videoHeight || 900;
+      canvas.width = Math.max(1, Math.round(sourceWidth * scale));
+      canvas.height = Math.max(1, Math.round(sourceHeight * scale));
       canvas.getContext("2d").drawImage(video, 0, 0, canvas.width, canvas.height);
-      finish(canvas.toDataURL("image/jpeg", 0.82));
+      finish(canvas.toDataURL("image/jpeg", 0.78));
     } catch {
       finish("assets/thumb-video.svg");
     }
@@ -1912,12 +2105,26 @@ function isLocalPublishFallbackError(err) {
   if (!err) return false;
   if ([401, 403].includes(err.status)) return false;
   const message = String(err.message || "");
-  if (err.status === 400 && message !== "Request failed") return false;
+  const lowerMessage = message.toLowerCase();
+  if (err.status === 400 && message !== "Request failed" && !lowerMessage.includes("quota")) return false;
   return err.status >= 500
     || message === "Request failed"
     || message.includes("Upload failed")
     || message.includes("Failed to fetch")
-    || message.includes("NetworkError");
+    || message.includes("NetworkError")
+    || lowerMessage.includes("quota");
+}
+
+function publishErrorMessage(err) {
+  const message = String(err?.message || "");
+  if (isQuotaExceededError(err)) {
+    return "Your browser storage is full. The link was still created — clear site data in browser settings if this keeps happening.";
+  }
+  if (/quota/i.test(message)) {
+    return "Storage quota exceeded. Clear or upgrade Supabase Storage, then try again.";
+  }
+  if (message === "Request failed") return "Could not publish. Check upload storage setup.";
+  return message || "Upload failed";
 }
 
 async function createLink(form) {
@@ -1966,6 +2173,7 @@ async function createLink(form) {
     // URL-only drop - no file to upload, send a 1-byte stub
     itemsToUpload = [{ name: "link.txt", file: new Blob([contentUrl], { type: "text/plain" }) }];
   }
+  const linkThumbnail = await linkThumbnailForMedia(mediaItems);
 
   const buildLink = (drop) => ({
     id: drop.id,
@@ -1980,7 +2188,7 @@ async function createLink(form) {
     contentUrl,
     download: state.sell.download,
     downloadExtraPercent: state.sell.downloadExtraPercent,
-    thumbnail: mediaItems[0]?.preview || state.selectedPreview || DEFAULT_THUMBNAIL,
+    thumbnail: linkThumbnail,
     status: "active",
     views: 0,
     sales: 0,
@@ -2009,7 +2217,8 @@ async function createLink(form) {
     if (isPreviewCreatorSession()) {
       publishLocalLink();
     } else {
-      const result = await VaultlineAPI.createDrop(dropData, itemsToUpload);
+      const uploadItems = await prepareUploadItems(itemsToUpload);
+      const result = await VaultlineAPI.createDrop(dropData, uploadItems);
       state.links.unshift(buildLink(result.drop));
       saveSettings();
       renderAll();
@@ -2024,7 +2233,7 @@ async function createLink(form) {
       publishLocalLink();
       showToast("Link generated locally");
     } else {
-      showToast(err.message === "Request failed" ? "Could not publish. Check upload storage setup." : err.message || "Upload failed");
+      showToast(publishErrorMessage(err));
     }
     console.error("createLink error:", err);
   } finally {
@@ -2243,6 +2452,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const hashView = window.location.hash.replace("#", "");
   if (hashView && $(`[data-view-panel="${hashView}"]`)) {
     setView(hashView, false);
+  } else {
+    setView("create", false);
   }
 
   window.addEventListener("hashchange", syncViewFromHash);
@@ -2296,15 +2507,15 @@ document.addEventListener("DOMContentLoaded", () => {
       showToast("Choose an image for the cover");
       return;
     }
-    const reader = new FileReader();
-    reader.addEventListener("load", () => {
-      state.coverImage = reader.result;
+    fileToDataUrl(file).then((src) => compactImagePreview(src, DEFAULT_COVER, 1400, 0.78, MAX_STORED_PROFILE_IMAGE_DATA_URL_LENGTH)).then((preview) => {
+      state.coverImage = preview;
       $("#profile-cover-image").src = state.coverImage;
       saveSettings();
       renderLaunchChecklist();
       showToast("Cover updated");
+    }).catch(() => {
+      showToast("Could not update cover");
     });
-    reader.readAsDataURL(file);
   });
 
   $("#avatar-input").addEventListener("change", (event) => {
@@ -2313,16 +2524,16 @@ document.addEventListener("DOMContentLoaded", () => {
       showToast("Choose an image for the profile photo");
       return;
     }
-    const reader = new FileReader();
-    reader.addEventListener("load", () => {
-      state.avatarImage = reader.result;
+    fileToDataUrl(file).then((src) => compactImagePreview(src, DEFAULT_AVATAR, 640, 0.8, MAX_STORED_PROFILE_IMAGE_DATA_URL_LENGTH)).then((preview) => {
+      state.avatarImage = preview;
       saveSettings();
       renderProfileMeta();
       renderLaunchChecklist();
       syncIcons();
       showToast("Profile photo updated");
+    }).catch(() => {
+      showToast("Could not update profile photo");
     });
-    reader.readAsDataURL(file);
   });
 
   document.addEventListener("click", (event) => {
