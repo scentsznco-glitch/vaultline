@@ -345,10 +345,9 @@
   padding: 0 clamp(22px, 6vw, 34px);
   border: 1px solid #ecebe7;
   border-radius: 999px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
+  position: relative;
+  display: inline-grid;
+  place-items: center;
   color: #a6a6a6;
   background: #ffffff;
   box-shadow: 0 8px 20px rgba(17, 17, 17, 0.025), inset 0 0 0 1px rgba(17, 17, 17, 0.015);
@@ -359,27 +358,43 @@
   transition: width 180ms ease, border-color 180ms ease, box-shadow 180ms ease, color 180ms ease;
 }
 
+.sell-price-input::after {
+  content: attr(data-price-display);
+  display: block;
+  color: #a8a8a8;
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0;
+  line-height: 1;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
 .sell-price-input > span {
-  flex: 0 0 auto;
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
 }
 
 .sell-price-input input {
-  width: min(var(--price-value-width, 120px), calc(100vw - 132px));
-  min-width: 0;
-  max-width: none;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
   box-sizing: content-box;
   border: 0;
   outline: 0;
-  color: #a8a8a8;
+  color: transparent;
+  caret-color: transparent;
   background: transparent;
-  font-size: inherit;
-  font-weight: inherit;
+  font-size: 16px;
+  font-weight: 400;
   letter-spacing: 0;
-  text-align: left;
-  flex: 0 0 auto;
+  text-align: center;
   font-variant-numeric: tabular-nums;
   line-height: 1;
   overflow: visible;
+  opacity: 0;
   -webkit-text-size-adjust: 100%;
 }
 
@@ -390,6 +405,11 @@
 
 .sell-price-input.has-price input,
 .sell-price-input:focus-within input {
+  color: transparent;
+}
+
+.sell-price-input.has-price::after,
+.sell-price-input:focus-within::after {
   color: #111111;
 }
 

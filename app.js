@@ -956,13 +956,15 @@ function syncPriceWidth() {
 function syncPriceInputWidth(input, shellSelector) {
   if (!input) return;
   const value = input.value || input.placeholder || "0.00";
+  const displayValue = value.startsWith("$") ? value : `$${value}`;
   const cleanLength = Math.max(4.4, Math.min(value.length + 1.4, 12));
   input.style.setProperty("--price-value-ch", cleanLength.toFixed(1));
-  input.style.setProperty("--price-value-width", `${measureInputTextWidth(input, value)}px`);
+  input.style.setProperty("--price-value-width", `${measureInputTextWidth(input, displayValue)}px`);
 
   const priceShell = input.closest(shellSelector);
   if (priceShell) {
     const shellLength = Math.max(5, Math.min(value.length + 2.3, 13));
+    priceShell.dataset.priceDisplay = displayValue;
     priceShell.style.setProperty("--price-ch", shellLength.toFixed(1));
     priceShell.style.setProperty("--price-value-width", input.style.getPropertyValue("--price-value-width"));
     priceShell.classList.toggle("has-price", priceValue(value) > 0);
