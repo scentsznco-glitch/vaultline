@@ -4,10 +4,10 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Vault'd Creator</title>
-    <link rel="stylesheet" href="styles.css?v=20260510-great-pass" />
+    <link rel="stylesheet" href="styles.css?v=20260511-payout-pill" />
     <script defer src="assets/lucide.min.js?v=20260510-icons"></script>
     <script defer src="api.js"></script>
-    <script defer src="app.js?v=20260510-great-pass"></script>
+    <script defer src="app.js?v=20260511-payout-pill"></script>
   </head>
   <body>
     <div class="app-shell">
@@ -92,7 +92,7 @@
         </header>
 
         <section class="view is-active" id="create" data-view-panel="create">
-          <form class="sell-screen" id="create-form">
+          <form class="sell-screen" id="create-form" novalidate>
             <span id="create-stat-links" hidden>0</span>
             <input id="title-input" name="title" type="hidden" value="Locked media" />
             <textarea id="note-input" name="note" hidden>Pay once to unlock this content.</textarea>
@@ -133,8 +133,9 @@
                   <span>Set Price</span>
                   <span class="sell-price-input">
                     <span>$</span>
-                    <input id="price-input" name="price" type="number" inputmode="decimal" min="5" step="0.50" placeholder="0.00" />
+                    <input id="price-input" name="price" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" placeholder="0.00" aria-label="Price" />
                   </span>
+                  <small class="creator-receive" id="creator-receive" aria-live="polite" hidden>You will receive $0.00</small>
                   <small class="price-error" id="price-error" hidden>minimum of $5</small>
                 </label>
               </section>
@@ -176,8 +177,9 @@
                   <span>Price</span>
                   <span class="money-field">
                     <span>$</span>
-                    <input id="detail-price-input" type="number" inputmode="decimal" min="5" step="0.50" placeholder="0.00" />
+                    <input id="detail-price-input" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" placeholder="0.00" aria-label="Price" />
                   </span>
+                  <small class="creator-receive creator-receive-detail" id="detail-creator-receive" aria-live="polite" hidden>You will receive $0.00</small>
                   <small class="price-error" id="detail-price-error" hidden>minimum of $5</small>
                 </label>
 
@@ -359,6 +361,13 @@
         </section>
 
         <section class="view" id="profile" data-view-panel="profile">
+          <div class="profile-titlebar">
+            <h1>My profile</h1>
+            <button class="icon-button" id="profile-settings-button" type="button" data-open-profile-settings aria-label="Profile settings">
+              <i data-lucide="settings"></i>
+            </button>
+          </div>
+
           <article class="profile-hero">
             <label class="profile-cover" for="cover-input">
               <input id="cover-input" type="file" accept="image/*" />
@@ -379,9 +388,6 @@
                 <h1 data-profile-handle>@creator</h1>
                 <p data-profile-bio>Private drops, files, and creator packs in one clean storefront.</p>
               </div>
-              <button class="icon-button" id="profile-settings-button" type="button" data-open-profile-settings aria-label="Profile settings">
-                <i data-lucide="settings"></i>
-              </button>
             </div>
 
             <div class="profile-stats" aria-label="Profile stats">
@@ -411,12 +417,21 @@
             </div>
           </article>
 
+          <article class="tool-panel bundle-panel">
+            <span class="bundle-icon"><i data-lucide="badge-percent"></i></span>
+            <div>
+              <h2 id="bundle-title">Bundle discounts</h2>
+              <p id="bundle-summary">15% off two or more drops</p>
+            </div>
+            <button class="small-button" type="button" data-open-bundle-settings>Set up</button>
+          </article>
+
           <article class="tool-panel launch-checklist" aria-labelledby="launch-checklist-title">
             <button
               class="launch-checklist-head"
               type="button"
               data-toggle-launch-checklist
-              aria-expanded="true"
+              aria-expanded="false"
               aria-controls="launch-checklist-body"
             >
               <span class="launch-checklist-icon"><i data-lucide="list-checks"></i></span>
@@ -438,15 +453,6 @@
               </div>
               <div class="launch-checklist-items" id="launch-checklist-items"></div>
             </div>
-          </article>
-
-          <article class="tool-panel bundle-panel">
-            <span class="bundle-icon"><i data-lucide="badge-percent"></i></span>
-            <div>
-              <h2 id="bundle-title">Bundle discounts</h2>
-              <p id="bundle-summary">15% off two or more drops</p>
-            </div>
-            <button class="small-button" type="button" data-open-bundle-settings>Set up</button>
           </article>
 
           <article class="tool-panel profile-storefront">

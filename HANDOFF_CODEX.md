@@ -57,6 +57,8 @@ db/
 - [x] Supabase table permissions (GRANT ALL TO service_role — was broken, now fixed)
 - [x] Production deploy on Render at vaultd.me
 - [x] Landing page redesign (index.html) — polished, Syne font, no clunky buttons
+- [x] Creator Sell price UI uses a compact auto-growing price pill and shows `You will receive $X.XX` at the 90% creator payout rate.
+- [x] Shared content links now open a focused purchase page with blurred media preview, creator/message card, trust cues, no top promo/icon-menu, sticky `Unlock now`, and a conditional Apple Pay button that only appears when the browser reports Apple Pay support.
 
 ---
 

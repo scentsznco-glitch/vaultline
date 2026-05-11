@@ -11,7 +11,10 @@ https://vaultd.me
 - Creator and fan dashboards use a local custom vault-door brand mark.
 - Fan discover page has a clearer logged-out browse/sign-up flow.
 - Fan checkout is now a full-screen mobile flow with an order summary, 15% `Privacy & security fees`, related add-on drops, bundle discount progress, and a sticky `Proceed to pay` bar.
-- Creator sell screen has a compact Unlockt-style price pill and a shorter no-scroll mobile layout.
+- Creator sell screen has a cleaner Unlockt-style Add Media flow with a softer plus action, centered price pill, quieter spacing, and a shorter no-scroll mobile layout.
+- Creator sell price pill is now smaller, less clunky, and keeps cents/last digits visible while typing.
+- Creator price entry now behaves like a mobile money keypad: typing `5` shows `$0.05`, `50` shows `$0.50`, and `500` shows `$5.00`.
+- Creator price entry now auto-sizes the white price pill from compact to wider as the typed amount grows and shows `You will receive $X.XX` under the field using the 90% creator payout.
 - Stripe Checkout now creates invoice lines for the content price plus a separate 15% `Privacy & security fees` buyer fee, while keeping the creator-side platform commission at 10%.
 - Stripe Checkout now accepts multiple drops from the same creator in one session, applies the same 10%/20%/30% bundle discount tiers shown in the checkout UI, and records each purchased drop into the fan library.
 - Creator profile launch checklist is now collapsible and uses a softer completed check badge instead of a filled green circle.
@@ -21,6 +24,9 @@ https://vaultd.me
 - Fan discover no longer shows a redundant `Refresh feed` button.
 - Logged-out fan brand/icon clicks now return to the public landing page.
 - Stripe payout modal now clarifies that creators connect their own Stripe payout account and Stripe keeps bank/identity details.
+- Creator profile now uses a cleaner mobile-first layout with a large `My profile` heading, compact settings button, rounded avatar, softer bundle card, collapsed launch checklist, and polished empty links state.
+- Creator profile received a more premium reference-style pass: balanced title size, true circular avatar, camera badge on the avatar edge, visible creator bio, no stats row in the hero, pill action buttons, and creator setup ordered as bundle discounts, launch checklist, then links.
+- Existing logged-in creators who have not confirmed age now get a clear `Confirm age` modal, launch checklist item, and Profile settings row before publishing; backend exposes `POST /api/auth/confirm-age`.
 - Production preview mode is now guarded: `?preview=upload` only works on localhost/file previews, and the server strips it in production.
 - Public policy center added at `/policies.html` with Terms, Privacy, Content Policy, Refunds, DMCA/Takedown, Payout Rules, and Buyer Support.
 - Private admin console added at `/admin.html` for launch readiness, report review, and support ticket moderation.
@@ -95,6 +101,17 @@ TWILIO_VERIFY_SERVICE_SID
 ADMIN_EMAILS
 ```
 
+## Latest Fix Notes
+- Creator email sign-in now validates on the client and in `api.js`; blank or malformed emails should show `Enter a valid email to sign in.` and must not create a demo-looking account.
+- `?preview=upload` is not enough to create the local demo session anymore. Use `?preview=upload&demo=1` only when intentionally testing the creator upload screen with demo data.
+- Localhost Generate Link now falls back to a local preview link when the backend returns a generic storage/server failure. On `vaultd.me`, a Generate Link failure still means the host needs the real backend/storage issue fixed instead of hidden.
+- Buyer links now use the short public format `https://vaultd.me/l/<code>`. The server redirects `/l/:dropRef` to the fan storefront and resolves short refs in `/api/drops/:dropId`.
+- Checkout and Stripe invoice content rows now read `Purchase Link #<code>` and omit the content item subtitle/description. The separate `Privacy & security fees` row keeps its buyer-protection description.
+- Shared single-drop links now render as focused purchase pages modeled after Unlockt-style shared links: media preview first, creator/message context, purchase trust cues, no top promo/icon-menu, and a sticky bottom purchase bar with `Unlock now`. The `Apple Pay` action is conditional and only appears when the browser reports Apple Pay support; normal storefront cards now use one `Unlock now` action instead of a separate Preview button.
+- Shared creator profile pages now open as polished public storefront profiles with a centered avatar, bio, big green `Message` button, and locked drops below.
+- Fan-to-creator messaging is backed by `POST /api/storefront/:handle/messages`, the new `creator_messages` table, and a creator email notification when Resend is configured.
+- Creator Sell price UI now includes the live creator payout line below the amount and no longer relies on shrinking text to avoid clipping.
+
 ## After Deploy
 Check:
 
@@ -119,6 +136,8 @@ alter table users add column if not exists age_confirmed_at timestamptz;
 alter table users add column if not exists suspended_at timestamptz;
 alter table users add column if not exists suspension_reason text;
 ```
+
+The latest schema also adds `creator_messages`; rerun `db/schema.sql` or apply that table/index before deploying the Message button live.
 
 ## Safety
 Do not deploy:

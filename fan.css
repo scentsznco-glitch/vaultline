@@ -835,6 +835,10 @@ img {
   gap: 10px;
 }
 
+.drop-actions-single {
+  grid-template-columns: 1fr;
+}
+
 .drop-actions .primary-button,
 .drop-actions .secondary-button,
 .library-body .primary-button {
@@ -1506,7 +1510,7 @@ body.checkout-open {
 .checkout-paybar {
   padding: 14px 18px calc(16px + env(safe-area-inset-bottom));
   border-top: 1px solid #e7e2d8;
-  background: rgba(255, 255, 255, 0.96);
+  background: #ffffff;
   box-shadow: 0 -16px 38px rgba(16, 16, 16, 0.08);
 }
 
@@ -2368,5 +2372,573 @@ body {
   .account-card,
   .account-card.wide {
     grid-template-columns: 44px 1fr;
+  }
+}
+
+/* Public storefront profile */
+.public-profile-hero {
+  padding: 34px 28px 26px;
+  border: 1px solid #ded8cc;
+  border-radius: 8px;
+  display: grid;
+  justify-items: center;
+  gap: 18px;
+  background:
+    radial-gradient(circle at 50% -12%, rgba(5, 184, 91, 0.11), transparent 42%),
+    linear-gradient(180deg, #ffffff, #fbfaf6);
+  box-shadow: 0 18px 46px rgba(16, 16, 16, 0.07);
+  text-align: center;
+}
+
+.public-profile-avatar {
+  width: 112px;
+  height: 112px;
+  border: 3px solid #ffffff;
+  border-radius: 999px;
+  object-fit: cover;
+  background: #f4f1ea;
+  box-shadow: 0 16px 34px rgba(16, 16, 16, 0.13);
+}
+
+.public-profile-copy {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+}
+
+.public-profile-copy h1 {
+  margin: 0;
+  font-size: 38px;
+  line-height: 1;
+  letter-spacing: 0;
+}
+
+.public-profile-copy p {
+  max-width: 460px;
+  margin: 0;
+  color: #6f6a63;
+  font-size: 17px;
+  line-height: 1.35;
+  font-weight: 700;
+}
+
+.profile-message-button {
+  width: min(100%, 520px);
+  min-height: 64px;
+  border-radius: 999px;
+  font-size: 23px;
+  box-shadow: 0 16px 28px rgba(5, 184, 91, 0.16);
+}
+
+.profile-message-button svg {
+  width: 28px;
+  height: 28px;
+}
+
+.store-link-button {
+  min-height: 38px;
+  border: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: #6f6a63;
+  background: transparent;
+  font-weight: 850;
+}
+
+.store-link-button:hover {
+  color: var(--ink);
+}
+
+.store-link-button svg {
+  width: 17px;
+  height: 17px;
+}
+
+#fan-store .section-heading {
+  margin-top: 28px;
+}
+
+#fan-store .drop-grid {
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+#fan-store .empty-state {
+  min-height: 260px;
+}
+
+.message-form {
+  display: grid;
+  gap: 14px;
+}
+
+.message-recipient {
+  padding: 12px;
+  border: 1px solid #ded8cc;
+  border-radius: 8px;
+  display: grid;
+  grid-template-columns: 50px minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  background: #fbfaf6;
+}
+
+.message-recipient img {
+  width: 50px;
+  height: 50px;
+  border-radius: 999px;
+  object-fit: cover;
+  background: #f4f1ea;
+}
+
+.message-recipient strong {
+  display: block;
+  font-size: 17px;
+}
+
+.message-recipient span {
+  display: block;
+  margin-top: 3px;
+  color: #706b63;
+  font-size: 13px;
+  line-height: 1.35;
+  font-weight: 700;
+}
+
+.message-form label {
+  display: grid;
+  gap: 8px;
+  font-weight: 850;
+}
+
+.message-form textarea {
+  width: 100%;
+  min-height: 132px;
+  resize: vertical;
+  border: 1px solid #ded8cc;
+  border-radius: 8px;
+  padding: 14px;
+  color: var(--ink);
+  background: #ffffff;
+  font: inherit;
+  font-weight: 650;
+}
+
+.message-form textarea:focus {
+  outline: 2px solid rgba(5, 184, 91, 0.24);
+  border-color: rgba(5, 184, 91, 0.6);
+}
+
+.message-form .form-status {
+  margin: 0;
+  color: #b42318;
+  font-weight: 800;
+}
+
+.message-form .primary-button {
+  width: 100%;
+}
+
+@media (max-width: 720px) {
+  .public-profile-hero {
+    padding: 30px 20px 22px;
+  }
+
+  .public-profile-avatar {
+    width: 96px;
+    height: 96px;
+  }
+
+  .public-profile-copy h1 {
+    font-size: 34px;
+  }
+
+  .public-profile-copy p {
+    font-size: 16px;
+  }
+
+  .profile-message-button {
+    min-height: 60px;
+    font-size: 21px;
+  }
+}
+
+/* Single shared locked link */
+body.single-drop-page .topbar {
+  justify-content: center;
+  margin-bottom: 0;
+  border-bottom: 1px solid #e7e2d8;
+  background:
+    linear-gradient(180deg, rgba(219, 248, 232, 0.92), rgba(255, 255, 255, 0.96) 78%),
+    #ffffff;
+}
+
+body.single-drop-page .top-actions {
+  display: none;
+}
+
+body.single-drop-page .mobile-brand {
+  margin: 0 auto;
+}
+
+body.single-drop-page .bottom-nav {
+  display: none;
+}
+
+#fan-store.single-drop-mode .drop-grid {
+  display: block;
+}
+
+.single-drop-shell {
+  margin: 0 auto;
+  padding-top: 18px;
+  display: grid;
+  gap: 16px;
+}
+
+.single-drop-card {
+  padding: 0 18px 160px;
+  border: 0;
+  background: transparent;
+  display: grid;
+  gap: 16px;
+}
+
+.single-drop-media {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 1 / 1;
+  border-radius: 8px;
+  background: #e7e2d8;
+  box-shadow: 0 18px 42px rgba(16, 16, 16, 0.08);
+}
+
+.single-drop-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: blur(12px) saturate(0.82);
+  transform: scale(1.08);
+}
+
+.single-drop-media::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.08), transparent 42%, rgba(16, 16, 16, 0.08)),
+    rgba(255, 255, 255, 0.04);
+}
+
+.single-drop-media-badges {
+  position: absolute;
+  top: 24px;
+  left: 24px;
+  z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.single-drop-media-badges span {
+  min-height: 52px;
+  padding: 0 20px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(14px);
+  font-size: 22px;
+  font-weight: 850;
+}
+
+.single-drop-media-badges svg {
+  width: 27px;
+  height: 27px;
+  fill: currentColor;
+}
+
+.single-creator-card,
+.single-trust-card {
+  border: 1px solid #e5dfd4;
+  border-radius: 18px;
+  background: #ffffff;
+  box-shadow: 0 14px 34px rgba(16, 16, 16, 0.045);
+}
+
+.single-creator-card {
+  padding: 16px;
+}
+
+.single-creator-row {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+}
+
+.single-creator-row img {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #f3f0e8;
+}
+
+.single-creator-row strong {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: 18px;
+  line-height: 1.15;
+}
+
+.single-creator-row button {
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid #111111;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: #111111;
+  background: #ffffff;
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.single-creator-row button svg {
+  width: 18px;
+  height: 18px;
+}
+
+.single-creator-card p {
+  margin: 18px 0 0;
+  color: #111111;
+  font-size: 16px;
+  line-height: 1.35;
+  font-weight: 650;
+}
+
+.single-creator-card > span {
+  display: block;
+  margin-top: 18px;
+  color: #8c877f;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.single-trust-card {
+  padding: 18px 12px 14px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  text-align: center;
+}
+
+.single-trust-card > span {
+  min-width: 0;
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  color: #6a655e;
+  font-size: 14px;
+  line-height: 1.2;
+  font-weight: 750;
+}
+
+.single-trust-card > span svg {
+  width: 24px;
+  height: 24px;
+  color: #10b95b;
+  stroke-width: 2.8;
+}
+
+.single-card-brands {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+}
+
+.single-card-brands b {
+  min-width: 36px;
+  height: 22px;
+  border-radius: 3px;
+  display: grid;
+  place-items: center;
+  color: #ffffff;
+  background: #111111;
+  font-size: 11px;
+  letter-spacing: 0;
+}
+
+.single-card-brands b:last-child {
+  color: #2447a8;
+  background: #ffffff;
+  border: 1px solid #ded8cc;
+}
+
+.single-purchase-bar {
+  position: fixed;
+  left: 50%;
+  bottom: 0;
+  z-index: 30;
+  width: min(100%, 466px);
+  transform: translateX(-50%);
+  padding: 16px 18px 18px;
+  border-top: 1px solid #e7e2d8;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 -16px 40px rgba(16, 16, 16, 0.08);
+}
+
+.single-purchase-summary {
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  color: #101010;
+  font-size: 18px;
+  font-weight: 900;
+}
+
+.single-drop-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.single-drop-actions.is-single-action {
+  grid-template-columns: 1fr;
+}
+
+.single-drop-actions.is-single-action .single-apple-pay-button {
+  display: none;
+}
+
+.single-unlock-button,
+.single-apple-pay-button {
+  min-height: 74px;
+  border: 0;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 25px;
+  font-weight: 900;
+}
+
+.single-unlock-button {
+  color: #ffffff;
+  background: #4fba50;
+  box-shadow: 0 14px 28px rgba(79, 186, 80, 0.18);
+}
+
+.single-apple-pay-button {
+  color: #ffffff;
+  background: #000000;
+  font-size: 31px;
+  letter-spacing: 0;
+}
+
+.single-apple-pay-button svg {
+  width: 32px;
+  height: 32px;
+  fill: currentColor;
+  stroke-width: 1.8;
+}
+
+.apple-pay-mark {
+  display: none;
+}
+
+.single-purchase-bar small {
+  display: block;
+  margin-top: 11px;
+  color: #aaa7a0;
+  font-size: 18px;
+  text-align: center;
+  font-weight: 650;
+}
+
+@media (max-width: 560px) {
+  body.single-drop-page .fan-main {
+    padding: 0 0 26px;
+  }
+
+  body.single-drop-page .topbar {
+    margin: 0;
+    padding: 18px 16px 14px;
+  }
+
+  .single-drop-card {
+    padding: 0 18px 160px;
+  }
+
+  .single-drop-media-badges {
+    top: 24px;
+    left: 24px;
+    gap: 10px;
+  }
+
+  .single-drop-media-badges span {
+    min-height: 48px;
+    padding: 0 18px;
+    font-size: 18px;
+  }
+
+  .single-drop-media-badges svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  .single-drop-actions {
+    gap: 10px;
+  }
+
+  .single-unlock-button,
+  .single-apple-pay-button {
+    min-height: 62px;
+    font-size: 20px;
+  }
+
+  .single-apple-pay-button {
+    font-size: 28px;
+  }
+
+  .single-apple-pay-button svg {
+    width: 29px;
+    height: 29px;
+  }
+}
+
+@media (max-width: 420px) {
+  .single-drop-card {
+    padding: 0 18px 162px;
+  }
+
+  .single-drop-media-badges {
+    top: 16px;
+    left: 16px;
+  }
+
+  .single-drop-media-badges span {
+    min-height: 42px;
+    padding: 0 14px;
+    font-size: 16px;
+  }
+
+  .single-purchase-bar {
+    width: 100%;
+  }
+
+  .single-purchase-summary {
+    font-size: 16px;
   }
 }

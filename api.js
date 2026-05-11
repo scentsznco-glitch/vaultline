@@ -24,7 +24,11 @@ const VaultlineAPI = (function () {
   }
 
   function authStart(email, role, ageConfirmed = false) {
-    return req("POST", "/api/auth/start", { email, role, ageConfirmed });
+    const normalizedEmail = String(email || "").trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
+      return Promise.reject(new Error("Enter a valid email to sign in."));
+    }
+    return req("POST", "/api/auth/start", { email: normalizedEmail, role, ageConfirmed });
   }
 
   function phoneStart(phone, role, ageConfirmed = false) {
@@ -37,6 +41,10 @@ const VaultlineAPI = (function () {
 
   function authLogout() {
     return req("POST", "/api/auth/logout");
+  }
+
+  function confirmAge() {
+    return req("POST", "/api/auth/confirm-age", { ageConfirmed: true });
   }
 
   // ── Creator ───────────────────────────────────────────────────────────────
@@ -105,6 +113,10 @@ const VaultlineAPI = (function () {
     return req("GET", `/api/drops/${encodeURIComponent(dropId)}`);
   }
 
+  function sendCreatorMessage(handle, message) {
+    return req("POST", `/api/storefront/${encodeURIComponent(handle)}/messages`, { message });
+  }
+
   // ── Fan library ───────────────────────────────────────────────────────────
   function getLibrary() {
     return req("GET", "/api/library");
@@ -161,6 +173,7 @@ const VaultlineAPI = (function () {
     phoneStart,
     phoneVerify,
     authLogout,
+    confirmAge,
     createDrop,
     listCreatorDrops,
     getCreatorProfile,
@@ -172,6 +185,7 @@ const VaultlineAPI = (function () {
     discover,
     getStorefront,
     getPublicDrop,
+    sendCreatorMessage,
     getLibrary,
     getDownloadUrls,
     startCheckout,

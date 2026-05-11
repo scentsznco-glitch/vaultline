@@ -4,10 +4,10 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Vault'd Fan</title>
-    <link rel="stylesheet" href="fan.css?v=20260510-great-pass" />
+    <link rel="stylesheet" href="fan.css?v=20260511-shared-purchase4" />
     <script defer src="assets/lucide.min.js?v=20260510-icons"></script>
     <script defer src="api.js"></script>
-    <script defer src="fan.js?v=20260510-great-pass"></script>
+    <script defer src="fan.js?v=20260511-shared-purchase4"></script>
   </head>
   <body>
     <div class="fan-shell">
@@ -132,45 +132,32 @@
         </section>
 
         <section class="view" id="fan-store" data-view-panel="store">
-          <article class="store-hero">
-            <div class="cover-frame">
-              <img id="creator-cover" src="assets/profile-cover.svg" alt="" />
-              <div class="cover-shade" aria-hidden="true"></div>
+          <article class="store-hero public-profile-hero">
+            <img class="creator-avatar public-profile-avatar" id="creator-avatar" src="assets/avatar-tile.svg" alt="" />
+            <div class="creator-copy public-profile-copy">
+              <h1 data-creator-handle>@creator</h1>
+              <p data-creator-bio>Private drops, files, and creator packs in one clean storefront.</p>
             </div>
-            <div class="creator-bar">
-              <img class="creator-avatar" id="creator-avatar" src="assets/avatar-tile.svg" alt="" />
-              <div class="creator-copy">
-                <span class="tiny-label">Creator storefront</span>
-                <h1 data-creator-handle>@creator</h1>
-                <p data-creator-bio>Private drops, files, and creator packs in one clean storefront.</p>
-                <div class="store-metrics" aria-label="Creator storefront stats">
-                  <span><strong id="store-stat-drops">0</strong> drops</span>
-                  <span><strong id="store-stat-owned">0</strong> owned</span>
-                  <span><strong id="store-stat-unlocks">0</strong> unlocks</span>
-                </div>
-              </div>
-              <div class="creator-actions">
-                <button class="secondary-button" type="button" data-copy-storefront>
-                  <i data-lucide="copy"></i>
-                  <span>Copy link</span>
-                </button>
-                <button class="primary-button" type="button" data-view="library">
-                  <i data-lucide="folder-open"></i>
-                  <span>My library</span>
-                </button>
-              </div>
+            <button class="primary-button profile-message-button" type="button" data-open-message>
+              <i data-lucide="message-square"></i>
+              <span>Message</span>
+            </button>
+            <button class="store-link-button" type="button" data-copy-storefront>
+              <i data-lucide="copy"></i>
+              <span>Copy profile link</span>
+            </button>
+            <div class="store-metrics" aria-label="Creator storefront stats" hidden>
+              <span><strong id="store-stat-drops">0</strong> drops</span>
+              <span><strong id="store-stat-owned">0</strong> owned</span>
+              <span><strong id="store-stat-unlocks">0</strong> unlocks</span>
             </div>
           </article>
 
           <div class="section-heading">
             <div>
-              <h2>Available drops</h2>
-              <p>Pay once and the content stays in your library.</p>
+              <h2>Locked drops</h2>
+              <p>Buy once and keep access forever.</p>
             </div>
-            <button class="small-button" type="button" data-refresh-store>
-              <i data-lucide="refresh-cw"></i>
-              <span>Refresh</span>
-            </button>
           </div>
 
           <div class="drop-grid" id="drop-grid"></div>

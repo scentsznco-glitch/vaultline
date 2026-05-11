@@ -139,6 +139,16 @@ create table if not exists support_tickets (
   created_at timestamptz not null default now()
 );
 
+create table if not exists creator_messages (
+  id text primary key,
+  creator_id text not null references creator_profiles(user_id) on delete cascade,
+  fan_id text references users(id) on delete set null,
+  fan_email text not null,
+  message text not null,
+  status text not null default 'unread' check (status in ('unread', 'read', 'archived')),
+  created_at timestamptz not null default now()
+);
+
 create table if not exists audit_logs (
   id bigserial primary key,
   actor_id text references users(id) on delete set null,
@@ -159,6 +169,7 @@ create index if not exists email_verifications_token_idx on email_verifications(
 create index if not exists operations_user_idx on operations(user_id, created_at desc);
 create index if not exists reports_status_idx on reports(status, created_at desc);
 create index if not exists support_tickets_status_idx on support_tickets(status, created_at desc);
+create index if not exists creator_messages_creator_idx on creator_messages(creator_id, status, created_at desc);
 
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
 values (

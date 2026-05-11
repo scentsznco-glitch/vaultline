@@ -1,5 +1,6 @@
 const CREATOR_STORAGE_KEY = "vaultline-settings-v1";
 const FAN_STORAGE_KEY = "vaultline-fan-v1";
+const FAN_MESSAGE_STORAGE_KEY = "vaultline-fan-messages-v1";
 const PUBLIC_BASE_URL = "https://vaultd.me";
 const DEFAULT_THUMBNAIL = "assets/thumb-gallery.svg";
 const DEFAULT_COVER = "assets/profile-cover.svg";
@@ -77,9 +78,25 @@ function normalizePublicUrl(value) {
     .replace(/^http:\/\/vaultd\.me/i, PUBLIC_BASE_URL);
 }
 
+function dropPublicRef(dropId) {
+  const clean = String(dropId || "").trim().replace(/^drop[_-]?/i, "");
+  return (clean || String(dropId || "link")).slice(0, 10).toLowerCase();
+}
+
+function purchaseLinkLabel(dropId) {
+  return `Purchase Link #${dropPublicRef(dropId)}`;
+}
+
+function dropShortUrl(dropId) {
+  return publicUrl(`/l/${encodeURIComponent(dropPublicRef(dropId))}`);
+}
+
 function normalizeDrop(link) {
+  const dropId = String(link.id);
+  const publicRef = String(link.publicRef || link.public_ref || link.shortRef || link.short_ref || dropPublicRef(dropId));
   return {
-    id: String(link.id),
+    id: dropId,
+    publicRef,
     title: String(link.title || "Untitled drop"),
     price: Math.max(1, Number(link.price) || 1),
     access: String(link.access || "everyone"),
@@ -94,12 +111,7 @@ function normalizeDrop(link) {
     sales: Math.max(0, Number(link.sales) || 0),
     revenue: Math.max(0, Number(link.revenue) || 0),
     createdAt: String(link.createdAt || link.created_at || new Date().toISOString()),
-    url: normalizePublicUrl(
-      link.url ||
-        publicUrl(
-          `/fan.html?handle=${encodeURIComponent(state.creator.profile.handle || "creator")}&drop=${encodeURIComponent(link.id)}#store`,
-        ),
-    ),
+    url: dropShortUrl(publicRef),
   };
 }
 
@@ -158,7 +170,30 @@ function checkoutProgressPercent(count) {
 }
 
 function findActiveDrop(dropId) {
-  return activeDrops().find((item) => item.id === dropId);
+  const lookup = String(dropId || "").trim();
+  const ref = dropPublicRef(lookup);
+  return activeDrops().find((item) => {
+    const aliases = [
+      item.id,
+      item.publicRef,
+      item.shortRef,
+      item.url,
+      dropPublicRef(item.id),
+      dropPublicRef(item.publicRef),
+      dropPublicRef(item.shortRef),
+    ].filter(Boolean).map(String);
+
+    return aliases.some((alias) => alias === lookup || dropPublicRef(alias) === ref || alias.endsWith(`/l/${lookup}`));
+  });
+}
+
+function focusedDropParam() {
+  return new URLSearchParams(location.search).get("drop") || "";
+}
+
+function currentFocusedDrop() {
+  const dropRef = focusedDropParam();
+  return dropRef ? findActiveDrop(dropRef) : null;
 }
 
 function checkoutDrops() {
@@ -442,6 +477,7 @@ async function loadStorefrontFromApi() {
 
   try {
     let publicDrops = [];
+    let focusedResolvedDropId = "";
     if (handle) {
       const data = await VaultlineAPI.getStorefront(handle);
       if (data?.profile) {
@@ -455,6 +491,7 @@ async function loadStorefrontFromApi() {
       const data = await VaultlineAPI.getPublicDrop(focusedDropId);
       if (data?.drop) {
         const focusedDrop = data.drop;
+        focusedResolvedDropId = focusedDrop.id;
         state.creator.profile.handle = focusedDrop.creator_profiles?.handle || state.creator.profile.handle;
         if (!publicDrops.some((drop) => drop.id === focusedDrop.id)) publicDrops.unshift(focusedDrop);
       }
@@ -462,6 +499,7 @@ async function loadStorefrontFromApi() {
 
     state.creator.links = publicDrops.map((drop) => normalizeDrop({
       id: drop.id,
+      publicRef: focusedDropId && drop.id === focusedResolvedDropId ? focusedDropId : drop.public_ref,
       title: drop.title,
       note: drop.description || "",
       price: drop.price,
@@ -475,7 +513,7 @@ async function loadStorefrontFromApi() {
       thumbnail: DEFAULT_THUMBNAIL,
       status: "active",
       createdAt: drop.created_at,
-      url: publicUrl(`/fan.html?handle=${encodeURIComponent(state.creator.profile.handle)}&drop=${encodeURIComponent(drop.id)}#store`),
+      url: dropShortUrl(drop.id),
     }));
     renderAll();
   } catch (err) {
@@ -595,6 +633,19 @@ function saveFan() {
   );
 }
 
+function saveLocalCreatorMessage(message) {
+  const messages = JSON.parse(localStorage.getItem(FAN_MESSAGE_STORAGE_KEY) || "[]");
+  messages.unshift({
+    id: id(),
+    creatorHandle: state.creator.profile.handle || "creator",
+    fanEmail: fanUser?.email || "",
+    message,
+    createdAt: new Date().toISOString(),
+    status: "preview",
+  });
+  localStorage.setItem(FAN_MESSAGE_STORAGE_KEY, JSON.stringify(messages.slice(0, 50)));
+}
+
 function activeDrops() {
   return state.creator.links.filter((drop) => drop.status === "active");
 }
@@ -647,11 +698,7 @@ function discoverUrl() {
 function currentShareUrl() {
   if (state.view === "store" && state.creator.profile.handle && state.creator.profile.handle !== "creator") {
     const dropId = new URLSearchParams(location.search).get("drop");
-    return dropId
-      ? publicUrl(
-          `/fan.html?handle=${encodeURIComponent(state.creator.profile.handle)}&drop=${encodeURIComponent(dropId)}#store`,
-        )
-      : storefrontUrl();
+    return dropId ? dropShortUrl(dropId) : storefrontUrl();
   }
   return discoverUrl();
 }
@@ -663,10 +710,7 @@ function openCreatorEntry() {
 function updateShareActionUI() {
   const shareButton = $(".topbar [data-copy-storefront]");
   if (!shareButton) return;
-  const canShareStore = state.view === "store" && state.creator.profile.handle && state.creator.profile.handle !== "creator";
-  const canShareFanHome = Boolean(fanUser) && state.view === "discover";
-  shareButton.hidden = !(canShareStore || canShareFanHome);
-  shareButton.setAttribute("aria-label", canShareStore ? "Share storefront" : "Share fan home");
+  shareButton.hidden = true;
 }
 
 function showToast(message) {
@@ -774,9 +818,10 @@ function setView(view, options = {}) {
     button.classList.toggle("is-active", button.dataset.view === view);
   });
   if (location.hash !== `#${view}`) {
-    history.replaceState(null, "", `#${view}`);
+    history.replaceState(null, "", `${location.pathname}${location.search}#${view}`);
   }
   updateShareActionUI();
+  document.body.classList.toggle("single-drop-page", view === "store" && Boolean(currentFocusedDrop()));
   window.scrollTo({ top: 0, behavior: "auto" });
 }
 
@@ -869,30 +914,46 @@ function renderCreator() {
   $$("[data-creator-bio]").forEach((element) => {
     element.textContent = state.creator.profile.bio;
   });
-  $("#creator-cover").src = state.creator.coverImage || DEFAULT_COVER;
-  $("#creator-avatar").src = state.creator.avatarImage || DEFAULT_AVATAR;
+  const cover = $("#creator-cover");
+  const avatar = $("#creator-avatar");
+  if (cover) cover.src = state.creator.coverImage || DEFAULT_COVER;
+  if (avatar) avatar.src = state.creator.avatarImage || DEFAULT_AVATAR;
 
   const drops = activeDrops();
   const purchases = purchasedDropIds();
-  $("#store-stat-drops").textContent = drops.length;
-  $("#store-stat-unlocks").textContent = state.creator.links.reduce((total, drop) => total + drop.sales, 0);
-  $("#store-stat-owned").textContent = drops.filter((drop) => purchases.has(drop.id)).length;
+  const dropStat = $("#store-stat-drops");
+  const unlockStat = $("#store-stat-unlocks");
+  const ownedStat = $("#store-stat-owned");
+  if (dropStat) dropStat.textContent = drops.length;
+  if (unlockStat) unlockStat.textContent = state.creator.links.reduce((total, drop) => total + drop.sales, 0);
+  if (ownedStat) ownedStat.textContent = drops.filter((drop) => purchases.has(drop.id)).length;
 }
 
 function renderStore() {
   const grid = $("#drop-grid");
   const drops = activeDrops();
   const owned = purchasedDropIds();
+  const store = $("#fan-store");
+  const hero = $(".public-profile-hero", store);
+  const heading = $(".section-heading", store);
+  const focusedDrop = currentFocusedDrop();
+
+  store?.classList.toggle("single-drop-mode", Boolean(focusedDrop));
+  document.body.classList.toggle("single-drop-page", state.view === "store" && Boolean(focusedDrop));
+  if (hero) hero.hidden = Boolean(focusedDrop);
+  if (heading) heading.hidden = Boolean(focusedDrop);
+
+  if (focusedDrop) {
+    grid.innerHTML = renderSingleSharedDrop(focusedDrop);
+    return;
+  }
 
   if (!drops.length) {
     grid.innerHTML = emptyState(
       "lock-keyhole",
       "No drops available",
       "When this creator publishes a locked file, it will show up here for fans to unlock.",
-      `<button class="primary-button" type="button" data-refresh-store>
-        <i data-lucide="refresh-cw"></i>
-        <span>Check again</span>
-      </button>`,
+      "",
     );
     return;
   }
@@ -911,14 +972,10 @@ function renderStore() {
           <div class="drop-body">
             <h3>${escapeHtml(drop.title)}</h3>
             <p>${escapeHtml(drop.note || "Buy once and keep it in your library.")}</p>
-            <div class="drop-actions">
-              <button class="secondary-button" type="button" data-open-drop="${drop.id}">
-                <i data-lucide="eye"></i>
-                <span>Preview</span>
-              </button>
+            <div class="drop-actions drop-actions-single">
               <button class="primary-button" type="button" data-buy-drop="${drop.id}">
                 <i data-lucide="${hasDrop ? "folder-open" : "credit-card"}"></i>
-                <span>${hasDrop ? "Open" : "Unlock"}</span>
+                <span>${hasDrop ? "Open" : "Unlock now"}</span>
               </button>
             </div>
           </div>
@@ -926,6 +983,83 @@ function renderStore() {
       `;
     })
     .join("");
+}
+
+function previewDuration(drop) {
+  const descriptor = `${drop.title || ""} ${drop.fileName || ""}`.toLowerCase();
+  if (descriptor.includes("podcast") || descriptor.includes("audio")) return "1:36";
+  if (descriptor.includes("video") || descriptor.includes("mp4") || descriptor.includes("mov")) return "0:18";
+  return "0:18";
+}
+
+function supportsApplePay() {
+  try {
+    return Boolean(window.ApplePaySession && window.ApplePaySession.canMakePayments?.());
+  } catch (err) {
+    return false;
+  }
+}
+
+function renderSingleSharedDrop(drop) {
+  const mediaCount = Math.max(1, Number(drop.mediaCount) || 1);
+  const isOwned = purchasedDropIds().has(drop.id);
+  const price = money(effectiveDropPrice(drop));
+  const handle = state.creator.profile.handle || "creator";
+  const note = drop.note || `Permanent Vault'd unlock from @${handle}.`;
+  const canApplePay = !isOwned && supportsApplePay();
+  return `
+    <div class="single-drop-shell">
+      <article class="single-drop-card">
+        <div class="single-drop-media">
+          <img src="${escapeHtml(drop.thumbnail)}" alt="" />
+          <div class="single-drop-media-badges">
+            <span><i data-lucide="copy"></i>1/${mediaCount} media</span>
+            <span><i data-lucide="play"></i>${previewDuration(drop)}</span>
+          </div>
+        </div>
+
+        <div class="single-creator-card">
+          <div class="single-creator-row">
+            <img src="${escapeHtml(state.creator.avatarImage || DEFAULT_AVATAR)}" alt="" />
+            <strong>${escapeHtml(handle)}</strong>
+            <button type="button" data-open-message>
+              <i data-lucide="message-square"></i>
+              <span>Message</span>
+            </button>
+          </div>
+          <p>${escapeHtml(note)}</p>
+          <span>${formatDate(drop.createdAt || new Date().toISOString())}</span>
+        </div>
+
+        <div class="single-trust-card" aria-label="Purchase details">
+          <span><i data-lucide="zap"></i>Easy access</span>
+          <span><i data-lucide="shield-check"></i>Private payments</span>
+          <span><i data-lucide="calendar-x"></i>No subscription</span>
+          <div class="single-card-brands" aria-label="Payment methods">
+            <b>MC</b>
+            <b>VISA</b>
+          </div>
+        </div>
+      </article>
+
+      <footer class="single-purchase-bar">
+        <div class="single-purchase-summary">
+          <strong>${mediaCount} ${mediaCount === 1 ? "media" : "media"}</strong>
+          <span>${price}</span>
+        </div>
+        <div class="single-drop-actions ${canApplePay ? "has-apple-pay" : "is-single-action"}">
+          <button class="single-unlock-button" type="button" data-buy-drop="${escapeHtml(drop.id)}">
+            ${isOwned ? "Open now" : "Unlock now"}
+          </button>
+          <button class="single-apple-pay-button" type="button" data-buy-drop="${escapeHtml(drop.id)}" aria-label="Apple Pay">
+            <span class="apple-pay-mark" aria-hidden="true"></span>
+            <span>Apple Pay</span>
+          </button>
+        </div>
+        <small>Taxes &amp; fees are calculated at next step.</small>
+      </footer>
+    </div>
+  `;
 }
 
 function renderLibrary() {
@@ -1143,6 +1277,81 @@ function openDialog(title, body) {
   syncIcons();
 }
 
+function openMessageComposer() {
+  if (!fanUser) {
+    showFanLoginOverlay(() => openMessageComposer());
+    return;
+  }
+
+  const handle = creatorHandle();
+  openDialog(
+    "Message creator",
+    `
+      <form class="message-form" id="creator-message-form">
+        <div class="message-recipient">
+          <img src="${escapeHtml(state.creator.avatarImage || DEFAULT_AVATAR)}" alt="" />
+          <div>
+            <strong>${escapeHtml(handle)}</strong>
+            <span>Send a private message to this creator.</span>
+          </div>
+        </div>
+        <label>
+          <span>Your message</span>
+          <textarea id="creator-message-text" name="message" maxlength="1000" required placeholder="Write your message..."></textarea>
+        </label>
+        <p class="form-status" id="creator-message-status" hidden></p>
+        <button class="primary-button" type="submit">
+          <i data-lucide="send"></i>
+          <span>Send message</span>
+        </button>
+      </form>
+    `,
+  );
+}
+
+async function sendCreatorMessage(event) {
+  event.preventDefault();
+  const form = event.currentTarget;
+  const textarea = $("#creator-message-text", form);
+  const status = $("#creator-message-status", form);
+  const button = form.querySelector("button[type='submit']");
+  const message = textarea?.value.trim() || "";
+
+  if (!message) {
+    if (status) {
+      status.hidden = false;
+      status.textContent = "Write a message first.";
+    }
+    textarea?.focus();
+    return;
+  }
+
+  if (button) button.disabled = true;
+  if (status) status.hidden = true;
+
+  try {
+    await VaultlineAPI.sendCreatorMessage(state.creator.profile.handle || "creator", message);
+    closeDialog();
+    showToast("Message sent");
+  } catch (err) {
+    const canQueuePreview = location.hostname === "localhost" || location.hostname === "127.0.0.1" || location.protocol === "file:";
+    if (canQueuePreview) {
+      saveLocalCreatorMessage(message);
+      closeDialog();
+      showToast("Message saved in preview");
+      return;
+    }
+    if (status) {
+      status.hidden = false;
+      status.textContent = err.message || "Could not send message";
+    } else {
+      showToast(err.message || "Could not send message");
+    }
+  } finally {
+    if (button) button.disabled = false;
+  }
+}
+
 function openDropLegacy(dropId) {
   const drop = activeDrops().find((item) => item.id === dropId);
   if (!drop) {
@@ -1303,7 +1512,6 @@ function renderCheckout() {
   const related = recommendedDropsForCheckout(drops);
   const handle = state.creator.profile.handle || primary.creatorHandle || "creator";
   const selectedCount = drops.length;
-  const purchaseRef = primary.id.slice(0, 10).toUpperCase();
   const discountLabel = totals.discountRate ? `${Math.round(totals.discountRate * 100)}% bundle discount` : "";
 
   screen.innerHTML = `
@@ -1333,8 +1541,7 @@ function renderCheckout() {
                   <div class="checkout-order-item">
                     <img src="${escapeHtml(drop.thumbnail)}" alt="" />
                     <div>
-                      <strong>${escapeHtml(drop.title || `Purchase Link #${purchaseRef}`)}</strong>
-                      <span>Access to ${Math.max(1, Number(drop.mediaCount) || 1)} content item${Number(drop.mediaCount) === 1 ? "" : "s"} from ${escapeHtml(handle)}</span>
+                      <strong>${escapeHtml(purchaseLinkLabel(drop.id))}</strong>
                     </div>
                     <b>${money(effectiveDropPrice(drop))}</b>
                     ${
@@ -1652,6 +1859,12 @@ document.addEventListener("DOMContentLoaded", () => {
       copyText(currentShareUrl(), isStore ? "Storefront link copied" : "Discover link copied");
     }
 
+    const messageButton = event.target.closest("[data-open-message]");
+    if (messageButton) {
+      openMessageComposer();
+      return;
+    }
+
     const refreshButton = event.target.closest("[data-refresh-store]");
     if (refreshButton) {
       refreshFromStorage();
@@ -1686,6 +1899,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const paymentButton = event.target.closest("[data-open-payment-card]");
     if (paymentButton) openPaymentCard();
+  });
+
+  document.addEventListener("submit", (event) => {
+    if (event.target?.id === "creator-message-form") {
+      sendCreatorMessage(event);
+    }
   });
 
   $("#fan-dialog").addEventListener("click", (event) => {

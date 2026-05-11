@@ -46,6 +46,15 @@ function dropContentAmountCents(drop, discountRate = 0) {
   return Math.max(50, Math.round(contentAmount * (1 - discountRate)));
 }
 
+function dropPublicRef(dropId) {
+  const clean = String(dropId || "").trim().replace(/^drop[_-]?/i, "");
+  return (clean || String(dropId || "link")).slice(0, 10).toLowerCase();
+}
+
+function checkoutItemName(drop) {
+  return `Purchase Link #${dropPublicRef(drop.id)}`;
+}
+
 export async function createCheckoutSession({ drop, drops = [], buyerEmail, successUrl, cancelUrl }) {
   const client = requireStripe();
   const feePercent = Math.max(0, Math.min(80, config.stripe.platformFeePercent));
@@ -100,10 +109,7 @@ export async function createCheckoutSession({ drop, drops = [], buyerEmail, succ
           currency: "usd",
           unit_amount: dropAmounts[item.id],
           product_data: {
-            name: item.title,
-            description: discountRate
-              ? `Permanent Vault'd unlock with ${Math.round(discountRate * 100)}% bundle discount`
-              : "Permanent Vault'd unlock",
+            name: checkoutItemName(item),
           },
         },
       })),

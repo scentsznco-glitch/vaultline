@@ -8,6 +8,7 @@ import {
   addDropMedia,
   createEmailVerification,
   createDrop,
+  createCreatorMessage,
   createPurchase,
   createReport,
   createSupportTicket,
@@ -42,7 +43,7 @@ import {
   upsertCreatorProfile,
   verifyEmailToken,
 } from "./data.js";
-import { sendNewDropNotification, sendReceiptEmail, sendSupportNotice, sendVerificationEmail } from "./services/email.js";
+import { sendCreatorMessageNotice, sendNewDropNotification, sendReceiptEmail, sendSupportNotice, sendVerificationEmail } from "./services/email.js";
 import { createDownloadUrl, createUploadUrl, mediaPath } from "./services/storage.js";
 import { constructWebhookEvent, createCheckoutSession, createConnectedAccount, createConnectOnboardingLink, stripe } from "./services/stripe.js";
 import { hashToken, id, rateLimit, requireAdmin, requireUser, signSession } from "./services/security.js";
@@ -124,6 +125,11 @@ app.use((request, response, next) => {
     return;
   }
   next();
+});
+
+app.get("/l/:dropRef", (request, response) => {
+  const dropRef = z.string().min(3).max(40).regex(/^[a-z0-9_-]+$/i).parse(request.params.dropRef);
+  response.redirect(302, `/fan.html?drop=${encodeURIComponent(dropRef)}#store`);
 });
 
 app.use(express.static(".", { dotfiles: "deny" }));
@@ -254,6 +260,35 @@ app.get(
 );
 
 // ── Phone OTP auth ───────────────────────────────────────────────────────────
+app.post(
+  "/api/auth/confirm-age",
+  authLimiter,
+  requireUser,
+  requireActiveUser,
+  route(async (request, response) => {
+    const body = z
+      .object({
+        ageConfirmed: z.boolean(),
+      })
+      .parse(request.body);
+
+    if (!body.ageConfirmed) {
+      response.status(400).json({ ok: false, error: "You must confirm you are 18+ to use Vault'd." });
+      return;
+    }
+
+    const user = await markUserAgeConfirmed({ userId: request.user.id });
+    ok(response, {
+      user: {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+        ageConfirmed: true,
+      },
+    });
+  }),
+);
+
 const phoneSchema = z.string().regex(/^\+[1-9]\d{6,14}$/, "Must be E.164 format, e.g. +12125551234");
 
 app.post(
@@ -519,6 +554,67 @@ app.get(
       return;
     }
     ok(response, data);
+  }),
+);
+
+app.post(
+  "/api/storefront/:handle/messages",
+  requireUser,
+  requireActiveUser,
+  requireAgeConfirmed,
+  supportLimiter,
+  route(async (request, response) => {
+    const handle = z
+      .string()
+      .trim()
+      .min(2)
+      .max(32)
+      .regex(/^[a-z0-9_.-]+$/i)
+      .parse(String(request.params.handle || "").replace(/^@/, ""));
+    const body = z
+      .object({
+        message: z.string().trim().min(1).max(1000),
+      })
+      .parse(request.body);
+
+    const storefront = await getStorefrontByHandle(handle);
+    if (!storefront?.profile?.user_id) {
+      response.status(404).json({ ok: false, error: "Creator not found" });
+      return;
+    }
+
+    if (storefront.profile.user_id === request.user.id) {
+      response.status(400).json({ ok: false, error: "You cannot message your own storefront." });
+      return;
+    }
+
+    const creator = await getUserById(storefront.profile.user_id);
+    if (!creator || creator.suspended_at) {
+      response.status(404).json({ ok: false, error: "Creator not found" });
+      return;
+    }
+
+    const message = await createCreatorMessage({
+      creatorId: storefront.profile.user_id,
+      fanId: request.user.id,
+      fanEmail: request.dbUser.email,
+      message: body.message,
+    });
+
+    sendCreatorMessageNotice({
+      to: creator.email,
+      creatorHandle: storefront.profile.handle,
+      fanEmail: request.dbUser.email,
+      message: body.message,
+    }).catch((err) => console.warn("[email] sendCreatorMessageNotice failed:", err?.message));
+
+    ok(response, {
+      message: {
+        id: message.id,
+        status: message.status,
+        createdAt: message.created_at,
+      },
+    });
   }),
 );
 

@@ -13,7 +13,10 @@ http://localhost:8787
 - `POST /api/auth/phone/start` starts fan phone verification. Body must include `ageConfirmed: true`.
 - `POST /api/auth/phone/verify` verifies the phone code.
 - `GET /api/auth/verify?token=...` verifies email.
+- `POST /api/auth/confirm-age` marks the current logged-in user as 18+ confirmed.
 - `GET /api/drops/:dropId` reads a public drop preview.
+- `GET /l/:dropRef` redirects a short buyer link to the fan storefront checkout preview. `dropRef` is the first 10 characters of the drop id after `drop_`.
+- `POST /api/storefront/:handle/messages` lets a signed-in, age-confirmed fan send a private message to the creator behind a public storefront. The message is stored in `creator_messages` and emails the creator when email is configured.
 - `POST /api/support/tickets` creates a support ticket.
 
 ## Creator

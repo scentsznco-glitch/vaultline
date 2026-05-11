@@ -54,6 +54,15 @@ function baseTemplate({ title, preheader, body }) {
 </html>`;
 }
 
+function escapeHtml(value) {
+  return String(value || "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
 export function sendVerificationEmail(user, verifyUrl) {
   const body = `
     <h1 style="margin:0 0 8px;font-size:24px;font-weight:800;color:#fff;letter-spacing:-0.5px;">Verify your email</h1>
@@ -120,6 +129,28 @@ export function sendSupportNotice(ticket) {
     to: config.email.support,
     subject: `[Support] ${ticket.subject}`,
     html: baseTemplate({ title: "Support ticket", preheader: `New ticket from ${ticket.email}: ${ticket.subject}`, body }),
+  });
+}
+
+export function sendCreatorMessageNotice({ to, creatorHandle, fanEmail, message }) {
+  const body = `
+    <h1 style="margin:0 0 8px;font-size:24px;font-weight:800;color:#fff;letter-spacing:-0.5px;">New message from a fan</h1>
+    <p style="margin:0 0 24px;font-size:15px;color:#888;line-height:1.6;">Someone messaged your Vault'd storefront @${escapeHtml(creatorHandle)}.</p>
+    <div style="background:#1a1a1a;border-radius:14px;padding:20px;margin-bottom:24px;">
+      <p style="margin:0 0 8px;font-size:13px;color:#888;text-transform:uppercase;letter-spacing:.5px;">From</p>
+      <p style="margin:0 0 16px;font-size:15px;color:#fff;">${escapeHtml(fanEmail)}</p>
+      <p style="margin:0 0 8px;font-size:13px;color:#888;text-transform:uppercase;letter-spacing:.5px;">Message</p>
+      <p style="margin:0;font-size:15px;color:#ccc;line-height:1.6;white-space:pre-wrap;">${escapeHtml(message)}</p>
+    </div>
+  `;
+  return sendEmail({
+    to,
+    subject: `New Vault'd message from ${fanEmail}`,
+    html: baseTemplate({
+      title: "New fan message",
+      preheader: `New message for @${creatorHandle} from ${fanEmail}.`,
+      body,
+    }),
   });
 }
 

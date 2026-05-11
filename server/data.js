@@ -224,12 +224,16 @@ export async function deleteDropById({ dropId, creatorId }) {
 
 export async function getPublicDrop(dropId) {
   const client = requireDb();
-  const { data, error } = await client
+  const lookup = String(dropId || "").trim();
+  const isFullDropId = lookup.startsWith("drop_");
+  let query = client
     .from("drops")
     .select("*, creator_profiles(handle, stripe_account_id, charges_enabled), drop_media(id, file_type, file_name)")
-    .eq("id", dropId)
     .eq("status", "active")
-    .maybeSingle();
+    .limit(1);
+
+  query = isFullDropId ? query.eq("id", lookup) : query.like("id", `drop_${lookup}%`);
+  const { data, error } = await query.maybeSingle();
   if (error) throw error;
   if (data?.creator_id) {
     const creator = await getUserById(data.creator_id);
@@ -507,6 +511,34 @@ export async function createSupportTicket({ userId, email, subject, message }) {
   const { data, error } = await client.from("support_tickets").insert(ticket).select("*").single();
   if (error) throw error;
   return data;
+}
+
+export async function createCreatorMessage({ creatorId, fanId, fanEmail, message }) {
+  const client = requireDb();
+  const creatorMessage = {
+    id: id("msg"),
+    creator_id: creatorId,
+    fan_id: fanId || null,
+    fan_email: String(fanEmail || "").toLowerCase(),
+    message,
+    status: "unread",
+  };
+  const { data, error } = await client.from("creator_messages").insert(creatorMessage).select("*").single();
+  if (error) throw error;
+  return data;
+}
+
+export async function listCreatorMessages({ creatorId, status }) {
+  const client = requireDb();
+  let query = client
+    .from("creator_messages")
+    .select("*")
+    .eq("creator_id", creatorId)
+    .order("created_at", { ascending: false });
+  if (status) query = query.eq("status", status);
+  const { data, error } = await query;
+  if (error) throw error;
+  return data || [];
 }
 
 export async function listSupportTickets({ status }) {

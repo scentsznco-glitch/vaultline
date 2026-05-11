@@ -15,6 +15,7 @@ USER DESIGN DIRECTION
 - Upload/Sell tab should feel simple like the reference screenshots:
   - Add media first.
   - Price input should be a centered pill like Unlockt, not a plain input or huge cropped text.
+  - Price pill should stay compact and never clip cents or the last typed digit.
   - The main Sell screen should be compact enough to feel like one mobile page with minimal/no scrolling.
   - Allow multiple media files in one drop.
   - Allow mixed photos and videos.
@@ -96,6 +97,17 @@ WHAT HAS BEEN DONE
 - Latest fan-discover update removed the redundant Refresh feed button; users can refresh the web page instead.
 - Latest fan navigation update makes the Vault'd brand/icon on the logged-out fan page return to the public landing page instead of acting like a fan tab switch.
 - Latest Stripe copy update clarifies creators connect their own Stripe payout account and that bank/identity details stay with Stripe.
+- Latest creator polish update makes the Profile tab cleaner and closer to the reference: large "My profile" heading, round avatar, compact settings button, softer bundle card, collapsed launch checklist, and a polished empty links panel.
+- Latest profile premium pass removes the stats-heavy dashboard feel from the Profile tab, balances the title size, keeps the avatar as a true circle with the camera badge on the edge, restores the creator bio, upgrades the action buttons, and orders creator setup as profile, bundle discounts, launch checklist, then links.
+- Latest Sell tab polish update makes the Add Media screen feel cleaner and more seamless: softer plus button, centered price pill, calmer spacing, and less boxed/demo styling.
+- Latest age-gate fix adds a creator-facing Confirm age modal, launch checklist item, Profile settings row, and POST /api/auth/confirm-age endpoint so existing logged-in accounts can confirm 18+ without logging out.
+- Latest price input fix makes creator pricing behave like a money keypad: digits fill cents first, so 5 becomes $0.05, 50 becomes $0.50, and 500 becomes $5.00. This applies to the main Sell price pill and the detail price fields.
+- Latest price payout UI update makes the Sell price pill auto-size from a compact `$0.00` state as the typed amount grows, keeps the amount centered, and shows `You will receive $X.XX` underneath based on the creator's 90% payout.
+- Latest auth/publish fix makes creator sign-in reject blank or invalid emails before any API call. Local upload preview now requires `?preview=upload&demo=1`; `?preview=upload` by itself should not silently create a demo creator session.
+- Generate Link now has a localhost-only safety fallback: if the backend returns a generic storage/server failure while testing locally, the UI creates a local preview link instead of showing a dead-end "Request failed." Production still surfaces backend errors so real storage problems are not hidden.
+- Latest checkout/link cleanup makes buyer links short (`https://vaultd.me/l/<code>`), adds a server redirect for `/l/:dropRef`, lets `/api/drops/:dropId` resolve short drop refs, and labels checkout/invoice content lines as `Purchase Link #<code>` with no extra item subtitle.
+- Latest shared-link purchase update makes `/l/<code>` and `fan.html?drop=<code>#store` preserve the drop query while switching tabs, hide the storefront profile/list, remove the old Preview action, remove the top promo/icon-menu from direct drop links, and show a focused purchase page with media preview, creator Message card, trust cues, and a sticky `Unlock now` action. The Apple Pay button is support-aware and only appears when the browser reports Apple Pay availability; production still needs Stripe Apple Pay/payment method and domain verification enabled.
+- Latest public profile update makes shared creator profiles look like a clean fan-facing storefront with a centered avatar, bio, big green Message button, and locked drops below. It also adds `creator_messages`, `POST /api/storefront/:handle/messages`, and creator email notices for fan messages.
 - Latest launch-readiness update completed items 5, 6, and 7 from the checklist:
   - Preview upload mode is local-only and stripped in production.
   - Public policy center was added at /policies.html.
@@ -116,6 +128,7 @@ WHAT IS LEFT TO LAUNCH
    - Run db/schema.sql in SQL editor, or use Supabase CLI with the project linked.
    - Confirm the private storage bucket "locked-media" exists.
    - If the tables already exist, rerun the full schema or at least add users.age_confirmed_at, users.suspended_at, and users.suspension_reason.
+   - The latest schema also adds `creator_messages` for fan-to-creator messages.
 2. Create local/deployment environment variables from .env.example.
    Required:
    - SUPABASE_URL=https://srlkkgiwdonjqwjtovog.supabase.co

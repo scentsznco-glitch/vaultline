@@ -4,12 +4,13 @@ const DEFAULT_AVATAR = "assets/avatar-tile.svg";
 const STORAGE_KEY = "vaultline-settings-v1";
 const PUBLIC_BASE_URL = "https://vaultd.me";
 const MIN_PRICE = 5;
+const CREATOR_PAYOUT_RATE = 0.9;
 
 const state = {
   filter: "all",
   selectedPreview: DEFAULT_THUMBNAIL,
   ui: {
-    launchChecklistCollapsed: false,
+    launchChecklistCollapsed: true,
   },
   profile: {
     handle: "creator",
@@ -81,6 +82,66 @@ function money(value) {
   }).format(Number(value) || 0);
 }
 
+function priceValue(value) {
+  const price = Number(String(value || "").replace(/,/g, ""));
+  return Number.isFinite(price) ? price : 0;
+}
+
+function creatorPayout(price) {
+  return Number((Math.max(0, Number(price) || 0) * CREATOR_PAYOUT_RATE).toFixed(2));
+}
+
+function centsFromMoneyInput(value) {
+  const digits = String(value || "").replace(/\D/g, "");
+  return digits ? Number(digits) : 0;
+}
+
+function formatMoneyInput(input, { keepBlank = false } = {}) {
+  if (!input) return 0;
+  const cents = centsFromMoneyInput(input.value);
+  if (!keepBlank || input.value) {
+    input.value = (cents / 100).toFixed(2);
+  }
+  return cents / 100;
+}
+
+function placeCaretAtEnd(input) {
+  if (!input || typeof input.setSelectionRange !== "function") return;
+  requestAnimationFrame(() => {
+    const end = input.value.length;
+    input.setSelectionRange(end, end);
+  });
+}
+
+function attachMoneyInput(selector) {
+  const input = $(selector);
+  if (!input) return;
+
+  input.addEventListener("keydown", (event) => {
+    if (["e", "E", "+", "-", ".", ","].includes(event.key)) {
+      event.preventDefault();
+    }
+  });
+
+  input.addEventListener("focus", () => {
+    if (!input.value) {
+      input.value = "0.00";
+      input.select();
+    }
+  });
+
+  input.addEventListener("input", () => {
+    formatMoneyInput(input);
+    placeCaretAtEnd(input);
+    updatePreview();
+  });
+
+  input.addEventListener("change", () => {
+    formatMoneyInput(input, { keepBlank: true });
+    updatePreview();
+  });
+}
+
 function id() {
   return Math.random().toString(36).slice(2, 9);
 }
@@ -136,9 +197,13 @@ function creatorStorefrontUrl() {
   return publicUrl(`/fan.html?handle=${encodeURIComponent(state.profile.handle || "creator")}#store`);
 }
 
+function dropPublicRef(dropId) {
+  const clean = String(dropId || "").trim().replace(/^drop[_-]?/i, "");
+  return (clean || String(dropId || "link")).slice(0, 10).toLowerCase();
+}
+
 function dropBuyerUrl(dropId) {
-  const handle = encodeURIComponent(state.profile.handle || "creator");
-  return publicUrl(`/fan.html?handle=${handle}&drop=${encodeURIComponent(dropId)}#store`);
+  return publicUrl(`/l/${encodeURIComponent(dropPublicRef(dropId))}`);
 }
 
 function loadSettings() {
@@ -166,7 +231,7 @@ function loadSettings() {
           views: Math.max(0, Number(link.views) || 0),
           sales: Math.max(0, Number(link.sales) || 0),
           revenue: Math.max(0, Number(link.revenue) || 0),
-          url: normalizePublicUrl(link.url || dropBuyerUrl(link.id)),
+          url: dropBuyerUrl(link.id),
         }));
     }
     if (Array.isArray(saved.operations)) {
@@ -219,6 +284,10 @@ function hasAccountEmail() {
   return /\S+@\S+\.\S+/.test(state.account.email.trim());
 }
 
+function hasAgeConfirmed() {
+  return Boolean(currentUser?.ageConfirmed);
+}
+
 function isPublicPageCustomized() {
   const defaultBio = "Private drops, files, and creator packs in one clean storefront.";
   return Boolean(
@@ -240,6 +309,15 @@ function checklistItems() {
       complete: hasAccountEmail(),
       action: "account",
       cta: "Add",
+    },
+    {
+      id: "age",
+      icon: "badge-check",
+      title: "Confirm age",
+      detail: hasAgeConfirmed() ? "Confirmed for publishing and payouts" : "Required before publishing locked content",
+      complete: hasAgeConfirmed(),
+      action: "age",
+      cta: "Confirm",
     },
     {
       id: "payout",
@@ -421,7 +499,17 @@ function renderProfileLinks() {
           `,
         )
         .join("")
-    : emptyLinksMarkup("Create your first link", "Create a locked drop to publish it here.");
+    : `
+      <button class="profile-empty-links" type="button" data-view="create">
+        <span class="profile-empty-frames" aria-hidden="true">
+          <span></span>
+          <span></span>
+        </span>
+        <span class="profile-empty-plus"><i data-lucide="plus"></i></span>
+        <strong>Add your links</strong>
+        <small>Choose the drop that best represents your storefront.</small>
+      </button>
+    `;
 }
 
 function renderOperations() {
@@ -575,6 +663,11 @@ function runOnboardingAction(action) {
     return;
   }
 
+  if (action === "age") {
+    openAgeConfirmDialog();
+    return;
+  }
+
   if (action === "payout") {
     openPaymentSettings();
     return;
@@ -635,11 +728,12 @@ function updatePreview() {
   const priceInput = $("#price-input");
   const noteInput = $("#note-input");
   const title = titleInput?.value.trim() || "Locked media";
-  const price = Number(priceInput?.value) || 0;
+  const price = priceValue(priceInput?.value);
   const note = noteInput?.value.trim() || "Pay once to unlock this content.";
   const src = state.selectedPreview || DEFAULT_THUMBNAIL;
   const canCreate = isSellReadyToCreate();
   syncPriceWidth();
+  syncCreatorPayoutLabels();
   syncPriceErrors();
 
   const previewTitle = $("#preview-title");
@@ -671,14 +765,14 @@ function hasSellContentReady() {
 }
 
 function isSellReadyToCreate() {
-  const price = Number($("#price-input")?.value) || 0;
+  const price = priceValue($("#price-input")?.value);
   return Boolean(state.sell.mediaKind && price >= MIN_PRICE && hasSellContentReady());
 }
 
 function sellValidationMessage() {
   if (!state.sell.mediaKind) return "Add media first";
 
-  const price = Number($("#price-input")?.value) || 0;
+  const price = priceValue($("#price-input")?.value);
   if (price <= 0) return "Set a price first";
   if (price < MIN_PRICE) return "minimum of $5";
 
@@ -694,16 +788,41 @@ function sellValidationMessage() {
 }
 
 function syncPriceWidth() {
-  const priceInput = $("#price-input");
-  if (!priceInput) return;
-  priceInput.style.width = "4ch";
+  syncPriceInputWidth($("#price-input"), ".sell-price-input");
+  syncPriceInputWidth($("#detail-price-input"), ".money-field");
+}
+
+function syncPriceInputWidth(input, shellSelector) {
+  if (!input) return;
+  const value = input.value || input.placeholder || "0.00";
+  const cleanLength = Math.max(4.4, Math.min(value.length + 0.3, 11));
+  input.style.setProperty("--price-value-ch", cleanLength.toFixed(1));
+
+  const priceShell = input.closest(shellSelector);
+  if (priceShell) {
+    const shellLength = Math.max(5, Math.min(value.length + 1, 12));
+    priceShell.style.setProperty("--price-ch", shellLength.toFixed(1));
+    priceShell.classList.toggle("has-price", priceValue(value) > 0);
+  }
+}
+
+function syncCreatorPayoutLabels() {
+  updateCreatorPayoutLabel("#creator-receive", priceValue($("#price-input")?.value));
+  updateCreatorPayoutLabel("#detail-creator-receive", priceValue($("#detail-price-input")?.value));
+}
+
+function updateCreatorPayoutLabel(selector, price) {
+  const label = $(selector);
+  if (!label) return;
+  label.hidden = !(price > 0);
+  label.textContent = `You will receive ${money(creatorPayout(price))}`;
 }
 
 function syncPriceErrors() {
   const priceInput = $("#price-input");
   const detailPriceInput = $("#detail-price-input");
-  const price = Number(priceInput?.value) || 0;
-  const detailPrice = Number(detailPriceInput?.value) || 0;
+  const price = priceValue(priceInput?.value);
+  const detailPrice = priceValue(detailPriceInput?.value);
   const showMainError = Boolean(priceInput?.value && price < MIN_PRICE);
   const showDetailError = Boolean(detailPriceInput?.value && detailPrice < MIN_PRICE);
   const mainError = $("#price-error");
@@ -1403,6 +1522,14 @@ function openProfileSettings() {
           </span>
           <i data-lucide="chevron-right"></i>
         </button>
+        <button class="settings-row" type="button" data-open-age-confirm>
+          <span class="settings-icon"><i data-lucide="${hasAgeConfirmed() ? "badge-check" : "badge-alert"}"></i></span>
+          <span>
+            <strong>Age confirmation</strong>
+            <small>${hasAgeConfirmed() ? "Confirmed for publishing locked content" : "Required before you can publish or accept payments"}</small>
+          </span>
+          <i data-lucide="chevron-right"></i>
+        </button>
         <p class="settings-section-label">Creator page</p>
         <button class="settings-row" type="button" data-open-edit-profile>
           <span class="settings-icon"><i data-lucide="user-round-pen"></i></span>
@@ -1454,6 +1581,43 @@ function openProfileSettings() {
           <i data-lucide="chevron-right"></i>
         </a>
       </div>
+    `,
+  );
+}
+
+function openAgeConfirmDialog() {
+  if (!currentUser) {
+    showToast("Sign in first");
+    showLoginOverlay("creator");
+    return;
+  }
+
+  if (hasAgeConfirmed()) {
+    showToast("Age already confirmed");
+    return;
+  }
+
+  openDialog(
+    "Confirm age",
+    `
+      <form class="dialog-form" id="age-confirm-form">
+        <div class="settings-note">
+          <span class="settings-icon"><i data-lucide="badge-check"></i></span>
+          <span>
+            <strong>Required before publishing</strong>
+            <small>Vault'd needs creators to confirm they are 18 or older before creating locked drops, setting up payouts, or selling content.</small>
+          </span>
+        </div>
+        <label class="check-row">
+          <input id="age-confirm-checkbox" name="ageConfirmed" type="checkbox" required />
+          <span>I confirm I am 18 or older and can use Vault'd as a creator.</span>
+        </label>
+        <button class="primary-button" type="submit">
+          <i data-lucide="check"></i>
+          <span>Confirm and continue</span>
+        </button>
+        <p class="form-status" id="age-confirm-status" hidden></p>
+      </form>
     `,
   );
 }
@@ -1725,23 +1889,42 @@ function isLocalPreviewMode() {
 }
 
 function previewParamEnabled() {
+  const params = new URLSearchParams(window.location.search);
+  return params.get("preview") === "upload" && params.get("demo") === "1";
+}
+
+function uploadPreviewParamPresent() {
   return new URLSearchParams(window.location.search).get("preview") === "upload";
 }
 
 function stripProductionPreviewParam() {
-  if (isLocalPreviewMode() || !previewParamEnabled()) return;
+  if (isLocalPreviewMode() || !uploadPreviewParamPresent()) return;
   const params = new URLSearchParams(window.location.search);
   params.delete("preview");
+  params.delete("demo");
   const query = params.toString();
   const nextUrl = `${window.location.pathname}${query ? `?${query}` : ""}${window.location.hash}`;
   window.history.replaceState({}, "", nextUrl);
+}
+
+function isLocalPublishFallbackError(err) {
+  if (!isLocalPreviewMode()) return false;
+  if (!err) return false;
+  if ([401, 403].includes(err.status)) return false;
+  const message = String(err.message || "");
+  if (err.status === 400 && message !== "Request failed") return false;
+  return err.status >= 500
+    || message === "Request failed"
+    || message.includes("Upload failed")
+    || message.includes("Failed to fetch")
+    || message.includes("NetworkError");
 }
 
 async function createLink(form) {
   syncSellDetailFields();
   const data = new FormData(form);
   const title = String(data.get("title") || "Untitled drop").trim();
-  const price = Number(data.get("price")) || 0;
+  const price = priceValue(data.get("price"));
   const contentUrl = String(data.get("contentUrl") || "").trim();
   const mediaItems = state.sell.mediaItems;
 
@@ -1763,68 +1946,86 @@ async function createLink(form) {
     return;
   }
 
+  if (!hasAgeConfirmed() && !isPreviewCreatorSession()) {
+    openAgeConfirmDialog();
+    return;
+  }
+
+  const dropData = {
+    title,
+    description: String(data.get("note") || "").trim(),
+    price,
+    access: apiAccessValue(),
+    download: apiDownloadValue(),
+    downloadExtraPercent: state.sell.downloadExtraPercent || 0,
+  };
+
+  // Use file-based media items if present, otherwise wrap contentUrl as a stub
+  let itemsToUpload = mediaItems;
+  if (!itemsToUpload.length && contentUrl) {
+    // URL-only drop - no file to upload, send a 1-byte stub
+    itemsToUpload = [{ name: "link.txt", file: new Blob([contentUrl], { type: "text/plain" }) }];
+  }
+
+  const buildLink = (drop) => ({
+    id: drop.id,
+    title: drop.title,
+    price: drop.price,
+    note: drop.description || "",
+    fileName: mediaItems.length > 1
+      ? `${mediaItems.length} media items`
+      : mediaItems[0]?.name || contentUrl || `${title.replace(/\s+/g, "-").toLowerCase()}`,
+    mediaCount: mediaItems.length || 1,
+    mediaTypes: mediaItems.map((item) => item.type),
+    contentUrl,
+    download: state.sell.download,
+    downloadExtraPercent: state.sell.downloadExtraPercent,
+    thumbnail: mediaItems[0]?.preview || state.selectedPreview || DEFAULT_THUMBNAIL,
+    status: "active",
+    views: 0,
+    sales: 0,
+    revenue: 0,
+    url: dropBuyerUrl(drop.id),
+  });
+
+  const publishLocalLink = () => {
+    const link = buildLink({
+      id: id(),
+      title: dropData.title,
+      price: dropData.price,
+      description: dropData.description,
+    });
+    state.links.unshift(link);
+    saveSettings();
+    renderAll();
+    setView("links");
+  };
+
   // Disable button during upload
   const btn = form.querySelector("button[type=submit], #generate-link-button");
   if (btn) { btn.disabled = true; btn.textContent = "Uploading…"; }
 
   try {
-    const dropData = {
-      title,
-      description: String(data.get("note") || "").trim(),
-      price,
-      access: apiAccessValue(),
-      download: apiDownloadValue(),
-      downloadExtraPercent: state.sell.downloadExtraPercent || 0,
-    };
-
-    // Use file-based media items if present, otherwise wrap contentUrl as a stub
-    let itemsToUpload = mediaItems;
-    if (!itemsToUpload.length && contentUrl) {
-      // URL-only drop — no file to upload, send a 1-byte stub
-      itemsToUpload = [{ name: "link.txt", file: new Blob([contentUrl], { type: "text/plain" }) }];
-    }
-
-    const buildLink = (drop) => ({
-      id: drop.id,
-      title: drop.title,
-      price: drop.price,
-      note: drop.description || "",
-      fileName: mediaItems.length > 1
-        ? `${mediaItems.length} media items`
-        : mediaItems[0]?.name || contentUrl || `${title.replace(/\s+/g, "-").toLowerCase()}`,
-      mediaCount: mediaItems.length || 1,
-      mediaTypes: mediaItems.map((item) => item.type),
-      contentUrl,
-      download: state.sell.download,
-      downloadExtraPercent: state.sell.downloadExtraPercent,
-      thumbnail: mediaItems[0]?.preview || state.selectedPreview || DEFAULT_THUMBNAIL,
-      status: "active",
-      views: 0,
-      sales: 0,
-      revenue: 0,
-      url: dropBuyerUrl(drop.id),
-    });
-
-    let link;
     if (isPreviewCreatorSession()) {
-      link = buildLink({
-        id: id(),
-        title: dropData.title,
-        price: dropData.price,
-        description: dropData.description,
-      });
+      publishLocalLink();
     } else {
       const result = await VaultlineAPI.createDrop(dropData, itemsToUpload);
-      link = buildLink(result.drop);
+      state.links.unshift(buildLink(result.drop));
+      saveSettings();
+      renderAll();
+      setView("links");
     }
-
-    state.links.unshift(link);
-    saveSettings();
-    renderAll();
-    setView("links");
     showToast(isPreviewCreatorSession() ? "Link generated" : "Drop published");
   } catch (err) {
-    showToast(err.message || "Upload failed");
+    if (err.status === 403 && String(err.message || "").includes("18+")) {
+      openAgeConfirmDialog();
+    } else if (isLocalPublishFallbackError(err)) {
+      console.warn("createLink local fallback:", err);
+      publishLocalLink();
+      showToast("Link generated locally");
+    } else {
+      showToast(err.message === "Request failed" ? "Could not publish. Check upload storage setup." : err.message || "Upload failed");
+    }
     console.error("createLink error:", err);
   } finally {
     if (btn) { btn.disabled = false; btn.textContent = "Generate link"; }
@@ -1832,7 +2033,7 @@ async function createLink(form) {
 }
 
 function recordSale(link) {
-  const creatorAmount = Number((link.price * 0.9).toFixed(2));
+  const creatorAmount = creatorPayout(link.price);
   link.sales += 1;
   link.revenue += creatorAmount;
   state.operations.unshift({
@@ -1869,7 +2070,7 @@ function showLoginOverlay(role = "creator") {
       <div style="background:#111;border:1px solid #222;border-radius:20px;padding:32px 28px;width:100%;max-width:360px;">
         <h2 style="margin:0 0 6px;font-size:22px;font-weight:700;color:#fff;">Sign in to Vault'd</h2>
         <p style="margin:0 0 24px;font-size:14px;color:#888;">We'll send you a magic link — no password needed.</p>
-        <form id="vl-login-form">
+        <form id="vl-login-form" novalidate>
           <input id="vl-login-email" type="email" required placeholder="your@email.com"
             style="width:100%;box-sizing:border-box;background:#1a1a1a;border:1px solid #333;border-radius:12px;
                    color:#fff;font-size:15px;padding:13px 16px;margin-bottom:14px;outline:none;" />
@@ -1890,10 +2091,17 @@ function showLoginOverlay(role = "creator") {
 
     document.getElementById("vl-login-form").addEventListener("submit", async (event) => {
       event.preventDefault();
-      const email = document.getElementById("vl-login-email").value.trim();
+      const emailInput = document.getElementById("vl-login-email");
+      const email = emailInput.value.trim();
       const ageConfirmed = document.getElementById("vl-login-age").checked;
       const status = document.getElementById("vl-login-status");
       const btn = event.target.querySelector("button");
+      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        status.style.color = "#f87171";
+        status.textContent = "Enter a valid email to sign in.";
+        emailInput.focus();
+        return;
+      }
       if (!ageConfirmed) {
         status.style.color = "#f87171";
         status.textContent = "Confirm you are 18+ to continue.";
@@ -1993,8 +2201,7 @@ async function loadDropsFromApi() {
               price: drop.price,
               download: drop.download,
               downloadExtraPercent: Number(drop.download_extra_percent) || 0,
-            }) *
-              0.9,
+            }) * CREATOR_PAYOUT_RATE,
           0,
         ),
       access: drop.access === "unlisted" ? "Unlisted" : "Everyone",
@@ -2021,7 +2228,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   stripProductionPreviewParam();
   if (previewParamEnabled() && isLocalPreviewMode()) {
-    currentUser = { id: "preview", email: "preview@vaultline.local", role: "creator" };
+    currentUser = { id: "preview", email: "preview@vaultline.local", role: "creator", ageConfirmed: true };
     hideLoginOverlay();
   } else {
     // Auth gate — check session then load real data
@@ -2061,12 +2268,15 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  ["#title-input", "#price-input", "#note-input"].forEach((selector) => {
+  attachMoneyInput("#price-input");
+  attachMoneyInput("#detail-price-input");
+
+  ["#title-input", "#note-input"].forEach((selector) => {
     $(selector).addEventListener("input", updatePreview);
     $(selector).addEventListener("change", updatePreview);
   });
 
-  ["#detail-title-input", "#detail-price-input", "#detail-note-input", "#detail-url-input"].forEach((selector) => {
+  ["#detail-title-input", "#detail-note-input", "#detail-url-input"].forEach((selector) => {
     $(selector).addEventListener("input", updatePreview);
     $(selector).addEventListener("change", updatePreview);
   });
@@ -2254,6 +2464,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const accountSettingsButton = event.target.closest("[data-open-account-settings]");
     if (accountSettingsButton) openAccountSettings();
 
+    const ageConfirmButton = event.target.closest("[data-open-age-confirm]");
+    if (ageConfirmButton) openAgeConfirmDialog();
+
     const settingsButton = event.target.closest("[data-open-profile-settings]");
     if (settingsButton) openProfileSettings();
 
@@ -2335,7 +2548,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (event.key === "Escape") setAccountDropdown(false);
   });
 
-  document.addEventListener("submit", (event) => {
+  document.addEventListener("submit", async (event) => {
     const form = event.target;
     if (!(form instanceof HTMLFormElement)) return;
 
@@ -2371,6 +2584,41 @@ document.addEventListener("DOMContentLoaded", () => {
       renderLaunchChecklist();
       $("#share-dialog").close();
       showToast("Account details saved");
+      return;
+    }
+
+    if (form.id === "age-confirm-form") {
+      event.preventDefault();
+      const checkbox = $("#age-confirm-checkbox");
+      const status = $("#age-confirm-status");
+      const button = form.querySelector("button[type='submit']");
+      if (!checkbox?.checked) {
+        if (status) {
+          status.hidden = false;
+          status.textContent = "Check the box to confirm you are 18 or older.";
+        }
+        return;
+      }
+      if (button) {
+        button.disabled = true;
+        button.querySelector("span").textContent = "Confirming...";
+      }
+      try {
+        const result = await VaultlineAPI.confirmAge();
+        currentUser = result.user;
+        renderLaunchChecklist();
+        $("#share-dialog").close();
+        showToast("Age confirmed");
+      } catch (err) {
+        if (status) {
+          status.hidden = false;
+          status.textContent = err.message || "Could not confirm age";
+        }
+        if (button) {
+          button.disabled = false;
+          button.querySelector("span").textContent = "Confirm and continue";
+        }
+      }
       return;
     }
 
