@@ -108,6 +108,9 @@ ADMIN_EMAILS
 - Buyer links now use the short public format `https://vaultd.me/l/<code>`. The server redirects `/l/:dropRef` to the fan storefront and resolves short refs in `/api/drops/:dropId`.
 - Checkout and Stripe invoice content rows now read `Purchase Link #<code>` and omit the content item subtitle/description. The separate `Privacy & security fees` row keeps its buyer-protection description.
 - Shared single-drop links now render as focused purchase pages modeled after Unlockt-style shared links: media preview first, creator/message context, purchase trust cues, no top promo/icon-menu, and a sticky bottom purchase bar with `Unlock now`. The `Apple Pay` action is conditional and only appears when the browser reports Apple Pay support; normal storefront cards now use one `Unlock now` action instead of a separate Preview button.
+- Creator Sell now uses a fixed-height mobile layout so the upload/price/options/generate flow fits in one viewport. Media previews and controls compress on shorter phones instead of forcing page scroll.
+- Sell price input sizing now measures the rendered text in pixels and adds a caret buffer, preventing iOS/Safari from clipping the final digit in values like `$50.00`.
+- Generate Link no longer stores full uploaded phone photos in `localStorage`; it uses compressed previews/link thumbnails, retries compact saves after quota errors, and compresses large image files before upload to reduce Supabase Storage pressure.
 - Shared creator profile pages now open as polished public storefront profiles with a centered avatar, bio, big green `Message` button, and locked drops below.
 - Fan-to-creator messaging is backed by `POST /api/storefront/:handle/messages`, the new `creator_messages` table, and a creator email notification when Resend is configured.
 - Creator Sell price UI now includes the live creator payout line below the amount and no longer relies on shrinking text to avoid clipping.

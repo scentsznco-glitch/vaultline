@@ -59,6 +59,9 @@ db/
 - [x] Landing page redesign (index.html) — polished, Syne font, no clunky buttons
 - [x] Creator Sell price UI uses a compact auto-growing price pill and shows `You will receive $X.XX` at the 90% creator payout rate.
 - [x] Shared content links now open a focused purchase page with blurred media preview, creator/message card, trust cues, no top promo/icon-menu, sticky `Unlock now`, and a conditional Apple Pay button that only appears when the browser reports Apple Pay support.
+- [x] Creator Sell tab now uses a mobile fixed-height layout so upload, price, options, Generate Link, and the bottom nav fit without page scrolling.
+- [x] Sell price input now uses measured pixel sizing with extra caret room so iOS/Safari does not clip the final digit.
+- [x] Generate Link quota fix: image previews/link thumbnails are compacted before local saves, local quota retries use a compact payload, and large photo uploads are compressed before Supabase Storage upload.
 
 ---
 
