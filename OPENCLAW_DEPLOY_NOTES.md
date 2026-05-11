@@ -10,8 +10,10 @@ https://vaultd.me
 - Public landing logo restored to the clean `Vault'd` wordmark only.
 - Creator and fan dashboards use a local custom vault-door brand mark.
 - Fan discover page has a clearer logged-out browse/sign-up flow.
+- Fan checkout is now a full-screen mobile flow with an order summary, 15% `Privacy & security fees`, related add-on drops, bundle discount progress, and a sticky `Proceed to pay` bar.
 - Creator sell screen has a compact Unlockt-style price pill and a shorter no-scroll mobile layout.
 - Stripe Checkout now creates invoice lines for the content price plus a separate 15% `Privacy & security fees` buyer fee, while keeping the creator-side platform commission at 10%.
+- Stripe Checkout now accepts multiple drops from the same creator in one session, applies the same 10%/20%/30% bundle discount tiers shown in the checkout UI, and records each purchased drop into the fan library.
 - Creator profile launch checklist is now collapsible and uses a softer completed check badge instead of a filled green circle.
 - Profile settings FAQ now opens in-place inside the modal instead of navigating users away from the creator dashboard.
 - Generated storefront, fan discover, and paid drop links now use `https://vaultd.me` even when the site is previewed on localhost.

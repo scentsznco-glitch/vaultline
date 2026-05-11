@@ -44,6 +44,10 @@ USER DESIGN DIRECTION
 - Fees:
   - Creator-side platform commission is 10%.
   - Buyer checkout/invoices should include a separate 15% line labeled "Privacy & security fees".
+- Checkout:
+  - The fan checkout should be a full-screen mobile flow, not a small modal.
+  - Show order summary, creator avatar/name, locked item rows, order/fee/total breakdown, related add-on drops, bundle progress, and a sticky green Proceed to pay button.
+  - Bundle checkout supports multiple drops from the same creator and saves each purchased drop to the fan library.
 
 WHAT IS IN THIS FOLDER
 - index.html, styles.css, app.js
