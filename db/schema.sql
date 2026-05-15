@@ -53,11 +53,14 @@ create table if not exists drops (
   access text not null check (access in ('everyone', 'unlisted', 'svip')),
   download text not null check (download in ('allowed', 'extra', 'blocked')),
   download_extra_percent integer not null default 0 check (download_extra_percent between 0 and 100),
+  thumbnail text not null default '',
   status text not null default 'active' check (status in ('draft', 'active', 'expired', 'removed')),
   views integer not null default 0,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+alter table drops add column if not exists thumbnail text not null default '';
 
 create table if not exists drop_media (
   id text primary key,

@@ -510,7 +510,7 @@ async function loadStorefrontFromApi() {
       fileName: drop.drop_media?.length > 1
         ? `${drop.drop_media.length} media items`
         : drop.drop_media?.[0]?.file_name || drop.title,
-      thumbnail: DEFAULT_THUMBNAIL,
+      thumbnail: drop.thumbnail || DEFAULT_THUMBNAIL,
       status: "active",
       createdAt: drop.created_at,
       url: dropShortUrl(drop.id),
@@ -546,7 +546,7 @@ async function loadLibraryFromApi() {
       fileName: item.drops?.drop_media?.length > 1
         ? `${item.drops.drop_media.length} files`
         : item.drops?.drop_media?.[0]?.file_name || "unlocked-file",
-      thumbnail: DEFAULT_THUMBNAIL,
+      thumbnail: item.drops?.thumbnail || DEFAULT_THUMBNAIL,
       creatorHandle: item.drops?.creator_profiles?.handle || "creator",
       purchasedAt: item.created_at || new Date().toISOString(),
     }));

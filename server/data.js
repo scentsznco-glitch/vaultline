@@ -148,7 +148,7 @@ export async function updateCreatorPayoutStatus({ stripeAccountId, chargesEnable
   return data;
 }
 
-export async function createDrop({ creatorId, title, description, price, access = "everyone", download = "allowed", downloadExtraPercent = 0 }) {
+export async function createDrop({ creatorId, title, description, price, access = "everyone", download = "allowed", downloadExtraPercent = 0, thumbnail = "" }) {
   const client = requireDb();
   const drop = {
     id: id("drop"),
@@ -159,6 +159,7 @@ export async function createDrop({ creatorId, title, description, price, access 
     access,
     download,
     download_extra_percent: downloadExtraPercent,
+    thumbnail: thumbnail || "",
     status: "active",
   };
   const { data, error } = await client.from("drops").insert(drop).select("*").single();
@@ -321,7 +322,7 @@ export async function listLibrary({ buyerId }) {
   const client = requireDb();
   const { data, error } = await client
     .from("purchases")
-    .select("*, entitlements!inner(revoked_at), drops(id, title, description, price, creator_profiles(handle), drop_media(id, file_type, file_name))")
+    .select("*, entitlements!inner(revoked_at), drops(id, title, description, price, thumbnail, creator_profiles(handle), drop_media(id, file_type, file_name))")
     .eq("buyer_id", buyerId)
     .eq("status", "paid")
     .is("entitlements.revoked_at", null)
@@ -395,7 +396,7 @@ export async function getStorefrontByHandle(handle) {
 
   const { data: drops, error: dropsError } = await client
     .from("drops")
-    .select("id, title, description, price, access, download, download_extra_percent, created_at, drop_media(id, file_type, file_name)")
+    .select("id, title, description, price, access, download, download_extra_percent, thumbnail, created_at, drop_media(id, file_type, file_name)")
     .eq("creator_id", profile.user_id)
     .eq("status", "active")
     .eq("access", "everyone")
@@ -409,7 +410,7 @@ export async function listDiscoverStorefronts({ limit = 60 } = {}) {
   const client = requireDb();
   const { data, error } = await client
     .from("drops")
-    .select("id, title, description, price, access, download, download_extra_percent, created_at, views, creator_profiles(handle, bio, user_id), drop_media(id, file_type, file_name), purchases(id, status)")
+    .select("id, title, description, price, access, download, download_extra_percent, thumbnail, created_at, views, creator_profiles(handle, bio, user_id), drop_media(id, file_type, file_name), purchases(id, status)")
     .eq("status", "active")
     .eq("access", "everyone")
     .order("created_at", { ascending: false })
@@ -453,6 +454,7 @@ export async function listDiscoverStorefronts({ limit = 60 } = {}) {
       price: Number(drop.price) || 0,
       download: drop.download || "allowed",
       downloadExtraPercent: Number(drop.download_extra_percent) || 0,
+      thumbnail: drop.thumbnail || "",
       createdAt: drop.created_at,
       mediaCount: drop.drop_media?.length || 0,
       fileType: drop.drop_media?.[0]?.file_type || "",

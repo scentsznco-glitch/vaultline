@@ -5,7 +5,7 @@ const STORAGE_KEY = "vaultline-settings-v1";
 const PUBLIC_BASE_URL = "https://vaultd.me";
 const MIN_PRICE = 5;
 const CREATOR_PAYOUT_RATE = 0.9;
-const MAX_STORED_IMAGE_DATA_URL_LENGTH = 180000;
+const MAX_STORED_IMAGE_DATA_URL_LENGTH = 90000;
 const MAX_STORED_PROFILE_IMAGE_DATA_URL_LENGTH = 900000;
 const PREVIEW_IMAGE_MAX_EDGE = 960;
 const LINK_THUMBNAIL_MAX_EDGE = 420;
@@ -228,12 +228,38 @@ async function compactImagePreview(
   maxLength = null,
 ) {
   if (!isDataImage(src)) return String(src || fallback);
-  const resized = await resizeImageDataUrl(src, { maxEdge, quality });
-  return maxLength ? safePersistedImage(resized, fallback, maxLength) : String(resized || fallback);
+  const attempts = [
+    [maxEdge, quality],
+    [360, 0.68],
+    [280, 0.6],
+    [220, 0.54],
+  ];
+
+  let last = fallback;
+  for (const [edge, nextQuality] of attempts) {
+    const resized = await resizeImageDataUrl(src, { maxEdge: Math.min(edge, maxEdge), quality: nextQuality });
+    if (!resized || resized === fallback) continue;
+    last = resized;
+    if (!maxLength || resized.length <= maxLength) return resized;
+  }
+  return maxLength ? safePersistedImage(last, fallback, maxLength) : String(last || fallback);
+}
+
+async function mediaPreviewSource(item) {
+  if (!item) return state.selectedPreview || DEFAULT_THUMBNAIL;
+  if (item.previewReady) {
+    try {
+      const readyPreview = await item.previewReady;
+      if (readyPreview && readyPreview !== mediaPreviewFallback(item.type)) return readyPreview;
+    } catch {
+      // Fall through to the current preview.
+    }
+  }
+  return item.preview || state.selectedPreview || DEFAULT_THUMBNAIL;
 }
 
 async function linkThumbnailForMedia(mediaItems) {
-  const src = mediaItems[0]?.preview || state.selectedPreview || DEFAULT_THUMBNAIL;
+  const src = await mediaPreviewSource(mediaItems[0]);
   return compactImagePreview(src, DEFAULT_THUMBNAIL, LINK_THUMBNAIL_MAX_EDGE, 0.74, MAX_STORED_IMAGE_DATA_URL_LENGTH);
 }
 
@@ -408,7 +434,7 @@ function saveSettings() {
     applyStorageCompaction();
     localStorage.removeItem(STORAGE_KEY);
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(settingsPayload({ stripDataThumbnails: true })));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(settingsPayload({ stripProfileImages: true })));
     } catch (retryError) {
       if (!isQuotaExceededError(retryError)) throw retryError;
       localStorage.removeItem(STORAGE_KEY);
@@ -1314,20 +1340,23 @@ function createMediaItem(file) {
     type,
     duration: 0,
     preview: mediaPreviewFallback(type),
+    previewReady: Promise.resolve(mediaPreviewFallback(type)),
   };
 
   if (type === "image") {
-    fileToDataUrl(file).then((src) => compactImagePreview(src, mediaPreviewFallback(type), PREVIEW_IMAGE_MAX_EDGE, 0.78, 650000)).then((preview) => {
+    item.previewReady = fileToDataUrl(file).then((src) => compactImagePreview(src, mediaPreviewFallback(type), PREVIEW_IMAGE_MAX_EDGE, 0.78, 650000)).then((preview) => {
       item.preview = preview;
       updateSellMediaPreview();
       updatePreview();
+      return preview;
     }).catch(() => {
       item.preview = mediaPreviewFallback(type);
       updateSellMediaPreview();
       updatePreview();
+      return item.preview;
     });
   } else if (type === "video") {
-    createVideoThumbnail(file, item);
+    item.previewReady = createVideoThumbnail(file, item);
   }
 
   return item;
@@ -1381,63 +1410,67 @@ function removeSellMediaItem(itemId) {
 }
 
 function createVideoThumbnail(file, item) {
-  const objectUrl = URL.createObjectURL(file);
-  const video = document.createElement("video");
-  video.preload = "metadata";
-  video.muted = true;
-  video.playsInline = true;
-  video.src = objectUrl;
-  let done = false;
+  return new Promise((resolve) => {
+    const objectUrl = URL.createObjectURL(file);
+    const video = document.createElement("video");
+    video.preload = "metadata";
+    video.muted = true;
+    video.playsInline = true;
+    video.src = objectUrl;
+    let done = false;
 
-  const finish = (src) => {
-    if (done) return;
-    done = true;
-    URL.revokeObjectURL(objectUrl);
-    item.duration = Number.isFinite(video.duration) ? video.duration : 0;
-    item.preview = src;
-    updateSellMediaPreview();
-    updatePreview();
-  };
+    const finish = (src) => {
+      if (done) return;
+      done = true;
+      URL.revokeObjectURL(objectUrl);
+      item.duration = Number.isFinite(video.duration) ? video.duration : 0;
+      item.preview = src;
+      updateSellMediaPreview();
+      updatePreview();
+      resolve(src);
+    };
 
-  const capture = () => {
-    try {
-      const sourceWidth = video.videoWidth || 720;
-      const sourceHeight = video.videoHeight || 900;
-      const scale = Math.min(1, PREVIEW_IMAGE_MAX_EDGE / Math.max(sourceWidth, sourceHeight));
-      const canvas = document.createElement("canvas");
-      canvas.width = Math.max(1, Math.round(sourceWidth * scale));
-      canvas.height = Math.max(1, Math.round(sourceHeight * scale));
-      canvas.getContext("2d").drawImage(video, 0, 0, canvas.width, canvas.height);
-      finish(canvas.toDataURL("image/jpeg", 0.78));
-    } catch {
-      finish("assets/thumb-video.svg");
-    }
-  };
-
-  video.addEventListener(
-    "loadeddata",
-    () => {
+    const capture = () => {
       try {
-        const targetTime = Math.min(0.25, Math.max(0, video.duration || 0));
-        if (targetTime > 0) {
-          video.currentTime = targetTime;
-        } else {
+        const sourceWidth = video.videoWidth || 720;
+        const sourceHeight = video.videoHeight || 900;
+        const scale = Math.min(1, PREVIEW_IMAGE_MAX_EDGE / Math.max(sourceWidth, sourceHeight));
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.max(1, Math.round(sourceWidth * scale));
+        canvas.height = Math.max(1, Math.round(sourceHeight * scale));
+        canvas.getContext("2d").drawImage(video, 0, 0, canvas.width, canvas.height);
+        finish(canvas.toDataURL("image/jpeg", 0.78));
+      } catch {
+        finish("assets/thumb-video.svg");
+      }
+    };
+
+    video.addEventListener(
+      "loadeddata",
+      () => {
+        try {
+          const targetTime = Math.min(0.25, Math.max(0, video.duration || 0));
+          if (targetTime > 0) {
+            video.currentTime = targetTime;
+          } else {
+            capture();
+          }
+        } catch {
           capture();
         }
-      } catch {
-        capture();
-      }
-    },
-    { once: true },
-  );
+      },
+      { once: true },
+    );
 
-  video.addEventListener(
-    "seeked",
-    capture,
-    { once: true },
-  );
+    video.addEventListener(
+      "seeked",
+      capture,
+      { once: true },
+    );
 
-  video.addEventListener("error", () => finish("assets/thumb-video.svg"), { once: true });
+    video.addEventListener("error", () => finish("assets/thumb-video.svg"), { once: true });
+    window.setTimeout(() => finish("assets/thumb-video.svg"), 2500);
+  });
 }
 
 function setSellMedia(kind, label = "") {
@@ -2178,6 +2211,7 @@ async function createLink(form) {
     itemsToUpload = [{ name: "link.txt", file: new Blob([contentUrl], { type: "text/plain" }) }];
   }
   const linkThumbnail = await linkThumbnailForMedia(mediaItems);
+  dropData.thumbnail = linkThumbnail;
 
   const buildLink = (drop) => ({
     id: drop.id,
@@ -2192,7 +2226,7 @@ async function createLink(form) {
     contentUrl,
     download: state.sell.download,
     downloadExtraPercent: state.sell.downloadExtraPercent,
-    thumbnail: linkThumbnail,
+    thumbnail: drop.thumbnail || linkThumbnail,
     status: "active",
     views: 0,
     sales: 0,
@@ -2401,7 +2435,7 @@ async function loadDropsFromApi() {
         : drop.drop_media?.[0]?.file_name || drop.title,
       mediaCount: drop.drop_media?.length || 0,
       mediaTypes: (drop.drop_media || []).map((m) => m.file_type),
-      thumbnail: DEFAULT_THUMBNAIL,
+      thumbnail: drop.thumbnail || DEFAULT_THUMBNAIL,
       status: drop.status || "active",
       views: 0,
       sales: (drop.purchases || []).filter((p) => p.status === "paid").length,

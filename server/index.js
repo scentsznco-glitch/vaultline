@@ -481,6 +481,7 @@ app.post(
         access: dropAccessSchema.default("everyone"),
         download: dropDownloadSchema.default("allowed"),
         downloadExtraPercent: z.number().int().min(0).max(100).default(0),
+        thumbnail: z.string().max(250000).default(""),
         media: z
           .array(
             z.object({
@@ -500,6 +501,7 @@ app.post(
       access: body.access,
       download: body.download,
       downloadExtraPercent: body.downloadExtraPercent,
+      thumbnail: body.thumbnail,
     });
 
     const uploads = [];
