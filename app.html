@@ -426,7 +426,34 @@
             <button class="small-button" type="button" data-open-bundle-settings>Set up</button>
           </article>
 
-
+          <article class="tool-panel launch-checklist" aria-labelledby="launch-checklist-title">
+            <button
+              class="launch-checklist-head"
+              type="button"
+              data-toggle-launch-checklist
+              aria-expanded="false"
+              aria-controls="launch-checklist-body"
+            >
+              <span class="launch-checklist-icon"><i data-lucide="list-checks"></i></span>
+              <span class="launch-checklist-text">
+                <span class="eyebrow">Mobile site setup</span>
+                <span class="launch-checklist-title" id="launch-checklist-title">Launch checklist</span>
+                <span class="launch-checklist-copy" id="launch-checklist-copy">Finish the basics before sharing your paid mobile storefront.</span>
+              </span>
+              <span class="launch-checklist-controls">
+                <strong id="launch-checklist-progress">0/5</strong>
+                <span class="launch-checklist-toggle" aria-hidden="true">
+                  <i data-lucide="chevron-up"></i>
+                </span>
+              </span>
+            </button>
+            <div class="launch-checklist-body" id="launch-checklist-body">
+              <div class="launch-progress" aria-hidden="true">
+                <span id="launch-progress-bar"></span>
+              </div>
+              <div class="launch-checklist-items" id="launch-checklist-items"></div>
+            </div>
+          </article>
 
           <article class="tool-panel profile-storefront">
             <div class="panel-title">
